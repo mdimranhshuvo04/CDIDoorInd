@@ -117,6 +117,14 @@ const data = {
           title: "All Users",
           url: "/admin/users",
         },
+        {
+          title: "Employees",
+          url: "/admin/employees",
+        },
+        {
+          title: "Showrooms",
+          url: "/admin/showrooms",
+        },
       ],
     },
     {
@@ -179,11 +187,6 @@ const data = {
           url: "/admin/marketing",
         },
         {
-          title: "Subscribers",
-          url: "/admin/subscribers",
-          icon: Mail,
-        },
-        {
           title: "Infrastructure & Marketing",
           url: "/admin/system-design",
           superOnly: true
@@ -212,7 +215,7 @@ function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathna
       let filteredSubItems = item.items.filter((subItem: any) => !subItem.superOnly || role === 'super_admin');
       if (role === 'manager' && item.title === "Sales & Orders") {
         filteredSubItems = filteredSubItems.filter(
-          (subItem: any) => subItem.title !== "Expenses" && subItem.title !== "Accounts Ledger"
+          (subItem: any) => subItem.title !== "Accounts Ledger"
         );
       }
       return {

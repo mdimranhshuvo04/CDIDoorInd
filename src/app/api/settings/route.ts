@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
@@ -33,7 +33,7 @@ export async function GET() {
     const settings = await GlobalSettings.findOne().sort({ updatedAt: -1 });
     if (!settings) {
       return NextResponse.json({
-        brandName: process.env.NEXT_PUBLIC_STORE_NAME || "CDI Door Ind",
+        brandName: process.env.NEXT_PUBLIC_STORE_NAME || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
         contact: {
           email: "support@cdidoorind.com",
           phone: "+8801234567890",
@@ -48,8 +48,8 @@ export async function GET() {
           tiktok: '',
           whatsapp: ''
         },
-        marqueeText: "Welcome to CDI Door Ind!",
-        metaTitle: process.env.NEXT_PUBLIC_STORE_NAME || "CDI Door Ind",
+        marqueeText: "চিটাগাং ডোর ইন্ডাস্ট্রিজ-এ আপনাকে স্বাগতম!",
+        metaTitle: process.env.NEXT_PUBLIC_STORE_NAME || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
         metaDescription: "The most popular online shop in Bangladesh.",
         logoUrl: "/logo.webp",
         freeDeliveryThreshold: 0,

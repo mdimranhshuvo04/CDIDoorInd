@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CDI Door Industry - Demo & Test Accounts
 
-## Getting Started
+These demo accounts are seeded into the database for testing and verification purposes.
 
-First, run the development server:
+## Common Credentials
+- **Password:** `password123` (Same for all accounts listed below)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 1. Wholesalers (পাইকারি বিক্রেতা)
+- **Wholesaler 1**
+  - **Name:** Demo Wholesaler 1
+  - **Email:** `wholesaler1@example.com`
+  - **Role:** `wholesaler`
+  - **Phone:** `01711111111`
+- **Wholesaler 2**
+  - **Name:** Demo Wholesaler 2
+  - **Email:** `wholesaler2@example.com`
+  - **Role:** `wholesaler`
+  - **Phone:** `01722222222`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 2. Permanent Employees (স্থায়ী কর্মী - Monthly)
+- **Permanent Employee 1**
+  - **Name:** Permanent Employee 1
+  - **Email:** `empperm1@example.com`
+  - **Role:** `employee`
+  - **Phone:** `01733333333`
+  - **Type:** Monthly (Base Salary: `৳25,000`)
+- **Permanent Employee 2**
+  - **Name:** Permanent Employee 2
+  - **Email:** `empperm2@example.com`
+  - **Role:** `employee`
+  - **Phone:** `01744444444`
+  - **Type:** Monthly (Base Salary: `৳28,000`)
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 3. Contractual Employees (চুক্তিভিত্তিক কর্মী - Task-based)
+- **Contractual Employee 1**
+  - **Name:** Contractual Employee 1
+  - **Email:** `empcont1@example.com`
+  - **Role:** `employee`
+  - **Phone:** `01755555555`
+  - **Type:** Task-based (Task Rate: `৳500`)
+- **Contractual Employee 2**
+  - **Name:** Contractual Employee 2
+  - **Email:** `empcont2@example.com`
+  - **Role:** `employee`
+  - **Phone:** `01766666666`
+  - **Type:** Task-based (Task Rate: `৳600`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 4. General Managers (সাধারণ ম্যানেজার)
+- **Manager 1**
+  - **Name:** General Manager 1
+  - **Email:** `manager1@example.com`
+  - **Role:** `manager`
+  - **Phone:** `01777777777`
+- **Manager 2**
+  - **Name:** General Manager 2
+  - **Email:** `manager2@example.com`
+  - **Role:** `manager`
+  - **Phone:** `01788888888`
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 5. Showroom Managers (শো-রুম ম্যানেজার)
+- **Showroom Manager 1**
+  - **Name:** Showroom Manager 1
+  - **Email:** `showroom_mgr1@example.com`
+  - **Role:** `manager`
+  - **Phone:** `01799999999`
+  - **Assigned Showroom:** `Dhaka Main Showroom` (Mirpur, Dhaka)
+- **Showroom Manager 2**
+  - **Name:** Showroom Manager 2
+  - **Email:** `showroom_mgr2@example.com`
+  - **Role:** `manager`
+  - **Phone:** `01700000000`
+  - **Assigned Showroom:** `Chittagong Outlet` (GEC Circle, Chittagong)

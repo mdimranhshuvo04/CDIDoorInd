@@ -27,6 +27,14 @@ import {
   X,
   PlusCircle
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +60,8 @@ const productSchema = z.object({
   purchasePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   discountRate: z.union([z.coerce.number().min(0).max(100), z.literal('')]).optional(),
   salePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+  wholesalePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+  wholesaleSalePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   sku: z.string().min(3, 'SKU is required'),
   stock: z.union([z.coerce.number().int().min(0, 'Stock must be at least 0'), z.literal('')]),
   categories: z.array(z.string()).min(1, 'Select at least one category'),
@@ -73,6 +83,8 @@ const productSchema = z.object({
       purchasePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
       discountRate: z.union([z.coerce.number().min(0).max(100), z.literal('')]).optional(),
       salePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+      wholesalePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+      wholesaleSalePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
       stock: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
       sku: z.string().optional(),
     })).default([]),
@@ -90,6 +102,35 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+  const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+
+  const [showrooms, setShowrooms] = useState<any[]>([]);
+  const [selectedShowroom, setSelectedShowroom] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/admin/showrooms')
+      .then(res => res.json())
+      .then(data => {
+        const list = data.showrooms || [];
+        setShowrooms(list);
+        if (role === 'manager') {
+          const myShowroom = list.find((s: any) => s.manager?._id === userId || s.manager === userId);
+          if (myShowroom) {
+            setSelectedShowroom(myShowroom._id);
+          }
+        }
+      })
+      .catch(err => console.error('Error fetching showrooms:', err));
+  }, [role, userId]);
+
+  useEffect(() => {
+    if (initialData?.showroomStocks && initialData.showroomStocks.length > 0) {
+      setSelectedShowroom(initialData.showroomStocks[0].showroom?._id || initialData.showroomStocks[0].showroom || '');
+    }
+  }, [initialData]);
+
   const calculateDiscount = (price: number, salePrice?: number) => {
     if (!price || !salePrice || salePrice >= price) return 0;
     return Math.round((1 - salePrice / price) * 100);
@@ -103,6 +144,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
     purchasePrice: initialData?.purchasePrice ?? '',
     discountRate: calculateDiscount(initialData?.price, initialData?.salePrice) || '',
     salePrice: initialData?.salePrice ?? '',
+    wholesalePrice: initialData?.wholesalePrice ?? '',
+    wholesaleSalePrice: initialData?.wholesaleSalePrice ?? '',
     sku: initialData?.sku || '',
     stock: initialData?.stock ?? '',
     categories: initialData?.categories?.map((c: any) => typeof c === 'object' ? c._id : c) || [],
@@ -147,6 +190,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           stock: v.stock ?? '',
           discountRate: calculateDiscount(v.price, v.salePrice) || '',
           salePrice: v.salePrice ?? '',
+          wholesalePrice: v.wholesalePrice ?? '',
+          wholesaleSalePrice: v.wholesaleSalePrice ?? '',
           sku: v.sku || ''
         });
       });
@@ -207,6 +252,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           price: sizeInfo.price === '' ? 0 : Number(sizeInfo.price),
           purchasePrice: sizeInfo.purchasePrice === '' ? undefined : Number(sizeInfo.purchasePrice),
           salePrice: sizeInfo.salePrice === '' ? undefined : Number(sizeInfo.salePrice),
+          wholesalePrice: sizeInfo.wholesalePrice === '' ? undefined : Number(sizeInfo.wholesalePrice),
+          wholesaleSalePrice: sizeInfo.wholesaleSalePrice === '' ? undefined : Number(sizeInfo.wholesaleSalePrice),
           discountRate: sizeInfo.discountRate === '' || isNaN(Number(sizeInfo.discountRate)) ? undefined : Number(sizeInfo.discountRate),
           stock: sizeInfo.stock === '' ? 0 : Number(sizeInfo.stock),
           sku: sizeInfo.sku || '',
@@ -214,14 +261,22 @@ export function ProductForm({ initialData }: ProductFormProps) {
       });
     });
 
+    const actualShowroom = selectedShowroom === 'none' ? '' : selectedShowroom;
+    const showroomStocks = actualShowroom ? [
+      { showroom: actualShowroom, stock: values.stock === '' ? 0 : Number(values.stock) }
+    ] : [];
+
     const cleanValues = {
       ...values,
       price: values.price === '' ? 0 : Number(values.price),
       purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
       salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
+      wholesalePrice: values.wholesalePrice === '' ? undefined : Number(values.wholesalePrice),
+      wholesaleSalePrice: values.wholesaleSalePrice === '' ? undefined : Number(values.wholesaleSalePrice),
       discountRate: values.discountRate === '' || isNaN(Number(values.discountRate)) ? undefined : Number(values.discountRate),
       stock: values.stock === '' ? 0 : Number(values.stock),
       variants: flatVariants,
+      showroomStocks,
     };
 
     try {
@@ -667,7 +722,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       </div>
                                     </div>
 
-                                    {/* Row 2: Discount Rate (%), Sale Price */}
+                                    {/* Row 2: Discount Rate (%), Sale Price, Wholesale Price, Wholesale Sale Price */}
                                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                       <div>
                                         <Label className="text-xs font-medium text-muted-foreground">Disc (%)</Label>
@@ -704,6 +759,32 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                             } else {
                                               form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.discountRate`, undefined);
                                             }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label className="text-xs font-medium text-muted-foreground">Wholesale Price (Tk)</Label>
+                                        <Input
+                                          type="number"
+                                          placeholder="Optional"
+                                          value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.wholesalePrice`) ?? ''}
+                                          className="h-9 mt-1"
+                                          onChange={(e) => {
+                                            const val = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                                            form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.wholesalePrice`, val);
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label className="text-xs font-medium text-muted-foreground">Wholesale Sale (Tk)</Label>
+                                        <Input
+                                          type="number"
+                                          placeholder="Optional"
+                                          value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.wholesaleSalePrice`) ?? ''}
+                                          className="h-9 mt-1"
+                                          onChange={(e) => {
+                                            const val = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                                            form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.wholesaleSalePrice`, val);
                                           }}
                                         />
                                       </div>
@@ -832,8 +913,52 @@ export function ProductForm({ initialData }: ProductFormProps) {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="wholesalePrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Wholesale Price (Tk)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="0.00"
+                            {...field} 
+                            value={field.value ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="wholesaleSalePrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Wholesale Sale Price (Tk)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="0.00"
+                            {...field} 
+                            value={field.value ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <div className="mt-6">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="stock"
@@ -854,6 +979,34 @@ export function ProductForm({ initialData }: ProductFormProps) {
                       </FormItem>
                     )}
                   />
+
+                  <FormItem>
+                    <FormLabel>Link to Showroom Inventory</FormLabel>
+                    <Select 
+                      onValueChange={(val) => setSelectedShowroom(val || '')} 
+                      value={selectedShowroom || "none"}
+                      disabled={role === 'manager'}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-10 bg-background">
+                          <SelectValue placeholder="Central Inventory (No Showroom)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-background border shadow-md">
+                        <SelectItem value="none">Central Inventory (No Showroom)</SelectItem>
+                        {showrooms.map((showroom) => (
+                          <SelectItem key={showroom._id} value={showroom._id}>
+                            {showroom.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {role === 'manager' 
+                        ? 'Your showroom is automatically selected as default.' 
+                        : 'Select which showroom this product belongs to.'}
+                    </FormDescription>
+                  </FormItem>
                 </div>
               </CardContent>
             </Card>

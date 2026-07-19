@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import {
   Geist,
   Geist_Mono
@@ -102,21 +102,21 @@ export async function generateMetadata(): Promise<Metadata> {
       appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: settings.brandName || "CDI Door Ind",
+        title: settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
       },
       formatDetection: {
         telephone: false,
       },
       openGraph: {
-        title: settings.metaTitle || settings.brandName || "CDI Door Ind",
+        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
         url: baseUrl,
-        siteName: settings.brandName || "CDI Door Ind",
+        siteName: settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: settings.metaTitle || settings.brandName || "CDI Door Ind",
+        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
       },
       verification: {
@@ -133,7 +133,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (error) {
     return {
-      title: "CDI Door Ind",
+      title: "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
       description: "Your ultimate destination for quality products.",
     };
   }

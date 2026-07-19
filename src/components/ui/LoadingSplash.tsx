@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/logo";
@@ -11,8 +11,8 @@ export default function LoadingSplash({
   logoUrl?: string;
   brandName?: string;
 }) {
-  const defaultWords = ["Quality", "Trust", "Shop", "Value"];
-  const words = brandName ? [brandName, ...defaultWords] : ["CDI Door Ind", ...defaultWords];
+  const defaultWords = ["গুনগত মান", "বিশ্বাস", "কাঠের দরজা", "সেরা মূল্য"];
+  const words = brandName ? [brandName, ...defaultWords] : ["চিটাগাং ডোর ইন্ডাস্ট্রিজ", ...defaultWords];
   const [index, setIndex] = useState(0);
 
   useEffect(() => {

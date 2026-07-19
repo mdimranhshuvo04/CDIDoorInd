@@ -1,4 +1,4 @@
-﻿import { headers } from 'next/headers';
+import { headers } from 'next/headers';
 
 async function getBaseUrl() {
   const headersList = await headers();
@@ -12,7 +12,7 @@ export async function generateOrganizationSchema(settings: any) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: settings.brandName || 'CDI Door Ind',
+    name: settings.brandName || 'চিটাগাং ডোর ইন্ডাস্ট্রিজ',
     url: baseUrl,
     logo: settings.logo,
     contactPoint: {
@@ -41,7 +41,7 @@ export async function generateProductSchema(product: any) {
     sku: product.sku,
     brand: {
       '@type': 'Brand',
-      name: 'CDI Door Ind',
+      name: 'চিটাগাং ডোর ইন্ডাস্ট্রিজ',
     },
     offers: {
       '@type': 'Offer',
@@ -78,7 +78,7 @@ export async function generateBlogSchema(blog: any) {
     dateModified: blog.updatedAt || blog.createdAt,
     author: {
       '@type': 'Organization',
-      name: 'CDI Door Ind',
+      name: 'চিটাগাং ডোর ইন্ডাস্ট্রিজ',
     },
     description: blog.metaDescription || blog.title,
     url: `${baseUrl}/blog/${blog.slug}`,

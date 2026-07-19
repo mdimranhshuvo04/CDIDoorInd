@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid JSON request body' }, { status: 400 });
     }
 
-    const { name, slug, description, sku, categories, tags, images, attributes, variants, isFeatured, isNewArrival, isPublished, discountRate } = body;
+    const { name, slug, description, sku, categories, tags, images, attributes, variants, isFeatured, isNewArrival, isPublished, discountRate, wholesalePrice, wholesaleSalePrice, purchasePrice, showroomStocks } = body;
     let { price, salePrice, stock } = body;
 
     // Numeric validation and coercion
@@ -142,6 +142,9 @@ export async function POST(req: NextRequest) {
           description,
           price: parsedPrice,
           salePrice: parsedSalePrice,
+          wholesalePrice: Number.isFinite(parseFloat(wholesalePrice)) ? parseFloat(wholesalePrice) : undefined,
+          wholesaleSalePrice: Number.isFinite(parseFloat(wholesaleSalePrice)) ? parseFloat(wholesaleSalePrice) : undefined,
+          purchasePrice: Number.isFinite(parseFloat(purchasePrice)) ? parseFloat(purchasePrice) : undefined,
           discountRate: parsedDiscountRate,
           sku,
           stock: parsedStock,
@@ -150,6 +153,7 @@ export async function POST(req: NextRequest) {
           images: images || [],
           attributes: attributes || [],
           variants: coercedVariants,
+          showroomStocks: showroomStocks || [],
           isFeatured: isFeatured !== undefined ? isFeatured : false,
           isNewArrival: isNewArrival !== undefined ? isNewArrival : false,
           isPublished: isPublished !== undefined ? isPublished : true,

@@ -52,15 +52,30 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
   const wishlist = useAppSelector((state) => state.wishlist.items);
   const isInWishlist = wishlist.includes(initialProduct._id);
 
-  const firstVariant = initialProduct.variants && initialProduct.variants.length > 0 ? initialProduct.variants[0] : null;
+  const isWholesaler = (session?.user as any)?.role === 'wholesaler';
+  
+  const resolveWholesale = (p: any) => {
+    if (!p) return null;
+    return {
+      ...p,
+      price: (isWholesaler && p.wholesalePrice) ? p.wholesalePrice : p.price,
+      salePrice: (isWholesaler && p.wholesaleSalePrice) ? p.wholesaleSalePrice : p.salePrice
+    };
+  };
+
+  const resolvedInitialProduct = resolveWholesale(initialProduct);
+  const firstVariant = resolvedInitialProduct.variants && resolvedInitialProduct.variants.length > 0 
+    ? resolveWholesale(resolvedInitialProduct.variants[0]) 
+    : null;
+    
   const product = firstVariant ? {
-    ...initialProduct,
+    ...resolvedInitialProduct,
     price: firstVariant.price,
     salePrice: firstVariant.salePrice,
-    stock: firstVariant.stock ?? initialProduct.stock,
-    sku: firstVariant.sku ?? initialProduct.sku,
-    images: firstVariant.image ? [firstVariant.image, ...initialProduct.images.filter((img: string) => img !== firstVariant.image)] : initialProduct.images
-  } : initialProduct;
+    stock: firstVariant.stock ?? resolvedInitialProduct.stock,
+    sku: firstVariant.sku ?? resolvedInitialProduct.sku,
+    images: firstVariant.image ? [firstVariant.image, ...resolvedInitialProduct.images.filter((img: string) => img !== firstVariant.image)] : resolvedInitialProduct.images
+  } : resolvedInitialProduct;
 
   const hasVariants = product.variants && product.variants.length > 0;
 

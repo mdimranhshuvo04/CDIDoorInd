@@ -5,17 +5,22 @@ import Order from '@/models/Order';
 import User from '@/models/User';
 import Product from '@/models/Product';
 import Expense from '@/models/Expense';
+import Showroom from '@/models/Showroom';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin', 'manager'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+
+    if (!session || !(['admin', 'super_admin', 'manager'].includes(userRole))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const reqShowroom = searchParams.get('showroom');
 
     // Default range: Last 30 days
     const defaultFrom = new Date();
@@ -41,15 +46,64 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
+    // Resolve showroom filter
+    let showroomId: any = null;
+    if (userRole === 'manager') {
+      const managerShowroom = await Showroom.findOne({ manager: userId });
+      if (managerShowroom) {
+        showroomId = managerShowroom._id;
+      } else {
+        // Return blank/zero stats if manager has no assigned showroom
+        return NextResponse.json({
+          stats: {
+            totalRevenue: 0,
+            salesCount: 0,
+            totalUsers: 0,
+            pendingOrdersCount: 0,
+            activeSubscribers: 0,
+            totalWalletTokens: 0,
+            totalCOGS: 0,
+            totalExpenses: 0,
+            grossProfit: 0,
+            netProfit: 0,
+            roas: 0,
+            totalAdSpend: 0,
+            newUsersCount: 0,
+            returningUsersCount: 0,
+            projectedMonthlyRevenue: 0
+          },
+          recentOrders: [],
+          lowStockProducts: [],
+          topSellingProducts: [],
+          topCustomers: [],
+          chartData: []
+        });
+      }
+    } else if (reqShowroom) {
+      showroomId = reqShowroom;
+    }
+
+    // Build query matches
+    const orderMatch: any = {
+      status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
+      createdAt: { $gte: startDate, $lte: endDate },
+      deletedAt: null
+    };
+    if (showroomId) {
+      orderMatch.showroom = showroomId;
+    }
+
+    const expenseMatch: any = {
+      date: { $gte: startDate, $lte: endDate },
+      $or: [{ isApproved: true }, { isApproved: { $exists: false } }]
+    };
+    if (showroomId) {
+      expenseMatch.showroom = showroomId;
+    }
+
     // 1 & 2. Total Revenue, COGS, and Sales Count (Delivered Orders)
     const revenueStats = await Order.aggregate([
-      { 
-        $match: { 
-          status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
-          createdAt: { $gte: startDate, $lte: endDate },
-          deletedAt: null
-        } 
-      },
+      { $match: orderMatch },
       {
         $group: {
           _id: null,
@@ -80,11 +134,7 @@ export async function GET(req: NextRequest) {
 
     // 3. Expenses
     const expenseStats = await Expense.aggregate([
-      { 
-        $match: { 
-          date: { $gte: startDate, $lte: endDate }
-        } 
-      },
+      { $match: expenseMatch },
       {
         $group: {
           _id: null,
@@ -99,24 +149,43 @@ export async function GET(req: NextRequest) {
     const netProfit = grossProfit - totalExpenses;
 
     // 5. Total Customers (Only users with role 'user')
-    const totalUsers = await User.countDocuments({ 
-      role: 'user' 
-    });
+    const totalUsers = await User.countDocuments({ role: 'user' });
 
     // 6. Pending Orders (Total, not date filtered)
-    const pendingOrdersCount = await Order.countDocuments({ status: 'Order Placed', deletedAt: null });
+    const pendingOrdersQuery: any = { status: 'Order Placed', deletedAt: null };
+    if (showroomId) {
+      pendingOrdersQuery.showroom = showroomId;
+    }
+    const pendingOrdersCount = await Order.countDocuments(pendingOrdersQuery);
 
     // 7. Recent Orders
-    const recentOrders = await Order.find({ deletedAt: null })
+    const recentOrdersQuery: any = { deletedAt: null };
+    if (showroomId) {
+      recentOrdersQuery.showroom = showroomId;
+    }
+    const recentOrders = await Order.find(recentOrdersQuery)
       .sort({ createdAt: -1 })
       .limit(5)
       .select('slug totalAmount status createdAt')
       .populate('user', 'name email');
 
     // 8. Low Stock Products
-    const lowStockProducts = await Product.find({ stock: { $lt: 5 } })
+    let lowStockProducts: any[] = [];
+    if (showroomId) {
+      // Find products where showroom stock for this showroom is less than 5
+      lowStockProducts = await Product.find({
+        $or: [
+          { 'showroomStocks.showroom': showroomId, 'showroomStocks.stock': { $lt: 5 } },
+          { showroomStocks: { $size: 0 }, stock: { $lt: 5 } }
+        ]
+      })
       .limit(5)
-      .select('name stock price');
+      .select('name stock price showroomStocks');
+    } else {
+      lowStockProducts = await Product.find({ stock: { $lt: 5 } })
+        .limit(5)
+        .select('name stock price');
+    }
 
     // 9. Loyalty Stats
     const activeSubscribers = await User.countDocuments({ isSubscriptionActive: true });
@@ -127,7 +196,7 @@ export async function GET(req: NextRequest) {
 
     // 10. Top Selling Products
     const topSellingProducts = await Order.aggregate([
-      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null } },
+      { $match: orderMatch },
       { $unwind: '$items' },
       {
         $group: {
@@ -142,7 +211,7 @@ export async function GET(req: NextRequest) {
 
     // 11. Top Customers
     const topCustomers = await Order.aggregate([
-      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null } },
+      { $match: orderMatch },
       {
         $group: {
           _id: '$user',
@@ -172,21 +241,24 @@ export async function GET(req: NextRequest) {
     ]);
 
     // 12. Ad ROI (ROAS)
+    const adExpenseMatch: any = { category: 'Ads', date: { $gte: startDate, $lte: endDate } };
+    if (showroomId) {
+      adExpenseMatch.showroom = showroomId;
+    }
     const adExpenses = await Expense.aggregate([
-      { $match: { category: 'Ads', date: { $gte: startDate, $lte: endDate } } },
+      { $match: adExpenseMatch },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
     const totalAdSpend = adExpenses[0]?.total || 0;
     const roas = totalAdSpend > 0 ? Number((totalRevenue / totalAdSpend).toFixed(2)) : 0;
 
     // 13. New vs Returning (Sample simplified logic)
+    const allUsersWithOrdersMatch: any = { deletedAt: null, createdAt: { $gte: startDate, $lte: endDate } };
+    if (showroomId) {
+      allUsersWithOrdersMatch.showroom = showroomId;
+    }
     const allUsersWithOrders = await Order.aggregate([
-      { 
-        $match: { 
-          deletedAt: null,
-          createdAt: { $gte: startDate, $lte: endDate }
-        } 
-      },
+      { $match: allUsersWithOrdersMatch },
       { $group: { _id: '$user', count: { $sum: 1 } } }
     ]);
     const returningUsersCount = allUsersWithOrders.filter(u => u.count > 1).length;
@@ -194,13 +266,7 @@ export async function GET(req: NextRequest) {
 
     // 14. Chart Data & Simple Forecast
     const chartData = await Order.aggregate([
-      {
-        $match: {
-          status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
-          createdAt: { $gte: startDate, $lte: endDate },
-          deletedAt: null
-        }
-      },
+      { $match: orderMatch },
       {
         $group: {
           _id: {
@@ -223,14 +289,20 @@ export async function GET(req: NextRequest) {
         }
       },
       {
-        $project: {
-          _id: 0,
-          date: '$_id',
-          revenue: 1,
-          orders: 1,
-          profit: { $subtract: [{ $subtract: ['$revenue', '$cogs'] }, '$deliveryCharge'] }
+        $group: {
+          _id: null,
+          data: {
+            $push: {
+              date: '$_id',
+              revenue: '$revenue',
+              orders: '$orders',
+              profit: { $subtract: [{ $subtract: ['$revenue', '$cogs'] }, '$deliveryCharge'] }
+            }
+          }
         }
       },
+      { $unwind: '$data' },
+      { $replaceRoot: { newRoot: '$data' } },
       { $sort: { date: 1 } }
     ]);
 

@@ -25,8 +25,12 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { Pagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
+import { useSession } from 'next-auth/react';
 
 export default function ExpensesPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,6 +39,25 @@ export default function ExpensesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
   const [currentPage, setCurrentPage] = useState(1);
+
+  const handleApprove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/expenses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isApproved: true })
+      });
+      if (res.ok) {
+        toast.success('Expense approved successfully');
+        fetchExpenses();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || 'Failed to approve expense');
+      }
+    } catch (error) {
+      toast.error('Failed to approve expense');
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -183,6 +206,8 @@ export default function ExpensesPage() {
                 <TableHead>Date</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Showroom</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount (Tk)</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -190,7 +215,7 @@ export default function ExpensesPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10">
+                  <TableCell colSpan={7} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
                       Loading expenses...
@@ -199,7 +224,7 @@ export default function ExpensesPage() {
                 </TableRow>
               ) : filteredExpenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                     No expenses found.
                   </TableCell>
                 </TableRow>
@@ -207,30 +232,57 @@ export default function ExpensesPage() {
                 paginatedExpenses.map((expense) => (
                   <TableRow key={expense._id}>
                     <TableCell>{format(new Date(expense.date), 'dd MMM yyyy')}</TableCell>
-                    <TableCell className="font-medium">{expense.title}</TableCell>
+                    <TableCell className="font-medium">
+                      <div>
+                        <p>{expense.title}</p>
+                        {expense.createdBy && (
+                          <p className="text-[10px] text-muted-foreground">By: {expense.createdBy.name}</p>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{expense.category}</TableCell>
+                    <TableCell>{expense.showroom?.name || 'Central'}</TableCell>
+                    <TableCell>
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${expense.isApproved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {expense.isApproved ? 'Approved' : 'Pending'}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right font-semibold">৳{expense.amount.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => {
-                            setEditingExpense(expense);
-                            setIsDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => handleDelete(expense._id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        {!expense.isApproved && ['admin', 'super_admin'].includes(role) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                            onClick={() => handleApprove(expense._id)}
+                          >
+                            Approve
+                          </Button>
+                        )}
+                        {(!expense.isApproved || ['admin', 'super_admin'].includes(role)) && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => {
+                                setEditingExpense(expense);
+                                setIsDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => handleDelete(expense._id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

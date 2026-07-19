@@ -64,8 +64,16 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   const hasVariants = product.variants && product.variants.length > 0;
   const currentVariant = activeVariant || (hasVariants ? product.variants[0] : null);
 
-  const displayPrice = hasVariants ? (currentVariant?.price ?? 0) : product.price;
-  const displaySalePrice = hasVariants ? currentVariant?.salePrice : product.salePrice;
+  const isWholesaler = (session?.user as any)?.role === 'wholesaler';
+
+  const displayPrice = hasVariants 
+    ? ((isWholesaler && currentVariant?.wholesalePrice) ? currentVariant.wholesalePrice : (currentVariant?.price ?? 0))
+    : ((isWholesaler && product.wholesalePrice) ? product.wholesalePrice : product.price);
+
+  const displaySalePrice = hasVariants 
+    ? ((isWholesaler && currentVariant?.wholesaleSalePrice) ? currentVariant.wholesaleSalePrice : currentVariant?.salePrice)
+    : ((isWholesaler && product.wholesaleSalePrice) ? product.wholesaleSalePrice : product.salePrice);
+
   const displayStock = hasVariants ? (currentVariant?.stock ?? 0) : (product.stock ?? 0);
   const displaySku = hasVariants ? (currentVariant?.sku ?? '') : product.sku;
 

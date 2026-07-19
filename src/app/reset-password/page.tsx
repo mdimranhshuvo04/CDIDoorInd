@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -296,7 +296,7 @@ export default function ResetPasswordPage() {
         </motion.div>
 
         <div className="mt-auto pt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} CDI Door Ind. All rights reserved.
+          &copy; {new Date().getFullYear()} চিটাগাং ডোর ইন্ডাস্ট্রিজ। সর্বস্বত্ব সংরক্ষিত।
         </div>
       </div>
     </div>

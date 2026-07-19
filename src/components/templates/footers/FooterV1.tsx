@@ -123,8 +123,7 @@ export default function FooterV1() {
           <div className="flex flex-col items-center text-center md:items-start md:text-left gap-4 lg:col-span-2">
             <Logo textClassName="text-xl md:text-2xl whitespace-nowrap" />
             <p className="text-sm text-muted-foreground w-full md:w-4/5">
-              If you can dream it, you can do it.
-              So, our dream is best clothing for our customers
+              আমাদের স্বপ্ন হলো গ্রাহকদের জন্য সেরা মানের আধুনিক ও মজবুত কাঠের দরজা সরবরাহ করা।
             </p>
 
             {/* PWA Download App Button */}
@@ -171,7 +170,7 @@ export default function FooterV1() {
             <ul className="grid gap-3 text-sm text-muted-foreground">
               <li className="flex items-start justify-center md:justify-start gap-3">
                 <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                <span>{settings?.contact?.address || '123 CDI Door Ind Avenue'}</span>
+                <span>{settings?.contact?.address || '১২৩ চিটাগাং ডোর ইন্ডাস্ট্রিজ এভিনিউ'}</span>
               </li>
               <li className="flex items-center justify-center md:justify-start gap-3">
                 <Phone size={16} className="text-primary shrink-0" />
@@ -223,7 +222,7 @@ export default function FooterV1() {
 
         <div className="mt-12 flex flex-col items-center justify-between border-t py-6 sm:flex-row text-sm text-muted-foreground gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <p>© {new Date().getFullYear()} {settings?.brandName || 'CDI Door Ind'}. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {settings?.brandName || 'চিটাগাং ডোর ইন্ডাস্ট্রিজ'}। সর্বস্বত্ব সংরক্ষিত।</p>
           </div>
 
           <div className="flex items-center gap-6">

@@ -1,59 +1,84 @@
-﻿# CDI Door Ind — Hero Banner Image Prompts (5 Banners)
+# CDI Door Ind — Showroom Image Prompts (10 Showrooms)
 
-Generate **5 hero banner images** for the website's hero slider section.
-All images must be **16:9 wide landscape aspect ratio**, converted to **`.webp`** format.
-
-**CRITICAL RULE:** Every banner must clearly feature a **door** as the hero element — grand, cinematic, and atmospheric. The door must be unmistakably the focal point.
-
-Place finished images in: `public/assets/images/Banner/`
+This document contains **10 highly unique image generation prompts** for CDI Door Ind showrooms across Bangladesh, each showcasing a completely different architectural style, color palette, and atmospheric mood.
+Generate these images (16:9 landscape aspect ratio), save them as **`.webp`**, and place them in `public/assets/images/showrooms/`. 
 
 ---
 
-## Banner 1 — Solid Wood Door (Teak / Premium Entry)
-
-* **Filename:** `solid-wood-door-banner.webp`
+## 1. Dhaka Central Showroom (Premium Palace Luxury)
+* **Style:** High-End Palace Luxury (White Marble, Glass, Gold Accents)
+* **Filename:** `dhaka-central-showroom.webp`
 * **Prompt:**
-  A wide cinematic hero banner photograph in 16:9 landscape, a grand solid teak wood single entrance door standing tall in a luxury home exterior, the door is the strong central focal point, warm honey-gold teak grain glowing under late afternoon golden sunlight, a beautiful marble-floored entrance porch surrounds the door with lush green tropical plants on both sides, soft bokeh background of a high-end residential facade, warm amber and cream tones, the door is slightly open inviting the viewer inside, text-safe dark gradient overlay from the left side for overlay text placement, ultra sharp, architectural luxury photography, 16:9
+  A wide cinematic interior photograph of a grand luxury door showroom in Dhaka. Double-height ceilings with large gold crystal chandeliers, polished white Italian marble floors reflecting glowing spotlights, and premium solid teak double-doors standing tall on gold-rimmed display frames. Sleek glass walls overlook a soft bokeh of a modern city at twilight. The color palette is white, gold, and deep brown wood. Ultra-detailed, luxury architectural photography, 16:9.
 
 ---
 
-## Banner 2 — Flush Door (Modern Interior)
-
-* **Filename:** `flush-door-banner.webp`
+## 2. Chittagong Port City Showroom (Industrial Loft & Raw Timber)
+* **Style:** Modern Industrial Loft (Exposed Brick, Concrete, Steel, Matte Black)
+* **Filename:** `chittagong-showroom.webp`
 * **Prompt:**
-  A wide cinematic hero banner photograph in 16:9 landscape, a sleek full-height walnut veneer flush door as the central hero element inside a stunning modern minimalist interior hallway, the door fills the center of the frame, warm chocolate-brown wood grain surface with a slim matte black lever handle, the hallway features polished concrete floors, white walls, and a side window with soft natural daylight streaming in from the right creating a warm atmospheric glow, the overall mood is clean, contemporary, and premium, text-safe dark gradient overlay from the left for text placement, ultra sharp, architectural photography, 16:9
+  A wide cinematic interior photograph of a modern industrial loft door showroom in Chittagong. Features raw exposed red brick walls, polished gray concrete floors, black steel support beams, and hanging industrial pendant Edison bulbs. Rustic solid oak and raw timber doors are displayed on black iron racks. The space feels open, edgy, and contemporary. Warm amber light contrasting with cool gray concrete. Professional architectural photography, 16:9.
 
 ---
 
-## Banner 3 — Panelled Door (Classic Heritage)
-
-* **Filename:** `panelled-door-banner.webp`
+## 3. Sylhet Royal Showroom (Classical Victorian Heritage)
+* **Style:** Classical Victorian (Ornate Plaster Moldings, Crystal, Mahogany)
+* **Filename:** `sylhet-showroom.webp`
 * **Prompt:**
-  A wide cinematic hero banner photograph in 16:9 landscape, a magnificent classic six-panel mahogany double-door set as the strong central focal point, the rich reddish-brown mahogany doors stand inside a grand colonial-style entrance hallway, ornate plaster molding frames around the doors, warm antique brass door handles and hinges visible, the hallway has high ceilings with a chandelier above casting warm golden light, dark patterned heritage tiles on the floor, the scene radiates old-world luxury and craftsmanship, text-safe dark gradient overlay on the left side, ultra sharp, warm golden tones, 16:9
+  A wide cinematic interior photograph of a classical Victorian-style door showroom in Sylhet. Rich mahogany and walnut carved doors displayed under detailed white plaster ceiling medallions and ornate wall crown moldings. A large vintage crystal chandelier casts warm flickering candlelight. The floor is covered in dark patterned heritage tiles, and deep crimson velvet curtains hang by the windows. Warm, royal, and historic mood. 16:9.
 
 ---
 
-## Banner 4 — Carved & Designer Door (Luxury Artisan)
-
-* **Filename:** `carved-door-banner.webp`
+## 4. Khulna Eco Showroom (Biophilic Greenhouse & Bamboo)
+* **Style:** Biophilic Eco-Friendly (Plants, Skylights, Light Bamboo, Natural Light)
+* **Filename:** `khulna-showroom.webp`
 * **Prompt:**
-  A wide cinematic hero banner photograph in 16:9 landscape, an extraordinary hand-carved wooden entrance door as the dramatic central hero, the entire door surface covered in deep intricate floral and vine relief carvings illuminated by a dramatic single spotlight from above casting deep shadows inside every carved groove, dark teak brown wood, the door is set within a textured dark stone archway entrance of a luxury estate, deep dramatic chiaroscuro lighting with dark moody amber and shadow tones, a sense of master artisanship and exclusivity, text-safe dark area on the left third of the image, ultra sharp, 16:9
+  A wide cinematic interior photograph of a biophilic, eco-friendly door showroom in Khulna. Sunlight streams down from a large glass ceiling skylight onto light-colored bamboo wood floors. Numerous green leafy plants, hanging ivy vines, and vertical garden walls surround the displays of natural wood doors (teak, garjan). Clean, fresh, organic, and airy atmosphere with natural green and beige tones. 16:9.
 
 ---
 
-## Banner 5 — Laminated Door (Contemporary Modern)
-
-* **Filename:** `laminated-door-banner.webp`
+## 5. Rajshahi Silk City Showroom (Scandinavian Minimalist)
+* **Style:** Scandinavian Minimalist (High-Gloss White, Light Oak, Crisp Lines)
+* **Filename:** `rajshahi-showroom.webp`
 * **Prompt:**
-  A wide cinematic hero banner photograph in 16:9 landscape, a stunning full-height high-gloss white laminated door as the bold central hero element inside a crisp ultra-modern luxury apartment interior, the door's reflective white surface mirrors soft ambient interior lights creating an elegant glow, a long gold bar pull handle runs vertically across the door, surrounding interior has white walls, light oak herringbone wood floors, and a minimalist designer console table beside the door with a single vase of white flowers, the mood is fresh, clean, and aspirational, text-safe soft gradient overlay on the left side, ultra sharp, modern Nordic luxury feel, 16:9
+  A wide cinematic interior photograph of a Scandinavian minimalist door showroom in Rajshahi. Sleek high-gloss white laminated doors and light oak veneer flush doors stand along crisp white gallery walls. The floor is light oak herringbone wood, lit by recessed soft white LED strip lighting along the ceiling. Minimalist design with a single pale gray wool armchair and a black steel side table. Clean, quiet, and contemporary. 16:9.
 
 ---
 
-## Banner Instructions
+## 6. Barisal Riverfront Showroom (Cozy Warm Cabin)
+* **Style:** Rustic Cozy Cabin (Hardwood, Stone Fireplace, Soft Yellow Lamps)
+* **Filename:** `barisal-showroom.webp`
+* **Prompt:**
+  A wide cinematic interior photograph of a cozy rustic cabin-style door showroom in Barisal. The space has dark hand-scraped hardwood floors, rustic heavy log ceiling beams, and a large stone fireplace glowing warmly in the background. Panelled pine and cedar doors are displayed on cozy wooden partition walls. Soft yellow desk lamps and candle lanterns create a warm, comfortable, and inviting cottage atmosphere. 16:9.
 
-1. Generate each banner image using the prompt above (Midjourney, DALL-E 3, or FLUX recommended)
-2. Export as **16:9 landscape** aspect ratio (recommended size: **1920x1080px** or **1440x810px**)
-3. Convert each to **`.webp`** format
-4. Name files **exactly** as shown above
-5. Place in `public/assets/images/Banner/`
-6. Share all 5 banner images — I will then seed them into MongoDB
+---
+
+## 7. Rangpur Heritage Showroom (Artistic Dark Slate Gallery)
+* **Style:** Moody Chiaroscuro Gallery (Dark Slate, Spotlights, Deep Shadows)
+* **Filename:** `rangpur-showroom.webp`
+* **Prompt:**
+  A wide cinematic interior photograph of an artistic gallery-style door showroom in Rangpur. Intricately hand-carved designer doors stand alone like statues, illuminated by sharp dramatic overhead spotlights against dark slate-gray stone walls. The floor is dark polished stone. Deep shadows and high contrast highlight every carved groove and relief details. Moody, dramatic, and artistic museum-like atmosphere. 16:9.
+
+---
+
+## 8. Comilla Highway Showroom (Futuristic Cyberpunk Commercial)
+* **Style:** High-Tech Cyberpunk (Epoxy Floor, Blue Neon, Digital Displays)
+* **Filename:** `comilla-showroom.webp`
+* **Prompt:**
+  A wide cinematic interior photograph of a high-tech door showroom in Comilla. Glossy white epoxy floor with glowing blue neon LED strip lighting running underneath. Displayed doors feature smart handles, fingerprint scanners, and glass inserts. Large interactive digital catalog screens line the walls. High-tech, futuristic, and commercial look. Color palette is white, silver, and neon blue. 16:9.
+
+---
+
+## 9. Mymensingh Green Showroom (Terracotta Traditional Bengali)
+* **Style:** Bengali Traditional (Red Clay Terracotta, Curved Arches, Brass)
+* **Filename:** `mymensingh-showroom.webp`
+* **Prompt:**
+  A wide cinematic interior photograph of a traditional Bengali-style door showroom in Mymensingh. Polished red clay terracotta tile flooring, curved brick archways separating display zones, and large brass vases filled with marigolds. Sunlight streams through wooden louvered shutters, casting warm light patterns. Traditional panelled teak doors stand proudly in this warm, nostalgic, and culturally rich setting. 16:9.
+
+---
+
+## 10. Cox's Bazar Coastal Showroom (Bright Beachfront Breeze)
+* **Style:** Oceanfront Coastal (Limestone, Beach View, Driftwood, Sun-Drenched)
+* **Filename:** `coxsbazar-showroom.webp`
+* **Prompt:**
+  A wide cinematic interior photograph of a beachfront coastal door showroom in Cox's Bazar. Bright tropical sunlight floods the white-washed room through a massive glass wall overlooking a sandy beach and turquoise ocean. The floor is light sand-colored limestone, and displays are supported by natural driftwood logs. White-washed wood doors and sea-glass colored door models are highlighted. Airy, refreshing, and sun-drenched. 16:9.

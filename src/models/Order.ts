@@ -50,6 +50,7 @@ export interface IOrder extends Document {
     transactionId?: string;
   };
   internalNote?: string;
+  showroom?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
@@ -113,6 +114,7 @@ const OrderSchema: Schema<IOrder> = new Schema(
       transactionId: { type: String },
     },
     internalNote: { type: String, default: '' },
+    showroom: { type: Schema.Types.ObjectId, ref: 'Showroom' },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true }

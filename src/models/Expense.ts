@@ -6,6 +6,9 @@ export interface IExpense extends Document {
   category: 'Ads' | 'Salary' | 'Rent' | 'Utility' | 'Others';
   date: Date;
   description?: string;
+  showroom?: mongoose.Types.ObjectId;
+  isApproved: boolean;
+  createdBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +25,9 @@ const ExpenseSchema: Schema<IExpense> = new Schema(
     },
     date: { type: Date, required: true, default: Date.now },
     description: { type: String },
+    showroom: { type: Schema.Types.ObjectId, ref: 'Showroom' },
+    isApproved: { type: Boolean, default: false },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );

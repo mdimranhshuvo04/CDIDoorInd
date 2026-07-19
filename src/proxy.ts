@@ -45,7 +45,8 @@ export const proxy = auth(async (req) => {
         "/admin/cms",
         "/admin/landing-pages",
         "/admin/catalog",
-        "/admin/blogs"
+        "/admin/blogs",
+        "/admin/expenses"
       ];
       const isPathAllowed = allowedPaths.some(path => 
         nextUrl.pathname === path || nextUrl.pathname.startsWith(path + "/")

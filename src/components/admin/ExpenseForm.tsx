@@ -25,12 +25,16 @@ import {
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
 const expenseSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   amount: z.coerce.number().min(0, 'Amount must be at least 0'),
   category: z.enum(['Ads', 'Salary', 'Rent', 'Utility', 'Others']),
   date: z.string().min(1, 'Date is required').refine(s => !isNaN(Date.parse(s)), { message: 'Invalid date format' }),
   description: z.string().optional(),
+  showroom: z.string().optional(),
 });
 
 type ExpenseFormValues = z.infer<typeof expenseSchema>;
@@ -42,6 +46,18 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ initialData, onSuccess }: ExpenseFormProps) {
   const [loading, setLoading] = useState(false);
+  const [showrooms, setShowrooms] = useState<any[]>([]);
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+
+  useEffect(() => {
+    if (['admin', 'super_admin'].includes(role)) {
+      fetch('/api/admin/showrooms')
+        .then(res => res.json())
+        .then(data => setShowrooms(data.showrooms || []))
+        .catch(err => console.error('Error fetching showrooms:', err));
+    }
+  }, [role]);
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema) as any,
@@ -51,6 +67,7 @@ export function ExpenseForm({ initialData, onSuccess }: ExpenseFormProps) {
       category: initialData?.category || 'Others',
       date: initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       description: initialData?.description || '',
+      showroom: initialData?.showroom?._id || initialData?.showroom || '',
     },
   });
 
@@ -60,17 +77,23 @@ export function ExpenseForm({ initialData, onSuccess }: ExpenseFormProps) {
       const url = initialData ? `/api/admin/expenses/${initialData._id}` : '/api/admin/expenses';
       const method = initialData ? 'PUT' : 'POST';
 
+      const payload = { ...values };
+      if (payload.showroom === 'none' || !payload.showroom) {
+        delete payload.showroom;
+      }
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         toast.success(`Expense ${initialData ? 'updated' : 'created'} successfully`);
         onSuccess();
       } else {
-        toast.error('Failed to save expense');
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || 'Failed to save expense');
       }
     } catch (error) {
       console.error('Error saving expense:', error);
@@ -152,6 +175,33 @@ export function ExpenseForm({ initialData, onSuccess }: ExpenseFormProps) {
             </FormItem>
           )}
         />
+        {['admin', 'super_admin'].includes(role) && (
+          <FormField
+            control={form.control}
+            name="showroom"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Showroom (Optional)</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Showroom" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">Central (No Showroom)</SelectItem>
+                    {showrooms.map((showroom) => (
+                      <SelectItem key={showroom._id} value={showroom._id}>
+                        {showroom.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="description"

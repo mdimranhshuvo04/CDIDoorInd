@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import Expense from '@/models/Expense';
+import Showroom from '@/models/Showroom';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    if (!session || !(['admin', 'super_admin', 'manager'].includes(userRole))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -16,9 +18,26 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category');
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const showroomFilter = searchParams.get('showroom');
+    const isApprovedFilter = searchParams.get('isApproved');
 
     const query: any = {};
     if (category) query.category = category;
+    
+    if (userRole === 'manager') {
+      const showroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      if (!showroom) {
+        return NextResponse.json([]); // Return empty if manager has no assigned showroom
+      }
+      query.showroom = showroom._id;
+    } else {
+      // Admin/Super Admin filters
+      if (showroomFilter) query.showroom = showroomFilter;
+    }
+
+    if (isApprovedFilter !== null && isApprovedFilter !== undefined) {
+      query.isApproved = isApprovedFilter === 'true';
+    }
     
     if (from || to) {
       const dateQuery: any = {};
@@ -42,7 +61,11 @@ export async function GET(req: NextRequest) {
       query.date = dateQuery;
     }
 
-    const expenses = await Expense.find(query).sort({ date: -1 });
+    const expenses = await Expense.find(query)
+      .populate('showroom', 'name')
+      .populate('createdBy', 'name email')
+      .sort({ date: -1 });
+
     return NextResponse.json(expenses);
   } catch (error) {
     console.error('Error fetching expenses:', error);
@@ -53,44 +76,68 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+
+    if (!session || !(['admin', 'super_admin', 'manager'].includes(userRole))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    const { title, amount, category, date, description } = body;
+    const { title, amount, category, date, description, showroom: requestedShowroom } = body;
 
-    // Validate required fields (basic)
+    // Validate required fields
     if (!title || amount === undefined || !category) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    // Build safe payload (whitelist)
+    await connectToDatabase();
+
+    let showroomId: any = undefined;
+    let autoApprove = false;
+
+    if (userRole === 'manager') {
+      const managerShowroom = await Showroom.findOne({ manager: userId });
+      if (!managerShowroom) {
+        return NextResponse.json({ message: 'You are not assigned to any showroom' }, { status: 400 });
+      }
+      showroomId = managerShowroom._id;
+      autoApprove = false; // Manager expenses require admin approval
+    } else {
+      // Admin/Super Admin
+      showroomId = requestedShowroom || undefined;
+      autoApprove = true; // Admin expenses are auto-approved
+    }
+
+    // Build payload
     const safePayload = {
       title,
       amount,
       category,
       date: date ? new Date(date) : new Date(),
-      description
+      description,
+      showroom: showroomId,
+      isApproved: autoApprove,
+      createdBy: userId,
     };
-
-    await connectToDatabase();
     
     const expense = await Expense.create(safePayload);
 
-    // Log to ledger
-    try {
-      const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
-      // Credit Cash (decreases cash asset)
-      await logLedgerTransaction(
-        'CASH',
-        'credit',
-        amount,
-        `Expense Paid: ${title} (${category})`,
-        expense._id.toString()
-      );
-    } catch (err) {
-      console.error('Error logging expense to ledger:', err);
+    // Log to ledger only if approved
+    if (autoApprove) {
+      try {
+        const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+        // Credit Cash (decreases cash asset)
+        await logLedgerTransaction(
+          'CASH',
+          'credit',
+          amount,
+          `Expense Paid: ${title} (${category})`,
+          expense._id.toString()
+        );
+      } catch (err) {
+        console.error('Error logging expense to ledger:', err);
+      }
     }
 
     return NextResponse.json(expense, { status: 201 });

@@ -10,7 +10,10 @@ import {
     Settings, 
     LogOut,
     Loader2,
-    Heart
+    Heart,
+    Clock,
+    Calendar,
+    DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,26 +79,63 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </CardHeader>
             <CardContent className="p-0">
               <nav className="flex flex-col">
-                <Link 
-                  href="/dashboard" 
-                  className={cn(
-                    buttonVariants({ variant: 'ghost' }),
-                    "justify-start px-6 h-12 rounded-none border-l-4 w-full",
-                    pathname === '/dashboard' ? 'border-primary bg-muted/50' : 'border-transparent'
-                  )}
-                >
-                  <ShoppingBag className="mr-3 h-4 w-4" /> My Orders
-                </Link>
-                <Link 
-                  href="/dashboard/wishlist" 
-                  className={cn(
-                    buttonVariants({ variant: 'ghost' }),
-                    "justify-start px-6 h-12 rounded-none border-l-4 w-full",
-                    pathname === '/dashboard/wishlist' ? 'border-primary bg-muted/50' : 'border-transparent'
-                  )}
-                >
-                  <Heart className="mr-3 h-4 w-4" /> Wishlist
-                </Link>
+                {((session?.user as any)?.role === 'employee') ? (
+                  <>
+                    <Link 
+                      href="/dashboard" 
+                      className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "justify-start px-6 h-12 rounded-none border-l-4 w-full",
+                        pathname === '/dashboard' ? 'border-primary bg-muted/50' : 'border-transparent'
+                      )}
+                    >
+                      <Clock className="mr-3 h-4 w-4" /> My Attendance
+                    </Link>
+                    <Link 
+                      href="/dashboard/leaves" 
+                      className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "justify-start px-6 h-12 rounded-none border-l-4 w-full",
+                        pathname === '/dashboard/leaves' ? 'border-primary bg-muted/50' : 'border-transparent'
+                      )}
+                    >
+                      <Calendar className="mr-3 h-4 w-4" /> Leave Requests
+                    </Link>
+                    <Link 
+                      href="/dashboard/payments" 
+                      className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "justify-start px-6 h-12 rounded-none border-l-4 w-full",
+                        pathname === '/dashboard/payments' ? 'border-primary bg-muted/50' : 'border-transparent'
+                      )}
+                    >
+                      <DollarSign className="mr-3 h-4 w-4" /> Salary History
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      href="/dashboard" 
+                      className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "justify-start px-6 h-12 rounded-none border-l-4 w-full",
+                        pathname === '/dashboard' ? 'border-primary bg-muted/50' : 'border-transparent'
+                      )}
+                    >
+                      <ShoppingBag className="mr-3 h-4 w-4" /> My Orders
+                    </Link>
+                    <Link 
+                      href="/dashboard/wishlist" 
+                      className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "justify-start px-6 h-12 rounded-none border-l-4 w-full",
+                        pathname === '/dashboard/wishlist' ? 'border-primary bg-muted/50' : 'border-transparent'
+                      )}
+                    >
+                      <Heart className="mr-3 h-4 w-4" /> Wishlist
+                    </Link>
+                  </>
+                )}
                 <Link 
                   href="/dashboard/profile" 
                   className={cn(

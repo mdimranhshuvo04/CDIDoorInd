@@ -229,8 +229,16 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   const hasVariants = (uniqueColors.length > 0 || uniqueSizes.length > 0);
   const currentVariant = activeVariant || defaultVariant;
 
-  const displayPrice = hasVariants ? (currentVariant?.price ?? 0) : product.price;
-  const displaySalePrice = hasVariants ? currentVariant?.salePrice : product.salePrice;
+  const isWholesaler = (session?.user as any)?.role === 'wholesaler';
+
+  const displayPrice = hasVariants 
+    ? ((isWholesaler && currentVariant?.wholesalePrice) ? currentVariant.wholesalePrice : (currentVariant?.price ?? 0))
+    : ((isWholesaler && product.wholesalePrice) ? product.wholesalePrice : product.price);
+
+  const displaySalePrice = hasVariants 
+    ? ((isWholesaler && currentVariant?.wholesaleSalePrice) ? currentVariant.wholesaleSalePrice : currentVariant?.salePrice)
+    : ((isWholesaler && product.wholesaleSalePrice) ? product.wholesaleSalePrice : product.salePrice);
+
   const displayStock = hasVariants ? (currentVariant?.stock ?? 0) : (product.stock ?? 0);
   const displaySku = hasVariants ? (currentVariant?.sku ?? '') : product.sku;
 

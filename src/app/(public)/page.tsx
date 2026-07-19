@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Metadata } from 'next';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
@@ -108,15 +108,7 @@ const FeaturesSection = dynamic(() => import('@/components/storefront/FeaturesSe
   loading: () => <FeaturesSectionSkeleton />
 });
 
-const LoyaltyBanner = dynamic(() => import('@/components/storefront/LoyaltyBanner').then(mod => mod.LoyaltyBanner), {
-  loading: () => <BannerSkeleton />
-});
-
 const ComboOfferBanner = dynamic(() => import('@/components/storefront/ComboOfferBanner').then(mod => mod.ComboOfferBanner), {
-  loading: () => <BannerSkeleton />
-});
-
-const NewsletterV2 = dynamic(() => import('@/components/storefront/NewsletterV2').then(mod => mod.NewsletterV2), {
   loading: () => <BannerSkeleton />
 });
 
@@ -253,9 +245,6 @@ export default async function Home() {
               />
             )}
 
-            {/* 8. Loyalty Promotion */}
-            <LoyaltyBanner settings={data.settings} layout={ui.layout} />
-
             {/* 3. Flash Sale (Timed) */}
             {data.flashSale.length > 0 && (
               <ProductCarouselSection
@@ -307,9 +296,6 @@ export default async function Home() {
             {/* 8. Testimonials Section */}
             <Testimonials />
 
-            {/* 11. Newsletter V2 Integration */}
-            <NewsletterV2 layout={ui.layout} />
-
             {/* 10. FAQ Accordion Section */}
             <FAQSection faqs={data.faqs} />
           </div>
@@ -334,9 +320,6 @@ export default async function Home() {
               layout={ui.layout}
             />
           )}
-
-          {/* 8. Loyalty Promotion */}
-          <LoyaltyBanner settings={data.settings} layout={ui.layout} />
 
           {/* 3. Flash Sale (Timed) */}
           {data.flashSale.length > 0 && (
@@ -388,9 +371,6 @@ export default async function Home() {
 
           {/* 8. Testimonials Section */}
           <Testimonials />
-
-          {/* 11. Newsletter V2 Integration */}
-          <NewsletterV2 layout={ui.layout} />
 
           {/* 10. FAQ Accordion Section */}
           <FAQSection faqs={data.faqs} />
