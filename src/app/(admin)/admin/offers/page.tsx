@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -29,12 +30,21 @@ import {
   Phone,
   CalendarDays,
   Hash,
-  ArrowRight
+  ArrowRight,
+  MoreHorizontal,
+  Edit
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Pagination } from '@/components/ui/pagination';
 
 interface BillItemInput {
   name: string;
@@ -42,15 +52,42 @@ interface BillItemInput {
   price: number;
 }
 
-export default function ClientOffersPage() {
+function ClientOffersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [offers, setOffers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  
   const [settings, setSettings] = useState<any>(null);
+
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    } else {
+      params.delete('page');
+    }
+    router.push(`/admin/offers?${params.toString()}`);
+  }, [currentPage]);
+
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
+    router.push(`/admin/offers?${params.toString()}`);
+  }, [searchTerm]);
 
   // Offer detail view state
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
+  const [editingOffer, setEditingOffer] = useState<any>(null);
 
   // Dialog state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -247,22 +284,22 @@ export default function ClientOffersPage() {
         documentType: 'offer'
       };
 
-      const res = await fetch('/api/admin/bills', {
-        method: 'POST',
+      const url = editingOffer ? `/api/admin/bills/${editingOffer._id}` : '/api/admin/bills';
+      const method = editingOffer ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(offerData)
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create quotation');
+        throw new Error(errorData.message || `Failed to ${editingOffer ? 'update' : 'create'} quotation`);
       }
 
       const createdOffer = await res.json();
-      toast.success('Quotation generated successfully!');
-
-      // Auto-trigger download
-      await generateBillPDF(createdOffer, settings, 'download');
+      toast.success(editingOffer ? 'Quotation updated successfully!' : 'Quotation generated successfully!');
 
       setIsCreateOpen(false);
       resetForm();
@@ -281,11 +318,13 @@ export default function ClientOffersPage() {
     setClientAddress('');
     setBillItems([{ name: '', quantity: 1, price: 0 }]);
     setDeliveryCharge(0);
+    setServiceFee(0);
     setDiscountType('fixed');
     setDiscountValue(0);
     setSelectedProductVariants({});
     setProductSearchTerm('');
     setProductPickerOpen(false);
+    setEditingOffer(null);
   };
 
   const handleConvertToChalan = async (offer: any) => {
@@ -378,6 +417,13 @@ export default function ClientOffersPage() {
     b.invoiceNo.includes(searchTerm)
   );
 
+  const ITEMS_PER_PAGE = 20;
+  const totalPages = Math.ceil(filteredOffers.length / ITEMS_PER_PAGE);
+  const paginatedOffers = filteredOffers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -430,59 +476,82 @@ export default function ClientOffersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredOffers.map((offer) => (
+                  {paginatedOffers.map((offer) => (
                     <TableRow key={offer._id}>
                       <TableCell className="font-semibold">{offer.invoiceNo}</TableCell>
                       <TableCell>{offer.clientName}</TableCell>
                       <TableCell>{offer.clientPhone}</TableCell>
                       <TableCell>{format(new Date(offer.date), 'dd MMM yyyy')}</TableCell>
                       <TableCell className="text-right font-medium">৳{Math.round(offer.total)}</TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="View Details"
-                          onClick={() => setSelectedOffer(offer)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="Download PDF"
-                          onClick={() => generateBillPDF(offer, settings, 'download')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="Print PDF"
-                          onClick={() => generateBillPDF(offer, settings, 'print')}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          className="bg-primary text-primary-foreground"
-                          size="sm"
-                          title="Convert to Challan"
-                          onClick={() => handleConvertToChalan(offer)}
-                        >
-                          <ArrowRight className="mr-1 h-3 w-3" /> Challan
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          title="Delete Quotation"
-                          onClick={() => handleDeleteOffer(offer._id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                            onClick={() => generateBillPDF(offer, settings, 'print')}
+                            title="Print Quotation"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedOffer(offer)}>
+                              <Eye className="mr-2 h-4 w-4" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingOffer(offer);
+                                setClientName(offer.clientName);
+                                setClientPhone(offer.clientPhone);
+                                setClientAddress(offer.clientAddress);
+                                setBillItems(offer.items);
+                                setDeliveryCharge(offer.deliveryCharge);
+                                setServiceFee(offer.serviceFee || 0);
+                                setDiscountType(offer.discountType || 'fixed');
+                                setDiscountValue(offer.discountValue || 0);
+                                setIsCreateOpen(true);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" /> Edit Offer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => generateBillPDF(offer, settings, 'download')}>
+                              <Download className="mr-2 h-4 w-4" /> Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => generateBillPDF(offer, settings, 'print')}>
+                              <Printer className="mr-2 h-4 w-4" /> Print PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleConvertToChalan(offer)}>
+                              <ArrowRight className="mr-2 h-4 w-4" /> Convert to Challan
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDeleteOffer(offer._id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="py-4 border-t bg-background px-6 mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </CardContent>
@@ -492,7 +561,7 @@ export default function ClientOffersPage() {
       <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if(!open) resetForm(); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Quotation / Offer</DialogTitle>
+            <DialogTitle>{editingOffer ? 'Edit' : 'Create New'} Quotation / Offer</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Client Info */}
@@ -659,8 +728,8 @@ export default function ClientOffersPage() {
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-success">
-                     <span>Discount:</span>
-                     <span>- ৳{discount}</span>
+                    <span>Discount:</span>
+                    <span>- ৳{discount}</span>
                   </div>
                 )}
                 {deliveryCharge > 0 && (
@@ -688,7 +757,7 @@ export default function ClientOffersPage() {
               </Button>
               <Button type="submit" disabled={formLoading} className="bg-primary text-primary-foreground">
                 {formLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Generate Offer & Download PDF
+                {editingOffer ? 'Update Offer' : 'Generate Offer'}
               </Button>
             </DialogFooter>
           </form>
@@ -880,5 +949,13 @@ export default function ClientOffersPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ClientOffersPage() {
+  return (
+    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <ClientOffersContent />
+    </Suspense>
   );
 }

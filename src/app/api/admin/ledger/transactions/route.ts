@@ -7,7 +7,7 @@ import { logLedgerTransaction, seedLedgerAccounts } from '@/lib/ledgerHelper';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    if (!session || (session?.user as any)?.role !== 'super_admin') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    if (!session || (session?.user as any)?.role !== 'super_admin') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'From and To accounts are required for transfers' }, { status: 400 });
       }
 
+      const transferId = crypto.randomUUID();
+
       // Credit the source account
       await logLedgerTransaction(
         fromAccountCode,
@@ -64,7 +66,8 @@ export async function POST(req: NextRequest) {
         amount,
         `Transfer to ${toAccountCode}: ${description}`,
         'manual-transfer',
-        txDate
+        txDate,
+        transferId
       );
 
       // Debit the destination account
@@ -74,7 +77,8 @@ export async function POST(req: NextRequest) {
         amount,
         `Transfer from ${fromAccountCode}: ${description}`,
         'manual-transfer',
-        txDate
+        txDate,
+        transferId
       );
     } else if (entryType === 'deposit') {
       if (!accountCode) {

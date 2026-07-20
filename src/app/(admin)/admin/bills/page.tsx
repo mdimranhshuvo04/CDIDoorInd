@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -36,12 +37,20 @@ import {
   Phone,
   User,
   CalendarDays,
-  Hash
+  Hash,
+  MoreHorizontal,
+  Edit
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Pagination } from '@/components/ui/pagination';
 
 interface BillItemInput {
@@ -50,24 +59,51 @@ interface BillItemInput {
   price: number;
 }
 
-export default function ClientBillsPage() {
+function ClientBillsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [bills, setBills] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [settings, setSettings] = useState<any>(null);
   
+  const initialStatus = searchParams.get('status') || 'all';
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  
+  const [settings, setSettings] = useState<any>(null);
 
-  // Reset page to 1 when search or status or date filter changes
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    } else {
+      params.delete('page');
+    }
+    if (statusFilter !== 'all') {
+      params.set('status', statusFilter);
+    } else {
+      params.delete('status');
+    }
+    router.push(`/admin/bills?${params.toString()}`);
+  }, [currentPage, statusFilter]);
+
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
+    router.push(`/admin/bills?${params.toString()}`);
   }, [searchTerm, statusFilter, dateFilter.from, dateFilter.to]);
 
   // Bill detail view state
   const [selectedBill, setSelectedBill] = useState<any>(null);
+  const [editingBill, setEditingBill] = useState<any>(null);
 
   // Dialog state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -280,28 +316,28 @@ export default function ClientBillsPage() {
         documentType: 'bill'
       };
 
-      const res = await fetch('/api/admin/bills', {
-        method: 'POST',
+      const url = editingBill ? `/api/admin/bills/${editingBill._id}` : '/api/admin/bills';
+      const method = editingBill ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(billData)
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create bill');
+        throw new Error(errorData.message || `Failed to ${editingBill ? 'update' : 'create'} bill`);
       }
 
       const createdBill = await res.json();
-      toast.success('Bill generated successfully!');
-
-      // Auto-trigger download
-      await generateBillPDF(createdBill, settings, 'download');
+      toast.success(editingBill ? 'Bill updated successfully!' : 'Bill generated successfully!');
 
       setIsCreateOpen(false);
       resetForm();
       fetchBills();
     } catch (error: any) {
-      toast.error(error.message || 'Error creating bill');
+      toast.error(error.message || 'Error saving bill');
     } finally {
       setFormLoading(false);
     }
@@ -323,6 +359,7 @@ export default function ClientBillsPage() {
     setSelectedProductVariants({});
     setProductSearchTerm('');
     setProductPickerOpen(false);
+    setEditingBill(null);
   };
 
   const handleUpdateStatus = async (billId: string, currentDue: number) => {
@@ -393,15 +430,11 @@ export default function ClientBillsPage() {
     }
   };
 
-  const filteredBills = bills.filter((b) => {
-    const term = searchTerm.toLowerCase();
-    const name = b.clientName?.toLowerCase() || '';
-    const phone = b.clientPhone || '';
-    const invoice = b.invoiceNo || '';
-    const matchesSearch = name.includes(term) || phone.includes(term) || invoice.includes(term);
-
-    const matchesStatus = statusFilter === 'all' || b.status?.toLowerCase() === statusFilter.toLowerCase();
-
+  const filteredBills = bills.filter(b => {
+    const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.clientPhone.includes(searchTerm) ||
+      b.invoiceNo.includes(searchTerm);
+      
     let matchesDate = true;
     if (dateFilter.from) {
       matchesDate = matchesDate && new Date(b.date) >= new Date(dateFilter.from + 'T00:00:00');
@@ -410,7 +443,12 @@ export default function ClientBillsPage() {
       matchesDate = matchesDate && new Date(b.date) <= new Date(dateFilter.to + 'T23:59:59');
     }
 
-    return matchesSearch && matchesStatus && matchesDate;
+    let matchesStatus = true;
+    if (statusFilter !== 'all') {
+      matchesStatus = b.status?.toLowerCase() === statusFilter.toLowerCase();
+    }
+    
+    return matchesSearch && matchesDate && matchesStatus;
   });
 
   const ITEMS_PER_PAGE = 20;
@@ -472,58 +510,56 @@ export default function ClientBillsPage() {
       </div>
 
       {/* Filter and Search */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-center gap-4">
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search name, phone or bill no..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 w-full"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search name, phone or bill no..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full"
-            />
+          <div className="flex gap-2">
+            {['all', 'paid', 'due'].map((filter) => (
+              <Button
+                key={filter}
+                variant={statusFilter === filter ? 'default' : 'outline'}
+                onClick={() => setStatusFilter(filter)}
+                className="capitalize font-bold"
+              >
+                {filter}
+              </Button>
+            ))}
           </div>
-          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm">
+
+          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm w-full sm:w-auto">
             <Input
               type="date"
-              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+              className="h-8 w-32 border-none bg-transparent focus-visible:ring-0"
               value={dateFilter.from}
               onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
             />
             <span className="text-muted-foreground text-xs">to</span>
             <Input
               type="date"
-              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+              className="h-8 w-32 border-none bg-transparent focus-visible:ring-0"
               value={dateFilter.to}
               onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
             />
           </div>
-          {(dateFilter.from || dateFilter.to || searchTerm || statusFilter !== 'all') && (
+
+          {(dateFilter.from || dateFilter.to) && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setDateFilter({ from: '', to: '' });
-                setSearchTerm('');
-                setStatusFilter('all');
-              }}
+              onClick={() => setDateFilter({ from: '', to: '' })}
               className="text-xs text-muted-foreground hover:text-primary"
             >
-              Clear All
+              Clear Date
             </Button>
           )}
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          {['all', 'paid', 'due'].map((filter) => (
-            <Button
-              key={filter}
-              variant={statusFilter === filter ? 'default' : 'outline'}
-              onClick={() => setStatusFilter(filter)}
-              className="capitalize flex-1 md:flex-none font-bold"
-            >
-              {filter}
-            </Button>
-          ))}
         </div>
       </div>
 
@@ -587,45 +623,75 @@ export default function ClientBillsPage() {
                     {bill.expectedReceivableDate ? format(new Date(bill.expectedReceivableDate), 'dd MMM yyyy') : '—'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
-                        onClick={() => generateBillPDF(bill, settings, 'download')}
-                        title="Download PDF"
-                        className="h-8 w-8 text-blue-600 hover:text-blue-800"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
+                        className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
                         onClick={() => generateBillPDF(bill, settings, 'print')}
                         title="Print Bill"
-                        className="h-8 w-8 text-teal-600 hover:text-teal-800"
                       >
                         <Printer className="h-4 w-4" />
                       </Button>
                       {bill.status === 'Due' && (
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="icon"
+                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                           onClick={() => handleUpdateStatus(bill._id, bill.currentBillDue)}
                           title="Collect Cash"
-                          className="h-8 w-8 text-green-600 hover:text-green-800"
                         >
                           <CreditCard className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDeleteBill(bill._id)}
-                        title="Delete Bill"
-                        className="h-8 w-8 text-destructive hover:text-red-800"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setSelectedBill(bill)}>
+                            <Eye className="mr-2 h-4 w-4" /> View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingBill(bill);
+                              setClientName(bill.clientName);
+                              setClientPhone(bill.clientPhone);
+                              setClientAddress(bill.clientAddress);
+                              setBillItems(bill.items);
+                              setDeliveryCharge(bill.deliveryCharge);
+                              setServiceFee(bill.serviceFee || 0);
+                              setDiscountType(bill.discountType || 'fixed');
+                              setDiscountValue(bill.discountValue || 0);
+                              setPrevDue(bill.prevDue || 0);
+                              setCashIn(bill.cashIn || 0);
+                              setExpectedReceivableDate(bill.expectedReceivableDate ? format(new Date(bill.expectedReceivableDate), 'yyyy-MM-dd') : '');
+                              setIsCreateOpen(true);
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" /> Edit Bill
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'download')}>
+                            <Download className="mr-2 h-4 w-4 text-blue-600" /> Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'print')}>
+                            <Printer className="mr-2 h-4 w-4 text-teal-600" /> Print Bill
+                          </DropdownMenuItem>
+                          {bill.status === 'Due' && (
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(bill._id, bill.currentBillDue)}>
+                              <CreditCard className="mr-2 h-4 w-4 text-green-600" /> Collect Cash
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteBill(bill._id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -648,7 +714,7 @@ export default function ClientBillsPage() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Generate Client Bill</DialogTitle>
+            <DialogTitle>{editingBill ? 'Edit' : 'Generate'} Client Bill</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Client Info */}
@@ -693,145 +759,24 @@ export default function ClientBillsPage() {
               </div>
             </div>
 
-            {/* Product Multi-Select with Variant Support */}
-            <div className="bg-muted/30 p-4 rounded-lg space-y-3 border">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <Package className="h-4 w-4" /> Select Products to Add (Optional)
-                </Label>
-                {selectedCount > 0 && (
-                  <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5 font-bold">
-                    {selectedCount} selected
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setProductPickerOpen(v => !v)}
-                className="w-full flex items-center justify-between px-3 py-2 border rounded-md bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <span>{selectedCount > 0 ? `${selectedCount} item(s) selected` : 'Click to browse inventory...'}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${productPickerOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {productPickerOpen && (
-                <div className="border rounded-md bg-background shadow-sm">
-                  <div className="p-2 border-b">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input
-                        placeholder="Search products..."
-                        value={productSearchTerm}
-                        onChange={(e) => setProductSearchTerm(e.target.value)}
-                        className="pl-8 h-8 text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto divide-y">
-                    {products
-                      .filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase()))
-                      .map(p => {
-                        const hasVariants = p.variants && p.variants.length > 0;
-                        const selectedVariantId = selectedProductVariants[p._id];
-                        const isSelected = p._id in selectedProductVariants;
-
-                        return (
-                          <div key={p._id}>
-                            <div
-                              className={`flex items-start gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer ${
-                                isSelected ? 'bg-primary/5' : ''
-                              }`}
-                            >
-                              {!hasVariants ? (
-                                // No variants — simple checkbox
-                                <label className="flex items-start gap-3 w-full cursor-pointer">
-                                  <Checkbox
-                                    checked={isSelected}
-                                    onCheckedChange={() =>
-                                      toggleProductVariant(p._id, null)
-                                    }
-                                    className="mt-0.5"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium">{p.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      ৳{p.salePrice || p.price} · Stock: {p.stock ?? 0}
-                                    </div>
-                                  </div>
-                                </label>
-                              ) : (
-                                // Has variants — show product name + variant chips below
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Package className="h-3.5 w-3.5 text-primary shrink-0" />
-                                    <span className="text-sm font-semibold">{p.name}</span>
-                                    <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
-                                      {p.variants.length} variants
-                                    </span>
-                                    {isSelected && (
-                                      <span className="ml-auto text-xs text-primary font-bold">✓ Selected</span>
-                                    )}
-                                  </div>
-                                  {/* Variant chips */}
-                                  <div className="flex flex-wrap gap-1.5 pl-1">
-                                    {p.variants.map((v: any) => {
-                                      const vLabel = [v.color, v.size].filter(Boolean).join(' / ') || 'Variant';
-                                      const vPrice = v.salePrice || v.price;
-                                      const isVariantSelected = selectedVariantId === v._id;
-                                      return (
-                                        <button
-                                          key={v._id}
-                                          type="button"
-                                          onClick={() => toggleProductVariant(p._id, v._id)}
-                                          className={`text-xs px-2.5 py-1 rounded-full border transition-all font-medium ${
-                                            isVariantSelected
-                                              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                                              : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-primary'
-                                          }`}
-                                        >
-                                          {vLabel}
-                                          <span className={`ml-1 ${isVariantSelected ? 'opacity-80' : 'opacity-60'}`}>
-                                            ৳{vPrice}
-                                          </span>
-                                          {v.stock !== undefined && (
-                                            <span className={`ml-1 text-[10px] ${isVariantSelected ? 'opacity-70' : 'opacity-40'}`}>
-                                              ({v.stock} left)
-                                            </span>
-                                          )}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    {products.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase())).length === 0 && (
-                      <div className="text-center py-4 text-xs text-muted-foreground">No products found</div>
-                    )}
-                  </div>
-                  {selectedCount > 0 && (
-                    <div className="p-2 border-t flex gap-2">
-                      <Button type="button" size="sm" className="flex-1 font-bold" onClick={handleAddSelectedProducts}>
-                        <Plus className="h-3 w-3 mr-1" /> Add {selectedCount} Item(s) to Bill
-                      </Button>
-                      <Button type="button" size="sm" variant="ghost" onClick={() => { setSelectedProductVariants({}); setProductPickerOpen(false); }}>
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Bill Items */}
+            {/* Bill Items header with Product Selection Button */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h4 className="font-bold text-sm">Bill Items</h4>
-                <Button type="button" variant="outline" size="sm" onClick={handleAddItemRow} className="font-bold">
-                  <Plus className="h-3 w-3 mr-1" /> Add Custom Item
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setProductPickerOpen(true)}
+                    className="font-bold"
+                  >
+                    <Plus className="mr-1 h-3.5 w-3.5" /> Select Products
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddItemRow} className="font-bold">
+                    <Plus className="h-3 w-3 mr-1" /> Add Custom Item
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                 {billItems.map((item, index) => (
@@ -1021,10 +966,96 @@ export default function ClientBillsPage() {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={formLoading} className="font-bold">
-                {formLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Generate & Download PDF'}
+                {formLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (editingBill ? 'Update Bill' : 'Generate Bill')}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Selection Dialog */}
+      <Dialog open={productPickerOpen} onOpenChange={setProductPickerOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select Products</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                className="pl-8"
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="border rounded-md overflow-hidden max-h-[50vh] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">Select</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Options / Variants</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products
+                    .filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase()))
+                    .map((prod) => {
+                      const hasVariants = prod.variants && prod.variants.length > 0;
+                      return (
+                        <TableRow key={prod._id}>
+                          <TableCell>
+                            {!hasVariants && (
+                              <Checkbox
+                                checked={selectedProductVariants[prod._id] === null}
+                                onCheckedChange={() => toggleProductVariant(prod._id, null)}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">{prod.name}</TableCell>
+                          <TableCell>
+                            {hasVariants ? (
+                              <div className="flex flex-wrap gap-2 py-1">
+                                {prod.variants.map((v: any) => {
+                                  const label = [v.color, v.size].filter(Boolean).join(' / ');
+                                  const isSelected = selectedProductVariants[prod._id] === v._id;
+                                  return (
+                                    <Button
+                                      key={v._id}
+                                      type="button"
+                                      variant={isSelected ? 'default' : 'outline'}
+                                      size="sm"
+                                      onClick={() => toggleProductVariant(prod._id, v._id)}
+                                      className="text-xs py-0.5 px-2 h-7"
+                                    >
+                                      {label} (৳{v.salePrice || v.price})
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Standard Item</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {!hasVariants && `৳${prod.salePrice || prod.price}`}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex items-center justify-between border-t pt-4">
+              <span className="text-sm text-muted-foreground">{selectedCount} items selected</span>
+              <div className="space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setProductPickerOpen(false)}>Cancel</Button>
+                <Button size="sm" onClick={handleAddSelectedProducts} className="bg-primary text-primary-foreground">Add Selected</Button>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1192,5 +1223,13 @@ export default function ClientBillsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ClientBillsPage() {
+  return (
+    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <ClientBillsContent />
+    </Suspense>
   );
 }

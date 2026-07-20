@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -28,12 +29,21 @@ import {
   Phone,
   CalendarDays,
   Hash,
-  ArrowRight
+  ArrowRight,
+  MoreHorizontal,
+  Edit
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Pagination } from '@/components/ui/pagination';
 
 interface BillItemInput {
   name: string;
@@ -41,15 +51,42 @@ interface BillItemInput {
   price: number;
 }
 
-export default function ClientChalansPage() {
+function ClientChalansContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [chalans, setChalans] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  
   const [settings, setSettings] = useState<any>(null);
+
+  // Sync state changes to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    } else {
+      params.delete('page');
+    }
+    router.push(`/admin/chalans?${params.toString()}`);
+  }, [currentPage]);
+
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
+    router.push(`/admin/chalans?${params.toString()}`);
+  }, [searchTerm]);
 
   // Chalan detail view state
   const [selectedChalan, setSelectedChalan] = useState<any>(null);
+  const [editingChalan, setEditingChalan] = useState<any>(null);
 
   // Dialog state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -236,28 +273,28 @@ export default function ClientChalansPage() {
         documentType: 'chalan'
       };
 
-      const res = await fetch('/api/admin/bills', {
-        method: 'POST',
+      const url = editingChalan ? `/api/admin/bills/${editingChalan._id}` : '/api/admin/bills';
+      const method = editingChalan ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(chalanData)
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create challan');
+        throw new Error(errorData.message || `Failed to ${editingChalan ? 'update' : 'create'} challan`);
       }
 
       const createdChalan = await res.json();
-      toast.success('Delivery Challan generated successfully!');
-
-      // Auto-trigger download
-      await generateBillPDF(createdChalan, settings, 'download');
+      toast.success(editingChalan ? 'Delivery Challan updated successfully!' : 'Delivery Challan generated successfully!');
 
       setIsCreateOpen(false);
       resetForm();
       fetchChalans();
     } catch (error: any) {
-      toast.error(error.message || 'Error creating challan');
+      toast.error(error.message || 'Error saving challan');
     } finally {
       setFormLoading(false);
     }
@@ -272,6 +309,7 @@ export default function ClientChalansPage() {
     setSelectedProductVariants({});
     setProductSearchTerm('');
     setProductPickerOpen(false);
+    setEditingChalan(null);
   };
 
   const handleConvertToBill = async (chalan: any) => {
@@ -364,6 +402,13 @@ export default function ClientChalansPage() {
     b.invoiceNo.includes(searchTerm)
   );
 
+  const ITEMS_PER_PAGE = 20;
+  const totalPages = Math.ceil(filteredChalans.length / ITEMS_PER_PAGE);
+  const paginatedChalans = filteredChalans.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -415,58 +460,77 @@ export default function ClientChalansPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredChalans.map((chalan) => (
+                  {paginatedChalans.map((chalan) => (
                     <TableRow key={chalan._id}>
                       <TableCell className="font-semibold">{chalan.invoiceNo}</TableCell>
                       <TableCell>{chalan.clientName}</TableCell>
                       <TableCell>{chalan.clientPhone}</TableCell>
                       <TableCell>{format(new Date(chalan.date), 'dd MMM yyyy')}</TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="View Details"
-                          onClick={() => setSelectedChalan(chalan)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="Download PDF"
-                          onClick={() => generateBillPDF(chalan, settings, 'download')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          title="Print PDF"
-                          onClick={() => generateBillPDF(chalan, settings, 'print')}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          className="bg-primary text-primary-foreground"
-                          size="sm"
-                          title="Convert to Bill"
-                          onClick={() => handleConvertToBill(chalan)}
-                        >
-                          <ArrowRight className="mr-1 h-3 w-3" /> Convert to Bill
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          title="Delete Challan"
-                          onClick={() => handleDeleteChalan(chalan._id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                            onClick={() => generateBillPDF(chalan, settings, 'print')}
+                            title="Print Challan"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setSelectedChalan(chalan)}>
+                                <Eye className="mr-2 h-4 w-4" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingChalan(chalan);
+                                  setClientName(chalan.clientName);
+                                  setClientPhone(chalan.clientPhone);
+                                  setClientAddress(chalan.clientAddress);
+                                  setBillItems(chalan.items);
+                                  setIsCreateOpen(true);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Edit Challan
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => generateBillPDF(chalan, settings, 'download')}>
+                                <Download className="mr-2 h-4 w-4" /> Download PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => generateBillPDF(chalan, settings, 'print')}>
+                                <Printer className="mr-2 h-4 w-4" /> Print PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleConvertToBill(chalan)}>
+                                <ArrowRight className="mr-2 h-4 w-4" /> Convert to Bill
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => handleDeleteChalan(chalan._id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="py-4 border-t bg-background px-6 mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </CardContent>
@@ -476,7 +540,7 @@ export default function ClientChalansPage() {
       <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if(!open) resetForm(); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Delivery Challan</DialogTitle>
+            <DialogTitle>{editingChalan ? 'Edit' : 'Create New'} Delivery Challan</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Client Info */}
@@ -576,7 +640,7 @@ export default function ClientChalansPage() {
               </Button>
               <Button type="submit" disabled={formLoading} className="bg-primary text-primary-foreground">
                 {formLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Generate Challan & Download PDF
+                {editingChalan ? 'Update Challan' : 'Generate Challan'}
               </Button>
             </DialogFooter>
           </form>
@@ -729,5 +793,13 @@ export default function ClientChalansPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ClientChalansPage() {
+  return (
+    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <ClientChalansContent />
+    </Suspense>
   );
 }

@@ -101,8 +101,26 @@ function UsersContent() {
   const [adminEmail, setAdminEmail] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const isSuperAdmin = (session?.user as any)?.role === 'super_admin';
+
+  useEffect(() => {
+    if (status === 'authenticated' && !isSuperAdmin) {
+      router.push('/admin/dashboard');
+    }
+  }, [status, isSuperAdmin, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex h-32 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (status === 'authenticated' && !isSuperAdmin) {
+    return null;
+  }
 
   const fetchUsers = async (page = currentPage) => {
     setLoading(true);

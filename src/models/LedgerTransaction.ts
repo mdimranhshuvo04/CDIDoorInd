@@ -7,6 +7,7 @@ export interface ILedgerTransaction extends Document {
   type: 'debit' | 'credit';
   amount: number;
   reference?: string;
+  transferId?: string;
   balanceAfter: number;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +21,7 @@ const LedgerTransactionSchema: Schema<ILedgerTransaction> = new Schema(
     type: { type: String, required: true, enum: ['debit', 'credit'] },
     amount: { type: Number, required: true, min: [0, 'Amount cannot be negative'] },
     reference: { type: String },
+    transferId: { type: String },
     balanceAfter: { type: Number, required: true },
   },
   { timestamps: true }

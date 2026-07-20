@@ -14,7 +14,8 @@ import {
   Settings,
   Megaphone,
   Store,
-  Mail
+  Mail,
+  CreditCard
 } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 
@@ -95,16 +96,21 @@ const data = {
           url: "/admin/bills",
         },
         {
-          title: "Abandoned Carts",
-          url: "/admin/abandoned-carts",
+          title: "Suppliers / Vendors",
+          url: "/admin/suppliers",
         },
         {
-          title: "Expenses",
-          url: "/admin/expenses",
+          title: "Supplier Bills",
+          url: "/admin/supplier-bills",
+        },
+        {
+          title: "Expenses & Incomes",
+          url: "/admin/expenses-incomes",
         },
         {
           title: "Accounts Ledger",
           url: "/admin/ledger",
+          superOnly: true
         },
       ],
     },
@@ -116,14 +122,7 @@ const data = {
         {
           title: "All Users",
           url: "/admin/users",
-        },
-        {
-          title: "Employees",
-          url: "/admin/employees",
-        },
-        {
-          title: "Showrooms",
-          url: "/admin/showrooms",
+          superOnly: true
         },
       ],
     },
@@ -135,14 +134,6 @@ const data = {
         {
           title: "Banners",
           url: "/admin/cms/banners",
-        },
-        {
-          title: "Landing Pages",
-          url: "/admin/landing-pages",
-        },
-        {
-          title: "Catalog",
-          url: "/admin/catalog",
         },
         {
           title: "Testimonials",
@@ -187,6 +178,11 @@ const data = {
           url: "/admin/marketing",
         },
         {
+          title: "Subscribers",
+          url: "/admin/subscribers",
+          icon: Mail,
+        },
+        {
           title: "Infrastructure & Marketing",
           url: "/admin/system-design",
           superOnly: true
@@ -203,27 +199,10 @@ function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathna
   const { setOpenMobile, isMobile } = useSidebar()
 
   // Filter items based on role
-  const filteredItems = items
-    .filter(item => {
-      if (role === 'manager') {
-        const allowedSections = ["Overview", "Product Management", "Sales & Orders", "CMS Manager", "Blogs"];
-        return allowedSections.includes(item.title);
-      }
-      return true;
-    })
-    .map(item => {
-      let filteredSubItems = item.items.filter((subItem: any) => !subItem.superOnly || role === 'super_admin');
-      if (role === 'manager' && item.title === "Sales & Orders") {
-        filteredSubItems = filteredSubItems.filter(
-          (subItem: any) => subItem.title !== "Accounts Ledger"
-        );
-      }
-      return {
-        ...item,
-        items: filteredSubItems
-      };
-    })
-    .filter(item => item.items.length > 0);
+  const filteredItems = items.map(item => ({
+    ...item,
+    items: item.items.filter((subItem: any) => !subItem.superOnly || role === 'super_admin')
+  })).filter(item => item.items.length > 0);
 
   const handleLinkClick = () => {
     if (isMobile) {

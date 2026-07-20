@@ -38,7 +38,8 @@ export async function logLedgerTransaction(
   amount: number,
   description: string,
   reference?: string,
-  date: Date = new Date()
+  date: Date = new Date(),
+  transferId?: string
 ) {
   await connectToDatabase();
   await seedLedgerAccounts();
@@ -65,14 +66,24 @@ export async function logLedgerTransaction(
     type,
     amount,
     reference,
+    transferId,
     balanceAfter,
   });
+
+  const latestTx = await LedgerTransaction.findOne({ account: account._id })
+    .sort({ date: -1, createdAt: -1 });
+  const needsRecalc = latestTx && new Date(date) < new Date(latestTx.date);
 
   await transaction.save();
 
   // Update current account balance
   account.currentBalance = balanceAfter;
   await account.save();
+
+  // Recalculate to keep chronological order correct in the DB running balances only if inserted in the past
+  if (needsRecalc) {
+    await recalculateLedgerBalance(accountCode);
+  }
 
   return transaction;
 }
