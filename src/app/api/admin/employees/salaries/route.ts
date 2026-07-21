@@ -40,13 +40,44 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    await connectToDatabase();
+
+    // Check if it is a bulk request
+    if (body.bulk && Array.isArray(body.disbursements)) {
+      const disbursementsToCreate = [];
+
+      for (const item of body.disbursements) {
+        const { employeeId, amount, type, remarks, date } = item;
+        if (!employeeId || !amount || !type) {
+          continue;
+        }
+        
+        // Optional verification if desired, but for speed in bulk we construct the objects directly
+        disbursementsToCreate.push({
+          employee: employeeId,
+          amount: Number(amount),
+          type,
+          remarks: remarks || '',
+          date: date ? new Date(date) : new Date()
+        });
+      }
+
+      if (disbursementsToCreate.length === 0) {
+        return NextResponse.json({ message: 'No valid disbursements to log' }, { status: 400 });
+      }
+
+      const created = await SalaryDisbursement.insertMany(disbursementsToCreate);
+      return NextResponse.json({
+        message: `Successfully processed ${created.length} disbursements`,
+        count: created.length
+      });
+    }
+
     const { employeeId, amount, type, remarks, date } = body;
 
     if (!employeeId || !amount || !type) {
       return NextResponse.json({ message: 'Missing required disbursement fields' }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     // Verify employee exists
     const employee = await User.findById(employeeId);

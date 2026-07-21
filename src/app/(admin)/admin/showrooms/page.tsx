@@ -27,12 +27,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit, Trash, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash, Loader2, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 import {
   Select,
   SelectContent,
@@ -41,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Swal from 'sweetalert2';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 const showroomSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -201,66 +209,104 @@ export default function ShowroomsPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Manager</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {showrooms.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No showrooms found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              showrooms.map((showroom) => (
-                <TableRow key={showroom._id}>
-                  <TableCell>
-                    {showroom.image ? (
-                      <img src={showroom.image} alt={showroom.name} className="h-10 w-16 object-cover rounded-md border" />
-                    ) : (
-                      <div className="h-10 w-16 bg-muted rounded-md flex items-center justify-center text-[10px] text-muted-foreground">No Img</div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{showroom.name}</TableCell>
-                  <TableCell>{showroom.address || 'N/A'}</TableCell>
-                  <TableCell>
-                    {showroom.manager ? (
-                      <div>
-                        <p className="font-semibold text-sm">{showroom.manager.name}</p>
-                        <p className="text-xs text-muted-foreground">{showroom.manager.email}</p>
-                      </div>
-                    ) : (
-                      <span className="text-destructive text-sm font-semibold">No Manager Assigned</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={showroom.isActive ? 'default' : 'secondary'}>
-                      {showroom.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(showroom)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(showroom._id)}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {showrooms.length === 0 ? (
+        <div className="rounded-md border bg-white p-8 text-center text-muted-foreground">
+          No showrooms found.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {showrooms.map((showroom) => (
+            <div key={showroom._id} className="relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition-all duration-300">
+              {/* Image Section */}
+              <div className="relative h-44 w-full bg-muted overflow-hidden">
+                {showroom.image ? (
+                  <img
+                    src={showroom.image}
+                    alt={showroom.name}
+                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-sm font-medium">
+                    No Showroom Image
+                  </div>
+                )}
+                {/* Active/Inactive Badge */}
+                <div className="absolute top-3 left-3 z-10">
+                  <Badge variant={showroom.isActive ? 'default' : 'secondary'} className="shadow-sm font-semibold">
+                    {showroom.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+
+                {/* 3-dot Actions Dropdown (Bottom Right) */}
+                <div className="absolute bottom-3 right-3 z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/95 text-black hover:bg-white shadow-md border border-muted hover:scale-105 active:scale-95 transition-all">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem onClick={() => handleEdit(showroom)} className="cursor-pointer font-medium">
+                        <Edit className="mr-2 h-4 w-4 text-muted-foreground" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(showroom._id)} className="cursor-pointer text-destructive focus:text-destructive font-medium">
+                        <Trash className="mr-2 h-4 w-4 text-muted-foreground" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {/* Body Content */}
+              <div className="flex-1 p-5 space-y-4">
+                <div>
+                  <Link href={`/showrooms/${showroom._id}`} className="hover:text-primary transition-colors hover:underline">
+                    <h3 className="text-base font-bold text-foreground">{showroom.name}</h3>
+                  </Link>
+                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{showroom.address || 'N/A'}</p>
+                </div>
+
+                {/* Manager Info */}
+                <div className="rounded-lg bg-muted/30 p-3 border border-muted/50">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground block mb-1">Showroom Manager</span>
+                  {showroom.manager ? (
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{showroom.manager.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{showroom.manager.email}</p>
+                    </div>
+                  ) : (
+                    <span className="text-destructive text-xs font-bold">No Manager Assigned</span>
+                  )}
+                </div>
+
+                {/* Stats Section */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="rounded-lg border bg-card p-3 text-center">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Sales</span>
+                    <span className="text-base font-black text-emerald-600">৳{Math.round(showroom.todaySales || 0)}</span>
+                  </div>
+                  <div className="rounded-lg border bg-card p-3 text-center">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month's Sales</span>
+                    <span className="text-base font-black text-emerald-600">৳{Math.round(showroom.monthSales || 0)}</span>
+                  </div>
+                  <div className="rounded-lg border bg-card p-3 text-center">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Cost</span>
+                    <span className="text-base font-black text-rose-600">৳{Math.round(showroom.todayCost || 0)}</span>
+                  </div>
+                  <div className="rounded-lg border bg-card p-3 text-center">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month's Cost</span>
+                    <span className="text-base font-black text-rose-600">৳{Math.round(showroom.monthCost || 0)}</span>
+                  </div>
+                  <div className="rounded-lg border bg-card p-3 text-center col-span-2">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Pending for Approval</span>
+                    <span className="text-base font-black text-amber-600">৳{Math.round(showroom.pendingCost || 0)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -306,9 +352,13 @@ export default function ShowroomsPage() {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL (Optional)</FormLabel>
+                    <FormLabel>Showroom Image</FormLabel>
                     <FormControl>
-                      <Input placeholder="E.g., /assets/images/showrooms/dhaka.webp" {...field} />
+                      <ImageUpload
+                        value={field.value}
+                        onUpload={(url) => field.onChange(url)}
+                        aspect="video"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -321,10 +371,15 @@ export default function ShowroomsPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assign Manager</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a manager user" />
+                          <SelectValue placeholder="Select a manager user">
+                            {(() => {
+                              const mgr = managers.find((m) => m._id === field.value);
+                              return mgr ? `${mgr.name} (${mgr.email})` : undefined;
+                            })()}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

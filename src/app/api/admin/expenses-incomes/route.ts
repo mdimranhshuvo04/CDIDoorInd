@@ -6,7 +6,8 @@ import Expense from '@/models/Expense';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -45,6 +46,16 @@ export async function GET(req: NextRequest) {
       query.date = dateQuery;
     }
 
+    if (userRole === 'manager') {
+      const Showroom = (await import('@/models/Showroom')).default;
+      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      if (managedShowroom) {
+        query.showroom = managedShowroom._id;
+      } else {
+        return NextResponse.json([]);
+      }
+    }
+
     const expenses = await Expense.find(query).sort({ date: -1 });
     return NextResponse.json(expenses);
   } catch (error) {
@@ -56,7 +67,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -68,44 +80,65 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
+    let expenseStatus = 'Approved';
+    let showroomId = body.showroom;
+
+    await connectToDatabase();
+
+    if (userRole === 'manager') {
+      const Showroom = (await import('@/models/Showroom')).default;
+      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      if (managedShowroom) {
+        showroomId = managedShowroom._id;
+      }
+      expenseStatus = 'Pending';
+    } else if (body.status) {
+      expenseStatus = body.status;
+    }
+
     // Build safe payload (whitelist)
-    const safePayload = {
+    const safePayload: any = {
       title,
       amount,
       category,
       type,
       date: date ? new Date(date) : new Date(),
-      description
+      description,
+      status: expenseStatus
     };
 
-    await connectToDatabase();
+    if (showroomId) {
+      safePayload.showroom = showroomId;
+    }
     
     const expense = await Expense.create(safePayload);
 
-    // Log to ledger
-    try {
-      const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
-      if (type === 'expense') {
-        // Credit Cash (decreases cash asset)
-        await logLedgerTransaction(
-          'CASH',
-          'credit',
-          amount,
-          `Expense Paid: ${title}`,
-          expense._id.toString()
-        );
-      } else {
-        // Debit Cash (increases cash asset)
-        await logLedgerTransaction(
-          'CASH',
-          'debit',
-          amount,
-          `Income Received: ${title}`,
-          expense._id.toString()
-        );
+    // Log to ledger only if approved
+    if (expenseStatus === 'Approved') {
+      try {
+        const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+        if (type === 'expense') {
+          // Credit Cash (decreases cash asset)
+          await logLedgerTransaction(
+            'CASH',
+            'credit',
+            amount,
+            `Expense Paid: ${title}`,
+            expense._id.toString()
+          );
+        } else {
+          // Debit Cash (increases cash asset)
+          await logLedgerTransaction(
+            'CASH',
+            'debit',
+            amount,
+            `Income Received: ${title}`,
+            expense._id.toString()
+          );
+        }
+      } catch (err) {
+        console.error('Error logging transaction to ledger:', err);
       }
-    } catch (err) {
-      console.error('Error logging transaction to ledger:', err);
     }
 
     return NextResponse.json(expense, { status: 201 });

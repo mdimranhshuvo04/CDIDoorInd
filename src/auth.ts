@@ -17,15 +17,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please provide both email and password.');
+        const identifier = (credentials?.email as string || '').trim();
+        if (!identifier || !credentials?.password) {
+          throw new Error('Please provide both email/phone and password.');
         }
 
         await connectToDatabase();
-        const user = await User.findOne({ email: credentials.email }).select('+password');
+        const user = await User.findOne({
+          $or: [
+            { email: identifier },
+            { phone: identifier }
+          ]
+        }).select('+password');
 
         if (!user || !user.password) {
-          throw new Error('No user found with this email on this store.');
+          throw new Error('Invalid credentials.');
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password);

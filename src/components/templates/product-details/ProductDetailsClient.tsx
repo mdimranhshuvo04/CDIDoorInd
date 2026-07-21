@@ -718,8 +718,8 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             <div className="space-y-3 pt-2">
               {product.attributes?.map((attr: any, i: number) => (
                 <div key={i} className="flex items-center gap-4">
-                  <span className="text-xs font-bold min-w-[80px] uppercase tracking-wider text-muted-foreground">{attr.key}:</span>
-                  <span className="text-xs font-medium">{attr.value}</span>
+                  <span className="text-sm sm:text-base font-bold min-w-[110px] uppercase tracking-wider text-muted-foreground">{attr.key}:</span>
+                  <span className="text-sm sm:text-base font-medium text-foreground">{attr.value}</span>
                 </div>
               ))}
             </div>
@@ -769,19 +769,20 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             <Button
               size="lg"
               variant="outline"
-              className="h-14 rounded-full font-black text-[10px] sm:text-sm uppercase tracking-[0.1em] sm:tracking-[0.2em] border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all hover:scale-[1.02] active:scale-95"
+              className="h-14 rounded-full font-extrabold text-sm sm:text-base border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all hover:scale-[1.02] active:scale-95"
               onClick={handleAddToCart}
               disabled={(displayStock || 0) === 0}
             >
-              <ShoppingCart className="mr-2 h-5 w-5 hidden sm:block" /> Add to Cart
+              <ShoppingCart className="mr-2 h-5 w-5 hidden sm:block" />
+              {(displayStock || 0) === 0 ? 'স্টকের বাইরে' : 'কার্টে যোগ করুন'}
             </Button>
             <Button
               size="lg"
-              className="h-14 rounded-full font-black text-[10px] sm:text-sm uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/25"
+              className="h-14 rounded-full font-extrabold text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/25"
               onClick={handleBuyNow}
               disabled={(displayStock || 0) === 0}
             >
-              Buy Now
+              {(displayStock || 0) === 0 ? 'স্টকের বাইরে' : 'অর্ডার করুন'}
             </Button>
           </div>
 

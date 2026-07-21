@@ -222,20 +222,18 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
           </div>
         )}
 
-        {/* Hover Actions - Centered circles */}
-        <div className="absolute inset-0 hidden md:flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/5 backdrop-blur-[2px]">
+        {/* Hover Actions - Centered icons without background/padding */}
+        <div className="absolute inset-0 hidden md:flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/10 backdrop-blur-[1px] pointer-events-none">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-12 w-12 rounded-full bg-white text-black hover:bg-primary hover:text-white shadow-xl transition-all hover:scale-110"
-                  onClick={(e) => { e.preventDefault(); setShowQuickViewModal(true); }}
+                <button
+                  className="text-white hover:text-primary transition-all hover:scale-110 active:scale-95 p-0 bg-transparent border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] pointer-events-auto"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickViewModal(true); }}
                   aria-label="Quick view product"
                 >
                   <Search className="h-5 w-5" />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Quick View</p>
@@ -244,21 +242,30 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className={`h-12 w-12 rounded-full bg-white shadow-xl transition-all hover:scale-110 ${isInWishlist ? 'text-primary' : 'text-black hover:bg-primary hover:text-white'}`}
-                  onClick={handleWishlist}
+                <button
+                  className={`transition-all hover:scale-110 active:scale-95 p-0 bg-transparent border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] ${isInWishlist ? 'text-primary' : 'text-white hover:text-primary'} pointer-events-auto`}
+                  onClick={(e) => { e.stopPropagation(); handleWishlist(e); }}
                   aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 >
                   <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+
+        {/* Floating Cart Button on Image (Bottom Right) */}
+        <div className="absolute bottom-3 right-3 z-20">
+          <button
+            className="text-white hover:text-primary transition-all hover:scale-110 active:scale-95 bg-transparent p-0 border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]"
+            onClick={(e) => { e.stopPropagation(); handleAddToCart(e); }}
+            aria-label="Add to cart"
+          >
+            <ShoppingCart className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -285,21 +292,13 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
         </div>
 
         {/* Action Buttons - Visible on hover for Desktop, Always for Mobile */}
-        <div className="flex flex-col sm:flex-row gap-2 pt-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
+        <div className="flex gap-2 pt-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
           <Button
-            variant="outline"
-            size="sm"
-            className={`flex-1 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 transition-all active:scale-95 py-2`}
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> Cart
-          </Button>
-          <Button
-            size="sm"
-            className={`flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2`}
+            size="lg"
+            className={`w-full rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold text-xs sm:text-sm md:text-base ${layout === 'v3' ? 'lg:h-10' : 'h-11 sm:h-12'} shadow-lg shadow-primary/20 transition-all active:scale-95 py-2`}
             onClick={handleBuyNow}
           >
-            Buy Now
+            অর্ডার করুন
           </Button>
         </div>
       </div>

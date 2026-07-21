@@ -369,20 +369,20 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               </div>
 
               <Button
-                className="flex-grow h-12 bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest text-[10px] rounded-none shadow-lg shadow-primary/20"
+                className="flex-grow h-12 bg-primary hover:bg-primary/90 text-white font-extrabold text-xs sm:text-sm rounded-none shadow-lg shadow-primary/20"
                 onClick={(e) => handleAddToCart(e)}
                 disabled={(activeVariant?.stock ?? product.stock) === 0}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                {(activeVariant?.stock ?? product.stock) === 0 ? 'Out of Stock' : 'Add to Cart'}
+                {(activeVariant?.stock ?? product.stock) === 0 ? 'স্টকের বাইরে' : 'কার্টে যোগ করুন'}
               </Button>
 
               <Button
-                className="flex-grow h-12 bg-black hover:bg-neutral-800 text-white font-bold uppercase tracking-widest text-[10px] rounded-none shadow-lg"
+                className="flex-grow h-12 bg-black hover:bg-neutral-800 text-white font-extrabold text-xs sm:text-sm rounded-none shadow-lg"
                 onClick={(e) => handleAddToCart(e, true)}
                 disabled={(activeVariant?.stock ?? product.stock) === 0}
               >
-                Buy Now
+                {(activeVariant?.stock ?? product.stock) === 0 ? 'স্টকের বাইরে' : 'অর্ডার করুন'}
               </Button>
 
               <button
@@ -399,9 +399,9 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   ttEvent('AddToWishlist', addToWishlistPayload);
                   toast.success('Added to wishlist');
                 }}
-                className="h-12 w-12 flex items-center justify-center border border-gray-200 rounded-none hover:bg-gray-50 hover:border-gray-900 transition-all"
+                className="group h-12 w-12 flex items-center justify-center border border-gray-200 rounded-none transition-all"
               >
-                <Heart className="h-5 w-5 text-gray-400" />
+                <Heart className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
               </button>
             </div>
           </div>

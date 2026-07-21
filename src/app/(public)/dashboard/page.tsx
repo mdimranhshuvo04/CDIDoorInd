@@ -41,6 +41,8 @@ export default function OrdersPage() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [checkingInOut, setCheckingInOut] = useState(false);
   const [todayAtt, setTodayAtt] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [markingComplete, setMarkingComplete] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -48,10 +50,11 @@ export default function OrdersPage() {
         const userRole = (session?.user as any)?.role;
 
         if (userRole === 'employee') {
-          const [settingsRes, profileRes, attRes] = await Promise.all([
+          const [settingsRes, profileRes, attRes, taskRes] = await Promise.all([
             fetch('/api/settings'),
             fetch('/api/user/profile'),
-            fetch('/api/admin/employees/attendance')
+            fetch('/api/admin/employees/attendance'),
+            fetch('/api/admin/employees/tasks')
           ]);
 
           if (settingsRes.ok) setSettings(await settingsRes.json());
@@ -64,6 +67,11 @@ export default function OrdersPage() {
             const todayStr = new Date().toISOString().split('T')[0];
             const todayRec = list.find((a: any) => a.date === todayStr);
             setTodayAtt(todayRec || null);
+          }
+
+          if (taskRes.ok) {
+            const data = await taskRes.json();
+            setTasks(data.tasks || []);
           }
         } else {
           const [ordersRes, settingsRes, profileRes] = await Promise.all([
@@ -136,6 +144,32 @@ export default function OrdersPage() {
       toast.error('Something went wrong');
     } finally {
       setCheckingInOut(false);
+    }
+  };
+
+  const handleMarkTaskCompleted = async (id: string) => {
+    setMarkingComplete(id);
+    try {
+      const res = await fetch(`/api/admin/employees/tasks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Completed' })
+      });
+
+      if (res.ok) {
+        toast.success('Task marked as Completed!');
+        const taskRes = await fetch('/api/admin/employees/tasks');
+        if (taskRes.ok) {
+          const data = await taskRes.json();
+          setTasks(data.tasks || []);
+        }
+      } else {
+        toast.error('Failed to update task status');
+      }
+    } catch (e) {
+      toast.error('Something went wrong');
+    } finally {
+      setMarkingComplete(null);
     }
   };
 
@@ -250,6 +284,76 @@ export default function OrdersPage() {
               <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Logged Days</div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Assigned Tasks */}
+        <div className="space-y-4 mt-6">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Assigned Tasks</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Track your assigned work and submit completed tasks to get paid.</p>
+          </div>
+          <div className="rounded-xl border bg-background shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="font-bold">Task Title</TableHead>
+                  <TableHead className="font-bold">Description</TableHead>
+                  <TableHead className="font-bold">Payout</TableHead>
+                  <TableHead className="font-bold">Status</TableHead>
+                  <TableHead className="text-right font-bold w-[160px]">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tasks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-28 text-center text-zinc-400">
+                      No tasks assigned yet.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  tasks.map((task) => (
+                    <TableRow key={task._id} className="hover:bg-zinc-50/50 transition-colors">
+                      <TableCell className="font-bold text-zinc-900">{task.title}</TableCell>
+                      <TableCell className="text-zinc-500 max-w-[250px] truncate" title={task.description}>
+                        {task.description || 'No description'}
+                      </TableCell>
+                      <TableCell className="font-bold text-zinc-800">{task.payout?.toLocaleString()} Tk</TableCell>
+                      <TableCell>
+                        <Badge 
+                          className="font-bold"
+                          variant={
+                            task.status === 'Paid' 
+                              ? 'default' 
+                              : task.status === 'Completed' 
+                              ? 'secondary' 
+                              : 'outline'
+                          }
+                        >
+                          {task.status === 'Paid' ? 'Paid' : task.status === 'Completed' ? 'Completed (Pending Review)' : 'Pending'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {task.status === 'Pending' ? (
+                          <Button 
+                            onClick={() => handleMarkTaskCompleted(task._id)}
+                            disabled={markingComplete === task._id}
+                            size="sm"
+                            className="h-8 bg-primary text-primary-foreground font-bold"
+                          >
+                            {markingComplete === task._id ? 'Updating...' : 'Mark Completed'}
+                          </Button>
+                        ) : task.status === 'Completed' ? (
+                          <span className="text-xs text-zinc-400 italic font-semibold">Pending Approval</span>
+                        ) : (
+                          <span className="text-xs text-emerald-600 font-bold">Paid & Cleared</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Attendance logs list */}

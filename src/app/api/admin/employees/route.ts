@@ -100,7 +100,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Create or update Employee Profile
     let profile = await EmployeeProfile.findOne({ user: user._id });
     if (!profile) {
       profile = await EmployeeProfile.create({
@@ -108,7 +107,7 @@ export async function POST(req: NextRequest) {
         employeeType: employeeType || 'monthly',
         baseSalary: baseSalary ? Number(baseSalary) : 0,
         taskRate: taskRate ? Number(taskRate) : 0,
-        appointmentLetter: appointmentLetter || '',
+        appointmentLetter: `/appointment-letter/${user._id}`,
         joinedDate: joinedDate ? new Date(joinedDate) : new Date()
       });
     } else {

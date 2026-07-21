@@ -7,6 +7,8 @@ export interface IExpense extends Document {
   type: 'expense' | 'income';
   date: Date;
   description?: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+  showroom?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,13 @@ const ExpenseSchema: Schema<IExpense> = new Schema(
     },
     date: { type: Date, required: true, default: Date.now },
     description: { type: String },
+    status: {
+      type: String,
+      enum: ['Approved', 'Pending', 'Rejected'],
+      default: 'Approved',
+      required: true,
+    },
+    showroom: { type: Schema.Types.ObjectId, ref: 'Showroom' },
   },
   { timestamps: true }
 );

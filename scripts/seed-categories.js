@@ -45,32 +45,32 @@ const Category = mongoose.models.Category || mongoose.model('Category', Category
 const categories = [
   {
     name: 'লৌহা কাঠের চৌকাঠ',
-    slug: 'loha-wood-chowkath',
-    image: '/assets/images/cagetory/cat-loha-chowkath.webp',
+    slug: 'flush-doors',
+    image: '/assets/images/cagetory/cat-flush-door.webp',
     isActive: true,
   },
   {
     name: 'মেহগনি কাঠের দরজা',
-    slug: 'mahogany-wood-doors',
-    image: '/assets/images/cagetory/cat-mahogany-door.webp',
+    slug: 'laminated-doors',
+    image: '/assets/images/cagetory/cat-laminated-door.webp',
     isActive: true,
   },
   {
     name: 'গামারী কাঠের দরজা',
-    slug: 'gamari-wood-doors',
-    image: '/assets/images/cagetory/cat-gamari-door.webp',
+    slug: 'panelled-doors',
+    image: '/assets/images/cagetory/cat-panelled-door.webp',
     isActive: true,
   },
   {
     name: 'সেগুন কাঠের দরজা',
-    slug: 'segun-wood-doors',
-    image: '/assets/images/cagetory/cat-segun-door.webp',
+    slug: 'carved-designer-doors',
+    image: '/assets/images/cagetory/cat-carved-designer-door.webp',
     isActive: true,
   },
   {
     name: 'চাপালিশ কাঠের দরজা',
-    slug: 'chapalish-wood-doors',
-    image: '/assets/images/cagetory/cat-chapalish-door.webp',
+    slug: 'solid-wood-doors',
+    image: '/assets/images/cagetory/cat-solid-wood-door.webp',
     isActive: true,
   },
 ];

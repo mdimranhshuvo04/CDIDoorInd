@@ -3,6 +3,8 @@ import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import Showroom from '@/models/Showroom';
 import User from '@/models/User';
+import Order from '@/models/Order';
+import Expense from '@/models/Expense';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,11 +17,80 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
     const showrooms = await Showroom.find({})
       .populate('manager', 'name email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return NextResponse.json({ showrooms });
+    const showroomsWithStats = await Promise.all(
+      showrooms.map(async (showroom) => {
+        // Today's Sales
+        const todayOrders = await Order.find({
+          showroom: showroom._id,
+          status: { $ne: 'Cancelled' },
+          createdAt: { $gte: startOfToday, $lte: endOfToday },
+        });
+        const todaySales = todayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+        // This Month's Sales
+        const monthOrders = await Order.find({
+          showroom: showroom._id,
+          status: { $ne: 'Cancelled' },
+          createdAt: { $gte: startOfMonth, $lte: endOfToday },
+        });
+        const monthSales = monthOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+        // Query real approved expenses for Today's Cost
+        const todayExpenses = await Expense.find({
+          showroom: showroom._id,
+          status: 'Approved',
+          type: 'expense',
+          date: { $gte: startOfToday, $lte: endOfToday },
+        });
+        const todayCost = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
+        // Query real approved expenses for This Month's Cost
+        const monthExpenses = await Expense.find({
+          showroom: showroom._id,
+          status: 'Approved',
+          type: 'expense',
+          date: { $gte: startOfMonth, $lte: endOfToday },
+        });
+        const monthCost = monthExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
+        // Query real pending expenses for Pending Cost
+        const pendingExpenses = await Expense.find({
+          showroom: showroom._id,
+          status: 'Pending',
+          type: 'expense',
+        });
+        const pendingCost = pendingExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
+        return {
+          ...(showroom as any),
+          todaySales,
+          monthSales,
+          todayCost,
+          monthCost,
+          pendingCost,
+        };
+      })
+    );
+
+    // Sort by this month's sales in descending order
+    showroomsWithStats.sort((a, b) => b.monthSales - a.monthSales);
+
+    return NextResponse.json({ showrooms: showroomsWithStats });
   } catch (error) {
     console.error('Fetch Showrooms Error:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

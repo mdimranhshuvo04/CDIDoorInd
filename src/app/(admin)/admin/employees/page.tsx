@@ -31,11 +31,12 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 export default function AdminEmployeesPage() {
-  const [activeTab, setActiveTab] = useState<'directory' | 'salaries' | 'leaves' | 'attendance'>('directory');
+  const [activeTab, setActiveTab] = useState<'directory' | 'salaries' | 'leaves' | 'attendance' | 'tasks'>('directory');
   const [employees, setEmployees] = useState<any[]>([]);
   const [disbursements, setDisbursements] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form states
@@ -49,21 +50,27 @@ export default function AdminEmployeesPage() {
   const [formTaskRate, setFormTaskRate] = useState('');
   const [formLetter, setFormLetter] = useState('');
 
-  // Disbursement Form states
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [payEmployeeId, setPayEmployeeId] = useState('');
-  const [payAmount, setPayAmount] = useState('');
-  const [payRemarks, setPayRemarks] = useState('');
-  const [payType, setPayType] = useState<'monthly_salary' | 'task_payment'>('monthly_salary');
+  // Disbursement inputs state
+  const [disbursingAmounts, setDisbursingAmounts] = useState<Record<string, string>>({});
+  const [disbursingRemarks, setDisbursingRemarks] = useState<Record<string, string>>({});
+
+  // Assign Task states
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignEmployeeId, setAssignEmployeeId] = useState('');
+  const [assignTitle, setAssignTitle] = useState('');
+  const [assignDescription, setAssignDescription] = useState('');
+  const [assignPayout, setAssignPayout] = useState('');
+  const [assignDueDate, setAssignDueDate] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [empRes, salRes, leaveRes, attRes] = await Promise.all([
+      const [empRes, salRes, leaveRes, attRes, taskRes] = await Promise.all([
         fetch('/api/admin/employees'),
         fetch('/api/admin/employees/salaries'),
         fetch('/api/admin/employees/leaves'),
-        fetch('/api/admin/employees/attendance')
+        fetch('/api/admin/employees/attendance'),
+        fetch('/api/admin/employees/tasks')
       ]);
 
       if (empRes.ok) {
@@ -81,6 +88,10 @@ export default function AdminEmployeesPage() {
       if (attRes.ok) {
         const attData = await attRes.json();
         setAttendance(attData.attendance || []);
+      }
+      if (taskRes.ok) {
+        const taskData = await taskRes.json();
+        setTasks(taskData.tasks || []);
       }
     } catch (error) {
       console.error('Error fetching employee data:', error);
@@ -108,7 +119,6 @@ export default function AdminEmployeesPage() {
           employeeType: formType,
           baseSalary: formBaseSalary ? Number(formBaseSalary) : 0,
           taskRate: formTaskRate ? Number(formTaskRate) : 0,
-          appointmentLetter: formLetter,
         })
       });
 
@@ -138,38 +148,182 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const handlePayEmployee = async (e: React.FormEvent) => {
+  const handleIndividualDisburse = async (emp: any, amount: string, remarks: string) => {
+    if (!amount || Number(amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Confirm Disbursement',
+      text: `Are you sure you want to disburse ${Number(amount).toLocaleString()} Tk to ${emp.name}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Disburse',
+      confirmButtonColor: '#eab308',
+      cancelButtonColor: '#d33'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch('/api/admin/employees/salaries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employeeId: emp._id,
+            amount: Number(amount),
+            type: emp.employeeType === 'monthly' ? 'monthly_salary' : 'task_payment',
+            remarks: remarks
+          })
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Paid!',
+            text: `Successfully disbursed payment to ${emp.name}`,
+            confirmButtonColor: '#eab308'
+          });
+          // Clear remarks for this employee
+          setDisbursingRemarks(prev => ({
+            ...prev,
+            [emp._id]: ''
+          }));
+          fetchData();
+        } else {
+          const data = await response.json();
+          toast.error(data.message || 'Failed to process payment');
+        }
+      } catch (err) {
+        toast.error('Something went wrong');
+      }
+    }
+  };
+
+  const handleAssignTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!assignEmployeeId || !assignTitle || !assignPayout) {
+      toast.error('Employee, Title, and Payout amount are required');
+      return;
+    }
     try {
-      const response = await fetch('/api/admin/employees/salaries', {
+      const response = await fetch('/api/admin/employees/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          employeeId: payEmployeeId,
-          amount: Number(payAmount),
-          type: payType,
-          remarks: payRemarks
+          employeeId: assignEmployeeId,
+          title: assignTitle,
+          description: assignDescription,
+          payout: Number(assignPayout),
+          dueDate: assignDueDate || undefined
         })
       });
 
       if (response.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Paid!',
-          text: 'Disbursement logged successfully',
+          title: 'Assigned!',
+          text: 'Task assigned successfully to the employee',
           confirmButtonColor: '#eab308'
         });
-        setShowPayModal(false);
-        setPayEmployeeId('');
-        setPayAmount('');
-        setPayRemarks('');
+        setShowAssignModal(false);
+        setAssignEmployeeId('');
+        setAssignTitle('');
+        setAssignDescription('');
+        setAssignPayout('');
+        setAssignDueDate('');
         fetchData();
       } else {
         const data = await response.json();
-        toast.error(data.message || 'Failed to process payment');
+        toast.error(data.message || 'Failed to assign task');
       }
     } catch (err) {
       toast.error('Something went wrong');
+    }
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will delete the pending task assignment!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`/api/admin/employees/tasks/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          toast.success('Task deleted successfully');
+          fetchData();
+        } else {
+          const data = await response.json();
+          toast.error(data.message || 'Failed to delete task');
+        }
+      } catch (err) {
+        toast.error('Something went wrong');
+      }
+    }
+  };
+
+  const handleDisburseTaskPayout = async (task: any) => {
+    const result = await Swal.fire({
+      title: 'Disburse Task Payout',
+      text: `Are you sure you want to disburse ${task.payout.toLocaleString()} Tk for "${task.title}" to ${task.employee?.name}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Disburse',
+      confirmButtonColor: '#eab308',
+      cancelButtonColor: '#d33'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // 1. Create salary disbursement record
+        const salResponse = await fetch('/api/admin/employees/salaries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employeeId: task.employee?._id || task.employee,
+            amount: task.payout,
+            type: 'task_payment',
+            remarks: `Payout for completed task: ${task.title}`
+          })
+        });
+
+        if (!salResponse.ok) {
+          const data = await salResponse.json();
+          toast.error(data.message || 'Failed to disburse salary record');
+          return;
+        }
+
+        // 2. Mark task status as Paid
+        const taskResponse = await fetch(`/api/admin/employees/tasks/${task._id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'Paid' })
+        });
+
+        if (taskResponse.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Payout Disbursed!',
+            text: 'Disbursement logged and task marked as Paid',
+            confirmButtonColor: '#eab308'
+          });
+          fetchData();
+        } else {
+          toast.error('Payment logged, but failed to update task status to Paid');
+        }
+      } catch (err) {
+        toast.error('Something went wrong');
+      }
     }
   };
 
@@ -250,13 +404,6 @@ export default function AdminEmployeesPage() {
           >
             <UserPlus className="h-4 w-4" /> Add Employee
           </Button>
-          <Button 
-            onClick={() => setShowPayModal(true)}
-            variant="outline"
-            className="border-zinc-200 text-zinc-800 font-bold flex items-center gap-2"
-          >
-            <DollarSign className="h-4 w-4" /> Disburse Payment
-          </Button>
         </div>
       </div>
 
@@ -285,6 +432,12 @@ export default function AdminEmployeesPage() {
           className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'attendance' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
           Attendance Log
+        </button>
+        <button
+          onClick={() => setActiveTab('tasks')}
+          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'tasks' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+        >
+          Tasks Assignments ({tasks.filter(t => t.status !== 'Paid').length} Active)
         </button>
       </div>
 
@@ -332,34 +485,46 @@ export default function AdminEmployeesPage() {
                             <td className="p-4 font-black text-zinc-800">
                               {emp.employeeType === 'monthly' 
                                 ? `${emp.baseSalary?.toLocaleString()} Tk/Mo` 
-                                : `${emp.taskRate?.toLocaleString()} Tk/Task`}
+                                : 'Task Wise'}
                             </td>
                             <td className="p-4 text-zinc-500">
                               {new Date(emp.joinedDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                             </td>
                             <td className="p-4">
-                              {emp.appointmentLetter ? (
-                                <a 
-                                  href={emp.appointmentLetter} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-primary font-bold hover:underline flex items-center gap-1.5"
-                                >
-                                  <FileText className="h-4 w-4" /> View Letter
-                                </a>
-                              ) : (
-                                <span className="text-zinc-400 italic text-xs">Not uploaded</span>
-                              )}
+                              <a 
+                                href={`/appointment-letter/${emp._id}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary font-bold hover:underline flex items-center gap-1.5"
+                              >
+                                <FileText className="h-4 w-4" /> View Letter
+                              </a>
                             </td>
                             <td className="p-4 text-right">
-                              <Button
-                                onClick={() => handleRevokeRole(emp._id)}
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex justify-end items-center gap-1.5">
+                                {emp.employeeType === 'task-based' && (
+                                  <Button
+                                    onClick={() => {
+                                      setAssignEmployeeId(emp._id);
+                                      setAssignPayout('');
+                                      setShowAssignModal(true);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 border-zinc-200 text-zinc-700 font-bold flex items-center gap-1 hover:bg-zinc-50"
+                                  >
+                                    <Briefcase className="h-3.5 w-3.5" /> Assign Task
+                                  </Button>
+                                )}
+                                <Button
+                                  onClick={() => handleRevokeRole(emp._id)}
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-500 hover:bg-red-50 h-8 w-8"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -373,54 +538,140 @@ export default function AdminEmployeesPage() {
 
           {/* Tab 2: Disbursements */}
           {activeTab === 'salaries' && (
-            <Card className="border border-zinc-200">
-              <CardContent className="p-0">
-                {disbursements.length === 0 ? (
-                  <div className="text-center py-16 text-zinc-400">
-                    <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                    <p className="font-medium">No disbursements recorded yet.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead>
-                        <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
-                          <th className="p-4">Employee</th>
-                          <th className="p-4">Payment Type</th>
-                          <th className="p-4">Amount</th>
-                          <th className="p-4">Date</th>
-                          <th className="p-4">Remarks</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {disbursements.map((dis) => (
-                          <tr key={dis._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
-                            <td className="p-4 font-bold text-zinc-900">
-                              {dis.employee?.name || 'Unknown User'}
-                              <div className="text-xs text-zinc-400 font-normal">{dis.employee?.email}</div>
-                            </td>
-                            <td className="p-4">
-                              <Badge variant="outline" className="font-bold">
-                                {dis.type === 'monthly_salary' ? 'Monthly salary' : 'Task compensation'}
-                              </Badge>
-                            </td>
-                            <td className="p-4 font-black text-green-600">
-                              +{dis.amount?.toLocaleString()} Tk
-                            </td>
-                            <td className="p-4 text-zinc-500">
-                              {new Date(dis.date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                            </td>
-                            <td className="p-4 text-zinc-600 italic">
-                              {dis.remarks || 'N/A'}
-                            </td>
+            <div className="space-y-6">
+              {/* Section A: Disburse Salary/Compensation */}
+              <Card className="border border-zinc-200">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-200 p-5 pb-4">
+                  <CardTitle className="text-lg font-black text-zinc-900">Disburse Salary/Compensation</CardTitle>
+                  <CardDescription className="text-sm text-zinc-500">Record payments to individual employees. Adjust the amounts and add remarks as needed.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {employees.filter(emp => emp.employeeType !== 'task-based').length === 0 ? (
+                    <div className="text-center py-10 text-zinc-400">No monthly salary employees registered yet.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-sm">
+                        <thead>
+                          <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
+                            <th className="p-4">Employee</th>
+                            <th className="p-4">Type</th>
+                            <th className="p-4 w-[180px]">Payable Amount (Tk)</th>
+                            <th className="p-4 max-w-[280px]">Remarks / Period</th>
+                            <th className="p-4 text-right">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        </thead>
+                        <tbody>
+                          {employees.filter(emp => emp.employeeType !== 'task-based').map((emp) => {
+                            const defaultAmount = (emp.baseSalary || 0).toString();
+                            const currentAmount = disbursingAmounts[emp._id] ?? defaultAmount;
+                            const currentRemarks = disbursingRemarks[emp._id] ?? '';
+
+                            return (
+                              <tr key={emp._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
+                                <td className="p-4 font-bold text-zinc-900">
+                                  {emp.name}
+                                  <div className="text-xs text-zinc-400 font-normal">{emp.email}</div>
+                                </td>
+                                <td className="p-4">
+                                  <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold">
+                                    {emp.employeeType === 'monthly' ? 'Monthly Salary' : 'Task-based'}
+                                  </Badge>
+                                </td>
+                                <td className="p-4">
+                                  <Input
+                                    type="number"
+                                    value={currentAmount}
+                                    onChange={(e) => setDisbursingAmounts({
+                                      ...disbursingAmounts,
+                                      [emp._id]: e.target.value
+                                    })}
+                                    className="h-8 max-w-[140px] font-bold text-sm bg-white border-zinc-200"
+                                  />
+                                </td>
+                                <td className="p-4">
+                                  <Input
+                                    type="text"
+                                    placeholder="e.g. July Salary / 5 tasks"
+                                    value={currentRemarks}
+                                    onChange={(e) => setDisbursingRemarks({
+                                      ...disbursingRemarks,
+                                      [emp._id]: e.target.value
+                                    })}
+                                    className="h-8 w-full max-w-[240px] text-xs bg-white border-zinc-200"
+                                  />
+                                </td>
+                                <td className="p-4 text-right">
+                                  <Button
+                                    onClick={() => handleIndividualDisburse(emp, currentAmount, currentRemarks)}
+                                    size="sm"
+                                    className="bg-primary text-primary-foreground font-bold h-8 flex items-center gap-1.5"
+                                  >
+                                    <DollarSign className="h-3.5 w-3.5" /> Disburse
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Section B: Disbursement History */}
+              <Card className="border border-zinc-200">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-200 p-5 pb-4">
+                  <CardTitle className="text-lg font-black text-zinc-900">Disbursement History</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {disbursements.length === 0 ? (
+                    <div className="text-center py-16 text-zinc-400">
+                      <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-60" />
+                      <p className="font-medium">No disbursements recorded yet.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-sm">
+                        <thead>
+                          <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
+                            <th className="p-4">Employee</th>
+                            <th className="p-4">Payment Type</th>
+                            <th className="p-4">Amount</th>
+                            <th className="p-4">Date</th>
+                            <th className="p-4">Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {disbursements.map((dis) => (
+                            <tr key={dis._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
+                              <td className="p-4 font-bold text-zinc-900">
+                                {dis.employee?.name || 'Unknown User'}
+                                <div className="text-xs text-zinc-400 font-normal">{dis.employee?.email}</div>
+                              </td>
+                              <td className="p-4">
+                                <Badge variant="outline" className="font-bold">
+                                  {dis.type === 'monthly_salary' ? 'Monthly salary' : 'Task compensation'}
+                                </Badge>
+                              </td>
+                              <td className="p-4 font-black text-green-600">
+                                +{dis.amount?.toLocaleString()} Tk
+                              </td>
+                              <td className="p-4 text-zinc-500">
+                                {new Date(dis.date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                              </td>
+                              <td className="p-4 text-zinc-600 italic">
+                                {dis.remarks || 'N/A'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Tab 3: Leave Applications */}
@@ -553,6 +804,123 @@ export default function AdminEmployeesPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Tab 5: Task Assignments */}
+          {activeTab === 'tasks' && (
+            <Card className="border border-zinc-200">
+              <CardHeader className="bg-zinc-50/50 border-b border-zinc-200 p-5 flex flex-row items-center justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle className="text-lg font-black text-zinc-900">Task Assignments</CardTitle>
+                  <CardDescription className="text-sm text-zinc-500">Assign task-based work to contractual employees and manage payouts upon completion.</CardDescription>
+                </div>
+                <Button 
+                  onClick={() => {
+                    const taskEmps = employees.filter(e => e.employeeType === 'task-based');
+                    if (taskEmps.length > 0) {
+                      setAssignEmployeeId(taskEmps[0]._id);
+                      setAssignPayout('');
+                    } else {
+                      setAssignEmployeeId('');
+                      setAssignPayout('');
+                    }
+                    setShowAssignModal(true);
+                  }}
+                  className="bg-primary text-primary-foreground font-bold flex items-center gap-1.5"
+                >
+                  <UserPlus className="h-4 w-4" /> Assign New Task
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                {tasks.length === 0 ? (
+                  <div className="text-center py-16 text-zinc-400">
+                    <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-60" />
+                    <p className="font-medium">No tasks assigned yet.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-sm">
+                      <thead>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
+                          <th className="p-4">Employee</th>
+                          <th className="p-4">Task Details</th>
+                          <th className="p-4">Payout</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4">Dates</th>
+                          <th className="p-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tasks.map((task) => (
+                          <tr key={task._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
+                            <td className="p-4 font-bold text-zinc-900">
+                              {task.employee?.name || 'Unknown User'}
+                              <div className="text-xs text-zinc-400 font-normal">{task.employee?.email}</div>
+                            </td>
+                            <td className="p-4 max-w-[280px]">
+                              <div className="font-bold text-zinc-900">{task.title}</div>
+                              {task.description && <div className="text-xs text-zinc-500 mt-0.5 line-clamp-2" title={task.description}>{task.description}</div>}
+                            </td>
+                            <td className="p-4 font-black text-zinc-800">
+                              {task.payout?.toLocaleString()} Tk
+                            </td>
+                            <td className="p-4">
+                              <Badge 
+                                className="font-bold" 
+                                variant={
+                                  task.status === 'Paid' 
+                                    ? 'default' 
+                                    : task.status === 'Completed' 
+                                    ? 'secondary' 
+                                    : 'outline'
+                                }
+                              >
+                                {task.status === 'Paid' ? 'Paid Out' : task.status === 'Completed' ? 'Completed' : 'Pending Work'}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-xs text-zinc-500">
+                              <div><span className="font-semibold">Assigned:</span> {new Date(task.assignedDate).toLocaleDateString()}</div>
+                              {task.dueDate && (
+                                <div className="mt-0.5 text-amber-600 font-medium"><span className="font-semibold text-zinc-500">Due:</span> {new Date(task.dueDate).toLocaleDateString()}</div>
+                              )}
+                              {task.completedDate && (
+                                <div className="mt-0.5 text-emerald-600"><span className="font-semibold text-zinc-500">Completed:</span> {new Date(task.completedDate).toLocaleDateString()}</div>
+                              )}
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                {task.status === 'Completed' && (
+                                  <Button 
+                                    onClick={() => handleDisburseTaskPayout(task)}
+                                    size="sm"
+                                    className="bg-emerald-600 text-white hover:bg-emerald-700 h-8 flex items-center gap-1"
+                                  >
+                                    <DollarSign className="h-3.5 w-3.5" /> Disburse
+                                  </Button>
+                                )}
+                                {task.status === 'Pending' && (
+                                  <Button
+                                    onClick={() => handleDeleteTask(task._id)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {task.status === 'Paid' && (
+                                  <span className="text-xs text-zinc-400 italic font-medium flex items-center justify-center p-1 bg-zinc-100 rounded">Paid & Cleared</span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -631,7 +999,7 @@ export default function AdminEmployeesPage() {
                     </Select>
                   </div>
                 </div>
-                {formType === 'monthly' ? (
+                {formType === 'monthly' && (
                   <div className="space-y-1.5">
                     <Label htmlFor="baseSalary">Monthly Salary (Tk)</Label>
                     <Input 
@@ -642,27 +1010,7 @@ export default function AdminEmployeesPage() {
                       placeholder="e.g. 25000" 
                     />
                   </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="taskRate">Rate Per Task (Tk)</Label>
-                    <Input 
-                      id="taskRate"
-                      type="number"
-                      value={formTaskRate} 
-                      onChange={(e) => setFormTaskRate(e.target.value)} 
-                      placeholder="e.g. 500" 
-                    />
-                  </div>
                 )}
-                <div className="space-y-1.5">
-                  <Label htmlFor="letter">Appointment Letter URL</Label>
-                  <Input 
-                    id="letter"
-                    value={formLetter} 
-                    onChange={(e) => setFormLetter(e.target.value)} 
-                    placeholder="e.g. /assets/docs/appointment-letter.pdf" 
-                  />
-                </div>
               </CardContent>
               <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -673,95 +1021,92 @@ export default function AdminEmployeesPage() {
         </div>
       )}
 
-      {/* Disburse Payment Modal */}
-      {showPayModal && (
+      {/* Assign Task Modal */}
+      {showAssignModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden">
+          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden animate-in fade-in duration-200">
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-black text-zinc-900">Record Salary/Compensation</CardTitle>
+                <CardTitle className="text-lg font-black text-zinc-900">Assign Task to Staff</CardTitle>
                 <button 
-                  onClick={() => setShowPayModal(false)}
+                  onClick={() => setShowAssignModal(false)}
                   className="text-zinc-400 hover:text-zinc-600 p-1"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
             </CardHeader>
-            <form onSubmit={handlePayEmployee}>
+            <form onSubmit={handleAssignTask}>
               <CardContent className="p-5 space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="payEmp">Select Employee</Label>
+                  <Label htmlFor="assignEmp">Select Employee</Label>
                   <Select 
                     onValueChange={(val: any) => {
-                      setPayEmployeeId(val || '');
-                      // Auto-select type based on employee type
-                      const emp = employees.find((e) => e._id === val);
-                      if (emp) {
-                        setPayType(emp.employeeType === 'monthly' ? 'monthly_salary' : 'task_payment');
-                        setPayAmount(emp.employeeType === 'monthly' ? emp.baseSalary.toString() : emp.taskRate.toString());
-                      }
+                      setAssignEmployeeId(val || '');
                     }} 
-                    value={payEmployeeId}
+                    value={assignEmployeeId}
                   >
-                    <SelectTrigger id="payEmp">
-                      <SelectValue placeholder="Choose staff member" />
+                    <SelectTrigger id="assignEmp">
+                      <SelectValue placeholder="Choose task-based staff member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {employees.map((emp) => (
+                      {employees.filter(e => e.employeeType === 'task-based').map((emp) => (
                         <SelectItem key={emp._id} value={emp._id}>
-                          {emp.name} ({emp.employeeType === 'monthly' ? 'Monthly' : 'Task-based'})
+                          {emp.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="payAmount">Amount Paid (Tk)</Label>
-                    <Input 
-                      id="payAmount"
-                      type="number"
-                      required
-                      value={payAmount} 
-                      onChange={(e) => setPayAmount(e.target.value)} 
-                      placeholder="e.g. 20000" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="payType">Payment Type</Label>
-                    <Select 
-                      onValueChange={(val: any) => setPayType(val)} 
-                      value={payType}
-                    >
-                      <SelectTrigger id="payType">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly_salary">Monthly Salary</SelectItem>
-                        <SelectItem value="task_payment">Task Compensation</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="taskTitle">Task Title</Label>
+                  <Input 
+                    id="taskTitle"
+                    required
+                    value={assignTitle}
+                    onChange={(e) => setAssignTitle(e.target.value)}
+                    placeholder="e.g. Design main entrance double door"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="payRemarks">Remarks / Period</Label>
+                  <Label htmlFor="taskDesc">Description (Optional)</Label>
                   <Input 
-                    id="payRemarks"
-                    value={payRemarks} 
-                    onChange={(e) => setPayRemarks(e.target.value)} 
-                    placeholder="e.g. July 2026 Salary / 5 tasks completed" 
+                    id="taskDesc"
+                    value={assignDescription}
+                    onChange={(e) => setAssignDescription(e.target.value)}
+                    placeholder="Describe specific requirements, dimensions, etc."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="taskPayout">Payout Amount (Tk)</Label>
+                  <Input 
+                    id="taskPayout"
+                    type="number"
+                    required
+                    value={assignPayout}
+                    onChange={(e) => setAssignPayout(e.target.value)}
+                    placeholder="e.g. 500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="taskDueDate">Expected Completion Date</Label>
+                  <Input 
+                    id="taskDueDate"
+                    type="date"
+                    value={assignDueDate}
+                    onChange={(e) => setAssignDueDate(e.target.value)}
                   />
                 </div>
               </CardContent>
               <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={() => setShowPayModal(false)}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Record Disbursement</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowAssignModal(false)}>Cancel</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Assign Task</Button>
               </div>
             </form>
           </Card>
         </div>
       )}
+
     </div>
   );
 }

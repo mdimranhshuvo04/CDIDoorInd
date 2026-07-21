@@ -56,6 +56,17 @@ const data = {
       ],
     },
     {
+      title: "Showrooms",
+      url: "#",
+      icon: Store,
+      items: [
+        {
+          title: "Showrooms",
+          url: "/admin/showrooms",
+        }
+      ],
+    },
+    {
       title: "Product Management",
       url: "#",
       icon: ShoppingBag,
@@ -123,6 +134,22 @@ const data = {
           title: "All Users",
           url: "/admin/users",
           superOnly: true
+        },
+        {
+          title: "Employees",
+          url: "/admin/employees",
+        },
+        {
+          title: "Task Management",
+          url: "/admin/task-management",
+        },
+        {
+          title: "Showroom Managers",
+          url: "/admin/showroom-managers",
+        },
+        {
+          title: "Wholesalers",
+          url: "/admin/wholesalers",
         },
       ],
     },

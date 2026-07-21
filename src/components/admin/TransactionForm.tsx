@@ -19,6 +19,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const transactionSchema = z.object({
   type: z.enum(['expense', 'income']),
@@ -30,6 +38,7 @@ const transactionSchema = z.object({
   category: z.string().default('Others'),
   date: z.string().min(1, 'Date is required').refine(s => !isNaN(Date.parse(s)), { message: 'Invalid date format' }),
   description: z.string().optional(),
+  showroom: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -40,7 +49,12 @@ interface TransactionFormProps {
 }
 
 export function TransactionForm({ initialData, onSuccess }: TransactionFormProps) {
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [showrooms, setShowrooms] = useState<any[]>([]);
+
+  const userRole = (session?.user as any)?.role;
+  const isAdmin = ['admin', 'super_admin'].includes(userRole);
 
   // Refs for keyboard navigation
   const titleRef = useRef<HTMLInputElement>(null);
@@ -58,8 +72,18 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
       category: initialData?.category || 'Others',
       date: initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       description: initialData?.description || '',
+      showroom: initialData?.showroom || undefined,
     },
   });
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetch('/api/admin/showrooms')
+        .then((res) => res.json())
+        .then((data) => setShowrooms(data.showrooms || []))
+        .catch((err) => console.error('Error fetching showrooms:', err));
+    }
+  }, [isAdmin]);
 
   const selectedType = form.watch('type');
 
@@ -87,6 +111,7 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
             category: 'Others',
             date: form.getValues('date'),
             description: '',
+            showroom: undefined,
           });
           onSuccess(false);
           setTimeout(() => {
@@ -231,6 +256,33 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
             </FormItem>
           )}
         />
+        {isAdmin && showrooms.length > 0 && (
+          <FormField
+            control={form.control}
+            name="showroom"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Showroom (Optional)</FormLabel>
+                <Select value={field.value || 'none'} onValueChange={(val) => field.onChange(val === 'none' ? undefined : val)}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Showroom" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">None (Global)</SelectItem>
+                    {showrooms.map((showroom) => (
+                      <SelectItem key={showroom._id} value={showroom._id}>
+                        {showroom.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="description"

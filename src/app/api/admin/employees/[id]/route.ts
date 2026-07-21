@@ -4,6 +4,50 @@ import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
 import EmployeeProfile from '@/models/EmployeeProfile';
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const session = await auth();
+    const userRole = (session?.user as any)?.role;
+    const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+
+    if (!session) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Employees can only access their own record; admins can access any
+    if (userRole === 'employee' && userId?.toString() !== id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!['admin', 'super_admin', 'employee'].includes(userRole)) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectToDatabase();
+
+    const user = await User.findById(id).select('-password');
+    if (!user || user.role !== 'employee') {
+      return NextResponse.json({ message: 'Employee not found' }, { status: 404 });
+    }
+
+    const profile = await EmployeeProfile.findOne({ user: id }).lean();
+
+    return NextResponse.json({
+      employee: {
+        ...user.toObject(),
+        profile: profile || null,
+      }
+    });
+  } catch (error: any) {
+    console.error('Fetch Employee Error:', error);
+    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
