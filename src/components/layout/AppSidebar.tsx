@@ -228,7 +228,20 @@ function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathna
   // Filter items based on role
   const filteredItems = items.map(item => ({
     ...item,
-    items: item.items.filter((subItem: any) => !subItem.superOnly || role === 'super_admin')
+    items: item.items.filter((subItem: any) => {
+      if (subItem.superOnly && role !== 'super_admin') return false;
+      if (role === 'showroom_manager') {
+        const allowedUrls = [
+          '/admin/dashboard',
+          '/admin/showrooms',
+          '/admin/products',
+          '/admin/orders',
+          '/admin/expenses-incomes'
+        ];
+        return allowedUrls.includes(subItem.url);
+      }
+      return true;
+    })
   })).filter(item => item.items.length > 0);
 
   const handleLinkClick = () => {

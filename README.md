@@ -71,12 +71,12 @@ These demo accounts are seeded into the database for testing and verification pu
 - **Showroom Manager 1**
   - **Name:** Showroom Manager 1
   - **Email:** `showroom_mgr1@example.com`
-  - **Role:** `manager`
+  - **Role:** `showroom_manager`
   - **Phone:** `01799999999`
   - **Assigned Showroom:** `Dhaka Main Showroom` (Mirpur, Dhaka)
 - **Showroom Manager 2**
   - **Name:** Showroom Manager 2
   - **Email:** `showroom_mgr2@example.com`
-  - **Role:** `manager`
+  - **Role:** `showroom_manager`
   - **Phone:** `01700000000`
   - **Assigned Showroom:** `Chittagong Outlet` (GEC Circle, Chittagong)

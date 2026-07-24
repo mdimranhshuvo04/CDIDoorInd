@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
-    // Find all users with role 'manager'
-    const managers = await User.find({ role: 'manager' }).select('-password').sort({ createdAt: -1 }).lean();
+    // Find all users with role 'showroom_manager' or legacy 'manager'
+    const managers = await User.find({ role: { $in: ['showroom_manager', 'manager'] } }).select('-password').sort({ createdAt: -1 }).lean();
 
     // Find all showrooms managed by these managers
     const showrooms = await Showroom.find({ manager: { $in: managers.map(m => m._id) } }).select('name manager').lean();
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       if (!user) {
         return NextResponse.json({ message: 'User not found' }, { status: 404 });
       }
-      user.role = 'manager';
+      user.role = 'showroom_manager';
       if (phone) user.phone = phone;
       if (image) user.image = image;
       await user.save();
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         password, // Pre-save hook hashes this
         phone,
         image,
-        role: 'manager'
+        role: 'showroom_manager'
       });
     }
 

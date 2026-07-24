@@ -9,7 +9,8 @@ import Expense from '@/models/Expense';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    const userRole = (session?.user as any)?.role;
+    if (!session || !(['admin', 'super_admin', 'manager', 'showroom_manager'].includes(userRole))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 

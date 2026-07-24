@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin', 'manager', 'showroom_manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -46,9 +46,10 @@ export async function GET(req: NextRequest) {
       query.date = dateQuery;
     }
 
-    if (userRole === 'manager') {
+    if (userRole === 'manager' || userRole === 'showroom_manager') {
       const Showroom = (await import('@/models/Showroom')).default;
-      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      const userId = (session.user as any).id || (session.user as any)._id;
+      const managedShowroom = await Showroom.findOne({ manager: userId });
       if (managedShowroom) {
         query.showroom = managedShowroom._id;
       } else {
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const expenses = await Expense.find(query).sort({ date: -1 });
+    const expenses = await Expense.find(query).populate('showroom', 'name').sort({ date: -1 });
     return NextResponse.json(expenses);
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin', 'manager', 'showroom_manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -85,9 +86,10 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    if (userRole === 'manager') {
+    if (userRole === 'manager' || userRole === 'showroom_manager') {
       const Showroom = (await import('@/models/Showroom')).default;
-      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      const userId = (session.user as any).id || (session.user as any)._id;
+      const managedShowroom = await Showroom.findOne({ manager: userId });
       if (managedShowroom) {
         showroomId = managedShowroom._id;
       }

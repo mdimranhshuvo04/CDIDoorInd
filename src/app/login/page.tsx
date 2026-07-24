@@ -57,8 +57,14 @@ export default function LoginPage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
       const role = (session.user as any)?.role;
-      if (role === 'admin' || role === 'super_admin') {
+      if (role === 'admin' || role === 'super_admin' || role === 'manager') {
         router.replace('/admin/dashboard');
+      } else if (role === 'showroom_manager') {
+        router.replace('/showroom/dashboard');
+      } else if (role === 'employee') {
+        router.replace('/employee/dashboard');
+      } else if (role === 'wholesaler') {
+        router.replace('/wholesaler/dashboard');
       } else {
         router.replace('/dashboard');
       }
@@ -96,6 +102,7 @@ export default function LoginPage() {
         toast.error(response.error);
       } else {
         toast.success('Logged in successfully!');
+        // Redirect to /dashboard — proxy will read fresh JWT and redirect to correct role-based dashboard
         window.location.href = '/dashboard';
       }
     } catch (error) {

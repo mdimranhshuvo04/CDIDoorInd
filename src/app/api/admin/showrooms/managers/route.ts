@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
-    const managers = await User.find({ role: 'manager' }).select('name email phone');
+    const managers = await User.find({ role: { $in: ['showroom_manager', 'manager'] } }).select('name email phone');
 
     return NextResponse.json({ managers });
   } catch (error) {

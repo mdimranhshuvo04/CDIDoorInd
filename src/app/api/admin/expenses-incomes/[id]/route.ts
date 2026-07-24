@@ -12,7 +12,7 @@ export async function PUT(
     const { id } = await params;
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin', 'manager', 'showroom_manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,9 +28,10 @@ export async function PUT(
     }
 
     // Authorization checks
-    if (userRole === 'manager') {
+    if (userRole === 'manager' || userRole === 'showroom_manager') {
       const Showroom = (await import('@/models/Showroom')).default;
-      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      const userId = (session.user as any).id || (session.user as any)._id;
+      const managedShowroom = await Showroom.findOne({ manager: userId });
       if (!managedShowroom || existingExpense.showroom?.toString() !== managedShowroom._id.toString()) {
         return NextResponse.json({ message: 'Unauthorized access to this showroom expense' }, { status: 401 });
       }
@@ -127,7 +128,7 @@ export async function DELETE(
     const { id } = await params;
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    if (!session || !['admin', 'super_admin', 'manager'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin', 'manager', 'showroom_manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -142,9 +143,10 @@ export async function DELETE(
       return NextResponse.json({ message: 'Record not found' }, { status: 404 });
     }
 
-    if (userRole === 'manager') {
+    if (userRole === 'manager' || userRole === 'showroom_manager') {
       const Showroom = (await import('@/models/Showroom')).default;
-      const managedShowroom = await Showroom.findOne({ manager: (session.user as any).id || (session.user as any)._id });
+      const userId = (session.user as any).id || (session.user as any)._id;
+      const managedShowroom = await Showroom.findOne({ manager: userId });
       if (!managedShowroom || existingExpense.showroom?.toString() !== managedShowroom._id.toString()) {
         return NextResponse.json({ message: 'Unauthorized access to this showroom expense' }, { status: 401 });
       }

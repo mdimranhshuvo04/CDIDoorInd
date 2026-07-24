@@ -10,12 +10,24 @@ export const proxy = auth(async (req) => {
   const role = (req.auth?.user as any)?.role as string | undefined;
 
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+  const isShowroomRoute = nextUrl.pathname.startsWith("/showroom");
+  const isEmployeeRoute = nextUrl.pathname.startsWith("/employee");
+  const isWholesalerRoute = nextUrl.pathname.startsWith("/wholesaler");
   const isAuthRoute = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/register");
 
   // 1. Redirection for logged-in users on Auth routes (Login/Register)
   if (isAuthRoute && isLoggedIn) {
     if (role === "admin" || role === "super_admin" || role === "manager") {
       return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+    }
+    if (role === "showroom_manager") {
+      return NextResponse.redirect(new URL("/showroom/dashboard", nextUrl));
+    }
+    if (role === "employee") {
+      return NextResponse.redirect(new URL("/employee/dashboard", nextUrl));
+    }
+    if (role === "wholesaler") {
+      return NextResponse.redirect(new URL("/wholesaler/dashboard", nextUrl));
     }
     return NextResponse.redirect(new URL("/", nextUrl));
   }
@@ -25,12 +37,20 @@ export const proxy = auth(async (req) => {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
-
+    // showroom_manager, employee, wholesaler cannot access admin routes
+    if (role === "showroom_manager") {
+      return NextResponse.redirect(new URL("/showroom/dashboard", nextUrl));
+    }
+    if (role === "employee") {
+      return NextResponse.redirect(new URL("/employee/dashboard", nextUrl));
+    }
+    if (role === "wholesaler") {
+      return NextResponse.redirect(new URL("/wholesaler/dashboard", nextUrl));
+    }
     // Only allow admin/super_admin/manager on admin routes
     if (role !== "admin" && role !== "super_admin" && role !== "manager") {
       return NextResponse.redirect(new URL("/", nextUrl));
     }
-
     // Restriction for managers on non-authorized routes
     if (role === "manager") {
       const allowedPaths = [
@@ -48,14 +68,13 @@ export const proxy = auth(async (req) => {
         "/admin/blogs",
         "/admin/expenses"
       ];
-      const isPathAllowed = allowedPaths.some(path => 
+      const isPathAllowed = allowedPaths.some(path =>
         nextUrl.pathname === path || nextUrl.pathname.startsWith(path + "/")
       );
       if (!isPathAllowed) {
         return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
       }
     }
-
     // /admin/system-design → strictly super_admin
     const isSystemDesignRoute = nextUrl.pathname.startsWith("/admin/system-design");
     if (isSystemDesignRoute && role !== "super_admin") {
@@ -63,10 +82,76 @@ export const proxy = auth(async (req) => {
     }
   }
 
-  // 3. Redirect /dashboard route to /admin/dashboard for admins, and to /login for non-logged-in users
+  // 3. Protection for Showroom routes
+  if (isShowroomRoute) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/login", nextUrl));
+    }
+    if (role !== "showroom_manager") {
+      if (role === "admin" || role === "super_admin" || role === "manager") {
+        return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+      }
+      if (role === "employee") {
+        return NextResponse.redirect(new URL("/employee/dashboard", nextUrl));
+      }
+      if (role === "wholesaler") {
+        return NextResponse.redirect(new URL("/wholesaler/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+  }
+
+  // 4. Protection for Employee routes
+  if (isEmployeeRoute) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/login", nextUrl));
+    }
+    if (role !== "employee") {
+      if (role === "admin" || role === "super_admin" || role === "manager") {
+        return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+      }
+      if (role === "showroom_manager") {
+        return NextResponse.redirect(new URL("/showroom/dashboard", nextUrl));
+      }
+      if (role === "wholesaler") {
+        return NextResponse.redirect(new URL("/wholesaler/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+  }
+
+  // 5. Protection for Wholesaler routes
+  if (isWholesalerRoute) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/login", nextUrl));
+    }
+    if (role !== "wholesaler") {
+      if (role === "admin" || role === "super_admin" || role === "manager") {
+        return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+      }
+      if (role === "showroom_manager") {
+        return NextResponse.redirect(new URL("/showroom/dashboard", nextUrl));
+      }
+      if (role === "employee") {
+        return NextResponse.redirect(new URL("/employee/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+  }
+
+  // 6. Redirect /dashboard route based on role
   if (nextUrl.pathname === "/dashboard" || nextUrl.pathname.startsWith("/dashboard/")) {
     if (role === "admin" || role === "super_admin" || role === "manager") {
       return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+    }
+    if (role === "showroom_manager") {
+      return NextResponse.redirect(new URL("/showroom/dashboard", nextUrl));
+    }
+    if (role === "employee") {
+      return NextResponse.redirect(new URL("/employee/dashboard", nextUrl));
+    }
+    if (role === "wholesaler") {
+      return NextResponse.redirect(new URL("/wholesaler/dashboard", nextUrl));
     }
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", nextUrl));

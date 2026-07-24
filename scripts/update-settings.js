@@ -41,16 +41,16 @@ async function run() {
 
     let settings = await GlobalSettings.findOne().sort({ updatedAt: -1 });
     if (settings) {
-      settings.brandName = 'চিটাগাং ডোর ইন্ডাস্ট্রিজ';
-      settings.metaTitle = 'চিটাগাং ডোর ইন্ডাস্ট্রিজ';
-      settings.marqueeText = 'চিটাগাং ডোর ইন্ডাস্ট্রিজ-এ আপনাকে স্বাগতম!';
+      settings.brandName = 'চিটাগাং ডোর';
+      settings.metaTitle = 'চিটাগাং ডোর';
+      settings.marqueeText = 'চিটাগাং ডোর-এ আপনাকে স্বাগতম!';
       await settings.save();
       console.log('Updated existing settings successfully.');
     } else {
       settings = await GlobalSettings.create({
-        brandName: 'চিটাগাং ডোর ইন্ডাস্ট্রিজ',
-        metaTitle: 'চিটাগাং ডোর ইন্ডাস্ট্রিজ',
-        marqueeText: 'চিটাগাং ডোর ইন্ডাস্ট্রিজ-এ আপনাকে স্বাগতম!'
+        brandName: 'চিটাগাং ডোর',
+        metaTitle: 'চিটাগাং ডোর',
+        marqueeText: 'চিটাগাং ডোর-এ আপনাকে স্বাগতম!'
       });
       console.log('Created new settings successfully.');
     }

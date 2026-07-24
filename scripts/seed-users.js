@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, select: false },
-    role: { type: String, enum: ['super_admin', 'admin', 'manager', 'wholesaler', 'employee', 'user'], default: 'user' },
+    role: { type: String, enum: ['super_admin', 'admin', 'manager', 'showroom_manager', 'wholesaler', 'employee', 'user'], default: 'user' },
     phone: { type: String },
     isSubscriptionActive: { type: Boolean, default: false },
     walletBalance: { type: Number, default: 0 }
@@ -147,8 +147,8 @@ async function seedUsers() {
 
     // 5. Showroom Managers
     console.log('--- Seeding Showroom Managers ---');
-    const smgr1 = await upsertUser('Showroom Manager 1', 'showroom_mgr1@example.com', 'manager', '01799999999');
-    const smgr2 = await upsertUser('Showroom Manager 2', 'showroom_mgr2@example.com', 'manager', '01700000000');
+    const smgr1 = await upsertUser('Showroom Manager 1', 'showroom_mgr1@example.com', 'showroom_manager', '01799999999');
+    const smgr2 = await upsertUser('Showroom Manager 2', 'showroom_mgr2@example.com', 'showroom_manager', '01700000000');
 
     // Create/update Showrooms
     const showroom1 = await Showroom.findOneAndUpdate(

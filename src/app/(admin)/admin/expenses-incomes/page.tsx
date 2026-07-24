@@ -161,7 +161,8 @@ function ExpensesIncomesContent() {
   const filteredTransactions = transactions.filter((tx) => {
     const term = searchTerm.toLowerCase();
     const title = tx.title?.toLowerCase() || '';
-    const matchesSearch = title.includes(term);
+    const showroomName = tx.showroom?.name?.toLowerCase() || '';
+    const matchesSearch = title.includes(term) || showroomName.includes(term);
 
     let matchesDate = true;
     if (dateFilter.from) {
@@ -194,7 +195,8 @@ function ExpensesIncomesContent() {
   const overviewTransactions = transactions.filter((tx) => {
     const term = searchTerm.toLowerCase();
     const title = tx.title?.toLowerCase() || '';
-    const matchesSearch = title.includes(term);
+    const showroomName = tx.showroom?.name?.toLowerCase() || '';
+    const matchesSearch = title.includes(term) || showroomName.includes(term);
 
     let matchesDate = true;
     if (dateFilter.from) {
@@ -286,7 +288,7 @@ function ExpensesIncomesContent() {
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search title..."
+                placeholder="Search title, showroom..."
                 className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -355,6 +357,7 @@ function ExpensesIncomesContent() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Title</TableHead>
+                <TableHead>Showroom / Origin</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount (Tk)</TableHead>
@@ -364,7 +367,7 @@ function ExpensesIncomesContent() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10">
+                  <TableCell colSpan={7} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
                       Loading transactions...
@@ -373,7 +376,7 @@ function ExpensesIncomesContent() {
                 </TableRow>
               ) : filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                     No transactions found.
                   </TableCell>
                 </TableRow>
@@ -389,6 +392,17 @@ function ExpensesIncomesContent() {
                           <div className="text-xs text-muted-foreground mt-0.5 max-w-[300px] break-words">
                             {tx.description}
                           </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {tx.showroom?.name ? (
+                          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                            {tx.showroom.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">
+                            Head Office
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>

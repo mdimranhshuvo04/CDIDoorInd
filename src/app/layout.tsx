@@ -102,21 +102,21 @@ export async function generateMetadata(): Promise<Metadata> {
       appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
+        title: settings.brandName || "চিটাগাং ডোর",
       },
       formatDetection: {
         telephone: false,
       },
       openGraph: {
-        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
+        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
         url: baseUrl,
-        siteName: settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
+        siteName: settings.brandName || "চিটাগাং ডোর",
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
+        title: settings.metaTitle || settings.brandName || "চিটাগাং ডোর",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
       },
       verification: {
@@ -133,7 +133,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (error) {
     return {
-      title: "চিটাগাং ডোর ইন্ডাস্ট্রিজ",
+      title: "চিটাগাং ডোর",
       description: "Your ultimate destination for quality products.",
     };
   }

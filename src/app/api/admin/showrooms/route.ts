@@ -120,8 +120,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Manager user not found' }, { status: 404 });
     }
 
-    if (managerUser.role !== 'manager') {
-      return NextResponse.json({ message: 'Selected user must have the manager role' }, { status: 400 });
+    if (managerUser.role !== 'showroom_manager' && managerUser.role !== 'manager') {
+      return NextResponse.json({ message: 'Selected user must have showroom_manager or manager role' }, { status: 400 });
+    }
+    // Update role to showroom_manager if it was manager
+    if (managerUser.role === 'manager') {
+      managerUser.role = 'showroom_manager';
+      await managerUser.save();
     }
 
     // Check if this manager is already assigned to another showroom
@@ -180,8 +185,12 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ message: 'Manager user not found' }, { status: 404 });
       }
 
-      if (managerUser.role !== 'manager') {
-        return NextResponse.json({ message: 'Selected user must have the manager role' }, { status: 400 });
+      if (managerUser.role !== 'showroom_manager' && managerUser.role !== 'manager') {
+        return NextResponse.json({ message: 'Selected user must have showroom_manager or manager role' }, { status: 400 });
+      }
+      if (managerUser.role === 'manager') {
+        managerUser.role = 'showroom_manager';
+        await managerUser.save();
       }
 
       // Check if this manager is already assigned to another showroom

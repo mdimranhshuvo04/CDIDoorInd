@@ -23,7 +23,7 @@ export async function PATCH(
     await connectToDatabase();
 
     const user = await User.findById(id);
-    if (!user || user.role !== 'manager') {
+    if (!user || (user.role !== 'showroom_manager' && user.role !== 'manager')) {
       return NextResponse.json({ message: 'Showroom Manager not found' }, { status: 404 });
     }
 
@@ -66,7 +66,7 @@ export async function DELETE(
     await connectToDatabase();
 
     const user = await User.findById(id);
-    if (!user || user.role !== 'manager') {
+    if (!user || (user.role !== 'showroom_manager' && user.role !== 'manager')) {
       return NextResponse.json({ message: 'Showroom Manager not found' }, { status: 404 });
     }
 
