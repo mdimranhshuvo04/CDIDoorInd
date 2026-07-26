@@ -9,10 +9,10 @@ export const proxy = auth(async (req) => {
   const isLoggedIn = !!req.auth;
   const role = (req.auth?.user as any)?.role as string | undefined;
 
-  const isAdminRoute = nextUrl.pathname.startsWith("/admin");
-  const isShowroomRoute = nextUrl.pathname.startsWith("/showroom");
-  const isEmployeeRoute = nextUrl.pathname.startsWith("/employee");
-  const isWholesalerRoute = nextUrl.pathname.startsWith("/wholesaler");
+  const isAdminRoute = nextUrl.pathname === "/admin" || nextUrl.pathname.startsWith("/admin/");
+  const isShowroomRoute = nextUrl.pathname === "/showroom" || nextUrl.pathname.startsWith("/showroom/");
+  const isEmployeeRoute = nextUrl.pathname === "/employee" || nextUrl.pathname.startsWith("/employee/");
+  const isWholesalerRoute = nextUrl.pathname === "/wholesaler" || nextUrl.pathname.startsWith("/wholesaler/");
   const isAuthRoute = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/register");
 
   // 1. Redirection for logged-in users on Auth routes (Login/Register)
