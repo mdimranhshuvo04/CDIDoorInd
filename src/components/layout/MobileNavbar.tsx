@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { User, LogOut, LayoutDashboard, Truck, Settings, Package } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { MobileMenu } from '@/components/layout/MobileMenu';
 import { Logo } from '@/components/ui/logo';
 import {
@@ -29,7 +28,6 @@ interface MobileNavbarProps {
  * Always sticky top-0 with solid bg-background. No transparent/floating on mobile.
  */
 export function MobileNavbar({ navItems, categories }: MobileNavbarProps) {
-  const router = useRouter();
   const { data: session, status } = useSession();
 
   const [profile, setProfile] = useState<any>(null);
