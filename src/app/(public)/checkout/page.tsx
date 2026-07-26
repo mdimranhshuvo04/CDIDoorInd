@@ -955,8 +955,9 @@ function CheckoutContent() {
                   )}
 
                   {!isCreditOrder && (
-                    <FormField
-                      control={form.control}
+                    <>
+                      <FormField
+                        control={form.control}
                       name="paymentMethod"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
@@ -1051,12 +1052,13 @@ function CheckoutContent() {
                       Please select a provider and provide payment details!
                     </p>
                   )}
+                    </>
+                  )}
+
                   {isCreditOrder && (
                     <div className="p-4 border rounded-lg bg-yellow-500/5 border-yellow-500/20 text-xs sm:text-sm font-semibold text-yellow-700">
                       Payment Mode: Credit Order (বাকি অর্ডার). You will be able to complete checkout directly. Dues will be visible in your dashboard.
                     </div>
-                  )}
-                  </div>
                   )}
 
                   {profile && profile.walletBalance > 0 && (
