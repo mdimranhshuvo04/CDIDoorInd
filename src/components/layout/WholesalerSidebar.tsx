@@ -106,9 +106,7 @@ export function WholesalerSidebar({ ...props }: React.ComponentProps<typeof Side
   return (
     <Sidebar {...props}>
       <SidebarHeader className="border-b h-14 lg:h-[60px] px-4 flex items-center">
-        <Link href="/wholesaler/dashboard">
-          <Logo />
-        </Link>
+        <Logo href="/wholesaler/dashboard" />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} pathname={pathname} />

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
@@ -44,12 +45,12 @@ export async function GET(req: NextRequest) {
 
     // 1 & 2. Total Revenue, COGS, and Sales Count (Delivered Orders)
     const revenueStats = await Order.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
           createdAt: { $gte: startDate, $lte: endDate },
           deletedAt: null
-        } 
+        }
       },
       {
         $group: {
@@ -57,8 +58,8 @@ export async function GET(req: NextRequest) {
           totalRevenue: { $sum: '$totalAmount' },
           totalDeliveryCharge: { $sum: '$deliveryCharge' },
           salesCount: { $sum: 1 },
-          totalCOGS: { 
-            $sum: { 
+          totalCOGS: {
+            $sum: {
               $sum: {
                 $map: {
                   input: '$items',
@@ -72,20 +73,20 @@ export async function GET(req: NextRequest) {
       }
     ]);
 
-    const { 
-      totalRevenue = 0, 
+    const {
+      totalRevenue = 0,
       totalDeliveryCharge = 0,
-      salesCount = 0, 
-      totalCOGS = 0 
+      salesCount = 0,
+      totalCOGS = 0
     } = revenueStats[0] || {};
 
     // 3. Expenses & Incomes
     const expenseStats = await Expense.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           date: { $gte: startDate, $lte: endDate },
           type: { $ne: 'income' }
-        } 
+        }
       },
       {
         $group: {
@@ -117,8 +118,8 @@ export async function GET(req: NextRequest) {
     const netProfit = grossProfit + totalIncomes - totalExpenses;
 
     // 5. Total Customers (Only users with role 'user')
-    const totalUsers = await User.countDocuments({ 
-      role: 'user' 
+    const totalUsers = await User.countDocuments({
+      role: 'user'
     });
 
     // 6. Pending Orders (Total, not date filtered)
@@ -199,11 +200,11 @@ export async function GET(req: NextRequest) {
 
     // 13. New vs Returning (Sample simplified logic)
     const allUsersWithOrders = await Order.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           deletedAt: null,
           createdAt: { $gte: startDate, $lte: endDate }
-        } 
+        }
       },
       { $group: { _id: '$user', count: { $sum: 1 } } }
     ]);
@@ -226,8 +227,8 @@ export async function GET(req: NextRequest) {
           },
           revenue: { $sum: '$totalAmount' },
           orders: { $sum: 1 },
-          cogs: { 
-            $sum: { 
+          cogs: {
+            $sum: {
               $sum: {
                 $map: {
                   input: '$items',
@@ -257,6 +258,37 @@ export async function GET(req: NextRequest) {
     const avgDailyRevenue = totalRevenue / daysInRange;
     const projectedMonthlyRevenue = avgDailyRevenue * 30;
 
+    // Calculate credit receivables
+    const creditOrders = await Order.find({
+      paymentMethod: 'Credit',
+      paymentStatus: { $ne: 'Paid' },
+      status: { $ne: 'Cancelled' },
+      deletedAt: null
+    }).populate('user', 'name email phone').lean() as any[];
+
+    const totalWholesalerDue = creditOrders.reduce((sum: number, o: any) => {
+      const outstanding = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
+      return sum + outstanding;
+    }, 0);
+
+    const wholesalerDuesMap: Record<string, any> = {};
+    for (const order of creditOrders) {
+      if (!order.user) continue;
+      const uId = String(order.user._id);
+      const outstanding = (order.totalAmount || 0) - (order.couponDiscountAmount || 0) - (order.walletAmountUsed || 0);
+      if (wholesalerDuesMap[uId]) {
+        wholesalerDuesMap[uId].due += outstanding;
+      } else {
+        wholesalerDuesMap[uId] = {
+          name: order.user.name || 'Unknown Wholesaler',
+          email: order.user.email,
+          phone: order.user.phone,
+          due: outstanding
+        };
+      }
+    }
+    const wholesalersDueList = Object.values(wholesalerDuesMap).sort((a: any, b: any) => b.due - a.due);
+
     return NextResponse.json({
       stats: {
         totalRevenue,
@@ -273,13 +305,15 @@ export async function GET(req: NextRequest) {
         totalAdSpend,
         newUsersCount,
         returningUsersCount,
-        projectedMonthlyRevenue
+        projectedMonthlyRevenue,
+        totalWholesalerDue
       },
       recentOrders,
       lowStockProducts,
       topSellingProducts,
       topCustomers,
-      chartData
+      chartData,
+      wholesalersDueList
     });
   } catch (error) {
     console.error('Dashboard Stats Error:', error);

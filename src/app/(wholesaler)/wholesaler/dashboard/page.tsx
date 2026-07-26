@@ -94,7 +94,7 @@ export default function WholesalerDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard
           title="মোট অর্ডার"
           value={`${data?.stats?.totalOrders || 0}`}
@@ -122,6 +122,13 @@ export default function WholesalerDashboard() {
           sub="চলতি মাস"
           icon={TrendingUp}
           color="bg-emerald-500"
+        />
+        <StatCard
+          title="বাকি পরিশোধযোগ্য (Due)"
+          value={fmt(data?.stats?.totalDue || 0)}
+          sub="বাকিতে কেনা মোট বকেয়া"
+          icon={AlertTriangle}
+          color="bg-destructive"
         />
       </div>
 

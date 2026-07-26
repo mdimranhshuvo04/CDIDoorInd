@@ -88,21 +88,21 @@ export default function ShopClient({ initialProducts, initialCategories, searchP
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
   const itemsPerPage = 20;
 
-  // Sync with URL params (e.g. from Navbar search)
-  useEffect(() => {
-    const urlSearch = searchParams.get('search') || searchParams.get('q');
+  const urlPage = Number(searchParams.get('page')) || 1;
+  const [prevUrlPage, setPrevUrlPage] = useState(urlPage);
+  if (urlPage !== prevUrlPage) {
+    setPrevUrlPage(urlPage);
+    setCurrentPage(urlPage);
+  }
+
+  const urlSearch = searchParams.get('search') || searchParams.get('q');
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
+  if (urlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearch);
     if (urlSearch !== null) {
       setSearchTerm(urlSearch);
     }
-  }, [searchParams]);
-
-  // Sync page from URL parameter
-  useEffect(() => {
-    const urlPage = Number(searchParams.get('page')) || 1;
-    if (urlPage !== currentPage) {
-      setCurrentPage(urlPage);
-    }
-  }, [searchParams, currentPage]);
+  }
 
   const skipClampRef = useRef(false);
   const isMounted = useRef(false);
@@ -175,7 +175,10 @@ export default function ShopClient({ initialProducts, initialCategories, searchP
     if (products.length > 0) {
       const safePage = Math.max(1, Math.min(currentPage, totalPages || 1));
       if (safePage !== currentPage) {
-        setPageAndUrl(safePage);
+        const timer = setTimeout(() => {
+          setPageAndUrl(safePage);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [currentPage, totalPages, products.length, setPageAndUrl]);

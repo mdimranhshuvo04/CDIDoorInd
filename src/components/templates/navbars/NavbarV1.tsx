@@ -100,6 +100,7 @@ export default function Navbar() {
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
+    let timer: NodeJS.Timeout;
 
     if (status === 'authenticated') {
       fetch('/api/user/profile', { signal: controller.signal })
@@ -116,12 +117,17 @@ export default function Navbar() {
           }
         });
     } else {
-      setProfile(null);
+      timer = setTimeout(() => {
+        if (isMounted) {
+          setProfile(null);
+        }
+      }, 0);
     }
 
     return () => {
       isMounted = false;
       controller.abort();
+      if (timer) clearTimeout(timer);
     };
   }, [status]);
 
@@ -150,7 +156,13 @@ export default function Navbar() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = searchTerm.trim();
-    if (!trimmed) { setLiveResults([]); setShowDropdown(false); return; }
+    if (!trimmed) {
+      Promise.resolve().then(() => {
+        setLiveResults([]);
+        setShowDropdown(false);
+      });
+      return;
+    }
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {

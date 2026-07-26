@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
-    let query: any = {};
+    const query: any = {};
     if (userRole === 'employee') {
       if (!userId) {
         return NextResponse.json({ tasks: [] });

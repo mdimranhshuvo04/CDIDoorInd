@@ -62,7 +62,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   const wishlist = useAppSelector((state) => state.wishlist.items);
   const isInWishlist = wishlist.includes(product?._id);
   const router = useRouter();
-  const isAdmin = (session?.user as any)?.role === 'admin';
+  const isAdmin = ['admin', 'super_admin'].includes((session?.user as any)?.role);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -74,6 +74,34 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [eligibility, setEligibility] = useState<any>(null);
+  const [prevActiveVariant, setPrevActiveVariant] = useState<any>(null);
+  const [prevProductId, setPrevProductId] = useState<string | null>(null);
+  const [prevUserEmail, setPrevUserEmail] = useState<string | null>(null);
+
+  const currentProductId = product?._id || null;
+  const currentUserEmail = session?.user?.email || null;
+
+  if (currentProductId !== prevProductId) {
+    setPrevProductId(currentProductId);
+    const initialColor = (product.variants || []).map((v: any) => v.color).filter(Boolean)[0] || null;
+    setSelectedColor(initialColor);
+
+    const initialSizes = (product.variants || [])
+      .filter((v: any) => !initialColor || v.color === initialColor)
+      .map((v: any) => v.size)
+      .filter(Boolean);
+    const initialSize = initialSizes[0] || null;
+    setSelectedSize(initialSize);
+
+    setSelectedImage(0);
+    setQuantity(1);
+  }
+
+  if (currentUserEmail !== prevUserEmail) {
+    setPrevUserEmail(currentUserEmail);
+    setEligibility(null);
+  }
+
   const [activeTab, setActiveTab] = useState('description');
   const [shouldScrollToReviewForm, setShouldScrollToReviewForm] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -107,6 +135,11 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
     [product.variants, selectedColor, selectedSize]
   );
 
+  if (activeVariant !== prevActiveVariant) {
+    setPrevActiveVariant(activeVariant);
+    setSelectedImage(0);
+  }
+
   const allImages = useMemo(() => {
     if (activeVariant) {
       const activeImages = [
@@ -120,28 +153,10 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
     return product.images || [];
   }, [product.images, activeVariant]);
 
-  // Reset selected image when active variant changes to avoid out-of-bounds indices
-  useEffect(() => {
-    setSelectedImage(0);
-  }, [activeVariant]);
-
 
   // Auto-select first available options on mount or product change
   useEffect(() => {
     if (!product) return;
-
-    const initialColor = uniqueColors[0] || null;
-    setSelectedColor(initialColor);
-
-    const initialSizes = (product.variants || [])
-      .filter((v: any) => !initialColor || v.color === initialColor)
-      .map((v: any) => v.size)
-      .filter(Boolean);
-    const initialSize = initialSizes[0] || null;
-    setSelectedSize(initialSize);
-
-    setSelectedImage(0);
-    setQuantity(1);
 
     // Track ViewContent
     const viewContentPayload = {
@@ -160,17 +175,15 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
 
     fbEvent('ViewContent', viewContentPayload, trackingUser);
     ttEvent('ViewContent', viewContentPayload, trackingUser);
-  }, [product?._id, uniqueColors, product.variants, session]);
+  }, [product?._id, session]);
 
   // Fetch review eligibility separately to avoid unnecessary re-triggers
   useEffect(() => {
     if (!session?.user || !product?._id) {
-      setEligibility(null);
       return;
     }
 
     const controller = new AbortController();
-    setEligibility(null); // Reset to avoid stale UI
 
     async function checkEligibility() {
       try {
@@ -198,7 +211,10 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       const element = document.getElementById('review-form');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setShouldScrollToReviewForm(false);
+        const timer = setTimeout(() => {
+          setShouldScrollToReviewForm(false);
+        }, 0);
+        return () => clearTimeout(timer);
       } else {
         // If element not yet in DOM, retry briefly
         const timer = setTimeout(() => {
@@ -209,22 +225,6 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       }
     }
   }, [activeTab, shouldScrollToReviewForm]);
-
-  // Adjust selection if dependencies change and current choice is unavailable
-  useEffect(() => {
-    if (selectedSize == null || !availableSizes.includes(selectedSize)) {
-      setSelectedSize(availableSizes[0] || null);
-    }
-
-    // Update main image if variant has one
-    const activeImg = activeVariant?.images?.[0] || activeVariant?.image;
-    if (activeImg) {
-      const variantImgIndex = (allImages || []).findIndex((img: string) => img === activeImg);
-      if (variantImgIndex !== -1) {
-        setSelectedImage(variantImgIndex);
-      }
-    }
-  }, [selectedColor, selectedSize, availableSizes, activeVariant, allImages]);
 
   const hasVariants = (uniqueColors.length > 0 || uniqueSizes.length > 0);
   const currentVariant = activeVariant || defaultVariant;
@@ -238,6 +238,14 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   const displaySalePrice = hasVariants 
     ? ((isWholesaler && currentVariant?.wholesaleSalePrice) ? currentVariant.wholesaleSalePrice : currentVariant?.salePrice)
     : ((isWholesaler && product.wholesaleSalePrice) ? product.wholesaleSalePrice : product.salePrice);
+
+  const retailPrice = hasVariants 
+    ? (currentVariant?.price ?? 0)
+    : product.price;
+
+  const retailSalePrice = hasVariants 
+    ? currentVariant?.salePrice
+    : product.salePrice;
 
   const displayStock = hasVariants ? (currentVariant?.stock ?? 0) : (product.stock ?? 0);
   const displaySku = hasVariants ? (currentVariant?.sku ?? '') : product.sku;
@@ -534,28 +542,6 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
 
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight">{product.name}</h1>
-            {isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="outline-none transition-colors hover:text-primary">
-                  <MoreVertical className="h-6 w-6 text-muted-foreground" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => router.push(`/admin/products/${product.slug}`)} className="cursor-pointer">
-                    <Edit className="mr-2 h-4 w-4" /> Edit Product
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowDeleteModal(true)} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete Product
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/admin/products')} className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" /> Manage Products
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/admin/products/new')} className="cursor-pointer">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Create Product
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
           <div className="flex items-center gap-4 py-2">
             <div className="flex items-center gap-1">
@@ -576,6 +562,32 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
               <Share2 className="h-4 w-4" />
               <span>Share</span>
             </button>
+            {isAdmin && (
+              <>
+                <Separator orientation="vertical" className="h-4" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="outline-none transition-colors hover:text-primary flex items-center gap-1 text-sm font-bold text-muted-foreground cursor-pointer">
+                    <MoreVertical className="h-4 w-4" />
+                    <span>Options</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => router.push(`/admin/products/${product.slug}`)} className="cursor-pointer">
+                      <Edit className="mr-2 h-4 w-4" /> Edit Product
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowDeleteModal(true)} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
+                      <Trash2 className="mr-2 h-4 w-4" /> Delete Product
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/admin/products')} className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" /> Manage Products
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/admin/products/new')} className="cursor-pointer">
+                      <PlusCircle className="mr-2 h-4 w-4" /> Create Product
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
             {eligibility?.eligible && (
               <>
                 <Separator orientation="vertical" className="h-4" />
@@ -603,9 +615,14 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                 {CURRENCY_SYMBOL}{Math.round(displayPrice)}
               </span>
             )}
+            {isWholesaler && (hasVariants ? !!currentVariant?.wholesalePrice : !!product.wholesalePrice) && (
+              <Badge className="bg-primary text-primary-foreground font-semibold px-2 py-0.5 text-[10px] rounded-none">
+                WHOLESALE PRICE
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${displayStock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${displayStock > 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
               {displayStock > 0 ? `In stock (${displayStock} units)` : 'Out of stock'}
             </span>
             {displaySku && (
@@ -613,8 +630,6 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             )}
           </div>
         </div>
-
-        <Separator />
 
         {/* Dynamic Content Spacer */}
         <div className="space-y-6">
@@ -643,7 +658,16 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                       <button
                         key={color}
                         disabled={isOutOfStock}
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => {
+                          setSelectedColor(color);
+                          const newAvailableSizes = (product.variants || [])
+                            .filter((v: any) => v.color === color && (v.stock || 0) > 0)
+                            .map((v: any) => v.size)
+                            .filter(Boolean) as string[];
+                          if (selectedSize == null || !newAvailableSizes.includes(selectedSize)) {
+                            setSelectedSize(newAvailableSizes[0] || null);
+                          }
+                        }}
                         title={color}
                         className={`relative rounded-lg overflow-hidden transition-all duration-200 border-2 ${
                           selectedColor === color
@@ -727,7 +751,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-4 py-8 sm:py-6 border-t">
+        <div className="flex flex-col gap-4 py-8 sm:py-6">
           {/* Row 1: Quantity and Wishlist */}
           <div className="flex items-center gap-4">
             <div className="flex items-center border rounded-full overflow-hidden h-12 bg-muted/50">
@@ -796,7 +820,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                 const message = encodeURIComponent(`Hi, I'm interested in ${product.name}. Price: ${CURRENCY_SYMBOL}${Math.round(displaySalePrice || displayPrice)}`);
 
                 // Parse whatsappNumber robustly
-                let cleanNumber = (whatsappNumber || '').trim();
+                const cleanNumber = (whatsappNumber || '').trim();
                 let phone = '';
 
                 if (cleanNumber.includes('wa.me/')) {
@@ -829,6 +853,23 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
               Order via WhatsApp
             </Button>
           )}
+
+          {isWholesaler && (
+            <div className="flex flex-col gap-2 p-4 mt-2 rounded-lg bg-primary/5 border border-primary/10">
+              <div className="flex justify-between items-center text-xs md:text-sm text-muted-foreground">
+                <span>Regular Retail Price (খুচরা মূল্য):</span>
+                <span className="font-semibold text-foreground">
+                  {CURRENCY_SYMBOL}{Math.round(retailSalePrice || retailPrice)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs md:text-sm text-primary font-bold">
+                <span>Your Profit (আপনার লাভ):</span>
+                <span>
+                  +{CURRENCY_SYMBOL}{Math.round((retailSalePrice || retailPrice) - (displaySalePrice || displayPrice))} ({retailSalePrice || retailPrice > 0 ? Math.round((((retailSalePrice || retailPrice) - (displaySalePrice || displayPrice)) / (retailSalePrice || retailPrice)) * 100) : 0}%)
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
 
@@ -850,6 +891,12 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             >
               Reviews
             </TabsTrigger>
+            <TabsTrigger
+              value="terms"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+            >
+              Terms & Conditions
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="description" className="animate-in fade-in-50 duration-500">
@@ -866,6 +913,33 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
               <ReviewsSection productId={product._id} />
             </Suspense>
           </TabsContent>
+
+          <TabsContent value="terms" className="animate-in fade-in-50 duration-500">
+            <div className="max-w-none text-muted-foreground space-y-6 text-sm sm:text-base leading-relaxed">
+              <div className="bg-primary/5 p-5 rounded-lg border border-primary/10">
+                <h3 className="font-bold text-foreground text-lg mb-2">রিটার্ন পলিসি (Return Policy)</h3>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li>যেকোনো প্রোডাক্ট গ্রহণের পর কোনো উৎপাদনজনিত ত্রুটি (Manufacturing Defect) থাকলে ৭ কার্যদিবসের মধ্যে তা পরিবর্তন বা রিটার্ন করা যাবে।</li>
+                  <li>ভুল সাইজ বা কালার ডেলিভারি হলে প্রোডাক্টটি অব্যবহৃত অবস্থায় রিফান্ড বা এক্সচেঞ্জ করা যাবে।</li>
+                  <li>কাস্টমাইজড দরজার অর্ডারের ক্ষেত্রে বিশেষ কোনো ত্রুটি ছাড়া রিটার্ন বা রিফান্ড প্রযোজ্য নয়।</li>
+                </ul>
+              </div>
+              <div className="p-5 rounded-lg border border-border">
+                <h3 className="font-bold text-foreground text-lg mb-2">ডেলিভারি এবং পেমেন্ট পলিসি (Delivery & Payment Policy)</h3>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li>সমগ্র বাংলাদেশে নিরাপদ ডেলিভারি সার্ভিস প্রদান করা হয়ে থাকে। ডেলিভারির সময় প্রোডাক্ট চেক করে গ্রহণ করার অনুরোধ রইলো।</li>
+                  <li>হোলসেল অর্ডারের ক্ষেত্রে কোম্পানির নির্ধারিত পেমেন্ট শর্তাবলী অনুযায়ী আংশিক বা পূর্ণাঙ্গ অগ্রিম প্রদান করতে হতে পারে।</li>
+                </ul>
+              </div>
+              <div className="p-5 rounded-lg border border-border">
+                <h3 className="font-bold text-foreground text-lg mb-2">অন্যান্য শর্তাবলী (General Terms)</h3>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li>কাঠের প্রাকৃতিক টেক্সচার এবং কালার গ্রেডের কারণে ছবির সাথে সামান্য অমিল থাকতে পারে, যা ত্রুটি হিসেবে গণ্য হবে না।</li>
+                  <li>যেকোনো প্রয়োজনে আমাদের কাস্টমার সার্ভিস বা হোয়াটসঅ্যাপ হেল্পলাইনে সরাসরি যোগাযোগ করুন।</li>
+                </ul>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -875,7 +949,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           <DialogHeader>
             <DialogTitle className="text-xl">Delete Product</DialogTitle>
             <DialogDescription className="pt-2">
-              Are you sure you want to delete <span className="font-bold text-foreground">"{product.name}"</span>?
+              Are you sure you want to delete <span className="font-bold text-foreground">&quot;{product.name}&quot;</span>?
               This action cannot be undone and will remove all associated data including variants and reviews.
             </DialogDescription>
           </DialogHeader>

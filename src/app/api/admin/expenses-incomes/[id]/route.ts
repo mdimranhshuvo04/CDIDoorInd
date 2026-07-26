@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { auth } from '@/auth';
@@ -42,7 +43,7 @@ export async function PUT(
 
     const body = await req.json();
     const { title, amount, category, date, description, type, status, showroom } = body;
-    
+
     // Sanitize update data (whitelist)
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
@@ -56,14 +57,14 @@ export async function PUT(
       if (status !== undefined) updateData.status = status;
       if (showroom !== undefined) updateData.showroom = showroom;
     }
-    
+
     const dbSession = await mongoose.startSession();
     try {
       dbSession.startTransaction();
 
       const expense = await Expense.findOneAndUpdate(
-        { _id: id }, 
-        updateData, 
+        { _id: id },
+        updateData,
         { new: true, runValidators: true, session: dbSession }
       );
 
@@ -76,7 +77,7 @@ export async function PUT(
       // Update ledger entry if amount, title or type changed
       const LedgerTransaction = (await import('@/models/LedgerTransaction')).default;
       const { recalculateLedgerBalance, logLedgerTransaction } = await import('@/lib/ledgerHelper');
-      
+
       // Delete old ledger entries for this reference
       await LedgerTransaction.deleteMany({ reference: id }).session(dbSession);
 
@@ -154,7 +155,7 @@ export async function DELETE(
         return NextResponse.json({ message: 'Cannot delete an expense that has already been processed' }, { status: 400 });
       }
     }
-    
+
     const dbSession = await mongoose.startSession();
     try {
       dbSession.startTransaction();

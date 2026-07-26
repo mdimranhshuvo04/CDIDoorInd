@@ -1,21 +1,40 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
+import Order from '@/models/Order';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    const userRole = (session?.user as any)?.role;
+    const userRole = (session?.user as { role?: string })?.role;
 
-    if (!session || !['admin', 'super_admin'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin'].includes(userRole || '')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectToDatabase();
 
     // Find all users with role 'wholesaler'
-    const wholesalers = await User.find({ role: 'wholesaler' }).select('-password').sort({ createdAt: -1 });
+    const wholesalersList = await User.find({ role: 'wholesaler' }).select('-password').sort({ createdAt: -1 }).lean() as any[];
+
+    // Calculate total credit due for each wholesaler
+    const wholesalers = await Promise.all(
+      wholesalersList.map(async (w) => {
+        const creditOrders = await Order.find({
+          user: w._id,
+          paymentMethod: 'Credit',
+          paymentStatus: { $ne: 'Paid' },
+          deletedAt: null
+        }).select('totalAmount');
+        const totalDue = creditOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+        return {
+          ...w,
+          totalDue
+        };
+      })
+    );
 
     return NextResponse.json({ wholesalers });
   } catch (error: any) {
@@ -27,9 +46,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    const userRole = (session?.user as any)?.role;
+    const userRole = (session?.user as { role?: string })?.role;
 
-    if (!session || !['admin', 'super_admin'].includes(userRole)) {
+    if (!session || !['admin', 'super_admin'].includes(userRole || '')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 

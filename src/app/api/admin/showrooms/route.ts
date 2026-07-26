@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    
+
     if (!session || (userRole !== 'admin' && userRole !== 'super_admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    
+
     if (!session || (userRole !== 'admin' && userRole !== 'super_admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
       isActive: true,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Showroom created successfully',
       showroom: newShowroom
     });
@@ -160,7 +161,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    
+
     if (!session || (userRole !== 'admin' && userRole !== 'super_admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -208,7 +209,7 @@ export async function PATCH(req: NextRequest) {
 
     await showroom.save();
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Showroom updated successfully',
       showroom
     });
@@ -222,7 +223,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await auth();
     const userRole = (session?.user as any)?.role;
-    
+
     if (!session || (userRole !== 'admin' && userRole !== 'super_admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }

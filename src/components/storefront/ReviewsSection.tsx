@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
-import { useState, useEffect } from 'react';
-import { Star, MessageSquare, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Star, MessageSquare, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -32,7 +32,7 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
     }
   }, [searchParams, eligibility?.eligible]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const encodedProductId = encodeURIComponent(productId);
       const [reviewsRes, eligibilityRes] = await Promise.all([
@@ -47,11 +47,15 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
-    fetchData();
-  }, [productId]);
+    // Calling fetchData asynchronously avoids synchronous state setter invocation (cascading renders) during effect execution
+    const load = async () => {
+      await fetchData();
+    };
+    load();
+  }, [fetchData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +85,7 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
         const error = await res.json();
         toast.error(error.message || 'Failed to submit review');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred. Please try again.');
     } finally {
       setSubmitting(false);
@@ -228,7 +232,7 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
                       </span>
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap italic">
-                      "{review.comment}"
+                      &quot;{review.comment}&quot;
                     </p>
                   </div>
                 </div>

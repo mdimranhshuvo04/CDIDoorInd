@@ -34,6 +34,8 @@ const ProductSchema = new mongoose.Schema({
   description:   { type: String, required: true },
   price:         { type: Number, required: true },
   salePrice:     { type: Number },
+  wholesalePrice:{ type: Number },
+  wholesaleSalePrice: { type: Number },
   purchasePrice: { type: Number },
   discountRate:  { type: Number },
   sku:           { type: String, required: true, unique: true },
@@ -83,8 +85,9 @@ async function seed() {
       const catId = catMap[p.catSlug];
       if (!catId) throw new Error('Category slug not found in DB: ' + p.catSlug);
       const { catSlug, ...rest } = p;
-      // Remove null values so mongoose doesn't complain
       if (rest.salePrice === null) delete rest.salePrice;
+      if (rest.wholesalePrice === null) delete rest.wholesalePrice;
+      if (rest.wholesaleSalePrice === null) delete rest.wholesaleSalePrice;
       if (rest.purchasePrice === null) delete rest.purchasePrice;
       if (rest.discountRate === null) delete rest.discountRate;
       return {

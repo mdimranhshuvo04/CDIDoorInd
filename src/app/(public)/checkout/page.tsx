@@ -83,6 +83,8 @@ function CheckoutContent() {
     transactionId: ''
   });
   const [paymentDetailTab, setPaymentDetailTab] = useState<'phone' | 'trx'>('phone');
+  const [isCreditOrder, setIsCreditOrder] = useState(false);
+  const [expectedPaymentDate, setExpectedPaymentDate] = useState('');
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
     mode: 'onChange',
@@ -383,15 +385,17 @@ function CheckoutContent() {
           zipCode: '0000',
           country: 'Bangladesh'
         },
-        paymentMethod: values.paymentMethod,
+        paymentMethod: isCreditOrder ? 'Credit' : values.paymentMethod,
         deliveryCharge: deliveryCharge,
         useWallet: useWallet,
         couponCode: appliedCoupon || undefined,
-        manualPaymentDetails: values.paymentMethod === 'Manual' ? {
+        manualPaymentDetails: values.paymentMethod === 'Manual' && !isCreditOrder ? {
           methodName: selectedMethod?.id,
           senderNumber: manualDetails.senderNumber,
           transactionId: manualDetails.transactionId
-        } : undefined
+        } : undefined,
+        isCreditOrder,
+        expectedPaymentDate: isCreditOrder ? expectedPaymentDate : undefined,
       };
 
       const response = await fetch('/api/orders', {
@@ -565,7 +569,8 @@ function CheckoutContent() {
     isPhoneValid &&
     isAddressValid &&
     watchedFields.deliveryArea &&
-    (watchedFields.paymentMethod !== 'Manual' || (selectedMethod?.id && manualDetails.senderNumber && manualDetails.transactionId))
+    (!isCreditOrder || expectedPaymentDate) &&
+    (isCreditOrder || watchedFields.paymentMethod !== 'Manual' || (selectedMethod?.id && manualDetails.senderNumber && manualDetails.transactionId))
   );
 
   const potentialReward = (profile?.isSubscriptionActive && settings?.subscriptionConfig)
@@ -905,9 +910,54 @@ function CheckoutContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
+                  {profile && profile.role === 'wholesaler' && (
+                    <div className="p-4 border rounded-lg bg-primary/5 border-primary/20 mb-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id="is-credit-order"
+                          checked={isCreditOrder}
+                          onChange={(e) => {
+                            setIsCreditOrder(e.target.checked);
+                            if (e.target.checked) {
+                              form.setValue('paymentMethod', 'COD');
+                            }
+                          }}
+                          className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary mt-0.5 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="is-credit-order" className="font-bold cursor-pointer text-sm text-foreground">
+                            বাকিতে অর্ডার করুন (Order on Credit)
+                            <p className="text-xs font-normal text-muted-foreground mt-0.5">
+                              পাইকারি ক্রেতাদের জন্য বাকিতে পণ্য ক্রয়ের বিশেষ সুবিধা।
+                            </p>
+                          </label>
+
+                          {isCreditOrder && (
+                            <div className="mt-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                              <Label htmlFor="expected-payment-date" className="text-xs font-bold">
+                                টাকা পরিশোধের সম্ভাব্য তারিখ (Expected Payment Date) <span className="text-destructive">*</span>
+                              </Label>
+                              <Input
+                                type="date"
+                                id="expected-payment-date"
+                                required
+                                min={new Date().toISOString().split('T')[0]}
+                                value={expectedPaymentDate}
+                                onChange={(e) => setExpectedPaymentDate(e.target.value)}
+                                className="h-10 bg-white"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isCreditOrder && (
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
                         <FormControl>
@@ -1000,6 +1050,13 @@ function CheckoutContent() {
                     <p className="text-[10px] text-destructive font-bold text-center mt-2 animate-pulse">
                       Please select a provider and provide payment details!
                     </p>
+                  )}
+                  {isCreditOrder && (
+                    <div className="p-4 border rounded-lg bg-yellow-500/5 border-yellow-500/20 text-xs sm:text-sm font-semibold text-yellow-700">
+                      Payment Mode: Credit Order (বাকি অর্ডার). You will be able to complete checkout directly. Dues will be visible in your dashboard.
+                    </div>
+                  )}
+                  </div>
                   )}
 
                   {profile && profile.walletBalance > 0 && (

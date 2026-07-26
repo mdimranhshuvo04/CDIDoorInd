@@ -9,14 +9,9 @@ export default function TikTokPixel({
 }: {
   pixelId?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const trackPageView = useCallback(
     () => {
@@ -29,9 +24,9 @@ export default function TikTokPixel({
   );
 
   useEffect(() => {
-    if (!mounted || !pixelId || !scriptLoaded) return;
+    if (!pixelId || !scriptLoaded) return;
     trackPageView();
-  }, [pathname, searchParams, trackPageView, pixelId, mounted, scriptLoaded]);
+  }, [pathname, searchParams, trackPageView, pixelId, scriptLoaded]);
 
   // Sanitize pixelId: alphanumeric for TikTok Pixel
   const sanitizedPixelId = pixelId && /^[a-zA-Z0-9]+$/.test(pixelId.trim()) ? pixelId.trim() : null;

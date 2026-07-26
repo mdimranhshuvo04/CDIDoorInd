@@ -13,14 +13,9 @@ export default function FacebookPixel({
 }: {
   pixelId?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Shared eventId across browser pixel and CAPI for deduplication
   // Initialize with a dummy or empty string during SSR
@@ -37,9 +32,9 @@ export default function FacebookPixel({
   );
 
   useEffect(() => {
-    if (!mounted || !pixelId || !scriptLoaded) return;
+    if (!pixelId || !scriptLoaded) return;
     trackPageView();
-  }, [pathname, searchParams, trackPageView, pixelId, mounted, scriptLoaded]);
+  }, [pathname, searchParams, trackPageView, pixelId, scriptLoaded]);
 
   // Sanitize pixelId to prevent XSS
   const sanitizedPixelId = pixelId && /^\d+$/.test(pixelId.trim()) ? pixelId.trim() : null;
@@ -70,11 +65,13 @@ export default function FacebookPixel({
         }}
       />
       <noscript>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           height="1"
           width="1"
           style={{ display: "none" }}
           src={`https://www.facebook.com/tr?id=${sanitizedPixelId}&ev=PageView&noscript=1`}
+          alt=""
         />
       </noscript>
     </>

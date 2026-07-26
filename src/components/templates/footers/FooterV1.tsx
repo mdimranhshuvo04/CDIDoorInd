@@ -56,11 +56,16 @@ export default function FooterV1() {
       setIsStandalone(isStandaloneMode);
     };
 
-    checkStandalone();
-
     // Detect iOS device
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(isIOSDevice);
+    const detectIOS = () => {
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      setIsIOS(isIOSDevice);
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkStandalone();
+      detectIOS();
+    }, 0);
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -78,6 +83,7 @@ export default function FooterV1() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };

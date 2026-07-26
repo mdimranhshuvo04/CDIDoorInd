@@ -56,21 +56,27 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
 
   useEffect(() => {
     if (isOpen) {
-      const initialColor = uniqueColors[0] || null;
-      setSelectedColor(initialColor);
+      const timer = setTimeout(() => {
+        const initialColor = uniqueColors[0] || null;
+        setSelectedColor(initialColor);
 
-      const initialSizes = (product.variants || [])
-        .filter((v: any) => !initialColor || v.color === initialColor)
-        .map((v: any) => v.size)
-        .filter(Boolean);
-      const initialSize = initialSizes[0] || null;
-      setSelectedSize(initialSize);
+        const initialSizes = (product.variants || [])
+          .filter((v: any) => !initialColor || v.color === initialColor)
+          .map((v: any) => v.size)
+          .filter(Boolean);
+        const initialSize = initialSizes[0] || null;
+        setSelectedSize(initialSize);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, uniqueColors, product.variants]);
 
   useEffect(() => {
     if (selectedSize == null || !availableSizes.includes(selectedSize)) {
-      setSelectedSize(availableSizes[0] || null);
+      const timer = setTimeout(() => {
+        setSelectedSize(availableSizes[0] || null);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [selectedColor, selectedSize, availableSizes]);
 

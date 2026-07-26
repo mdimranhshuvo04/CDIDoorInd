@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Plus } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -24,12 +25,14 @@ function CategoryItem({ category }: { category: Category }) {
       className="group block"
     >
       <div className="flex flex-col items-center gap-3 py-2 transition-all hover:-translate-y-1">
-        <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 overflow-hidden rounded-full bg-background border border-muted shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+        <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 overflow-hidden rounded-full bg-background border border-muted shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
           {category.image ? (
-            <img
+            <Image
               src={category.image}
               alt={category.name}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+              className="object-cover"
             />
           ) : (
             <Plus className="h-6 w-6 text-muted-foreground" />
@@ -59,11 +62,14 @@ export default function CategoryV1({ categories }: CategoryShowcaseProps) {
 
   useEffect(() => {
     if (!mobileApi) return;
-    onMobileSelect();
-    setMobileSnaps(mobileApi.scrollSnapList());
+    const timer = setTimeout(() => {
+      onMobileSelect();
+      setMobileSnaps(mobileApi.scrollSnapList());
+    }, 0);
     mobileApi.on('select', onMobileSelect);
     mobileApi.on('reInit', onMobileSelect);
     return () => {
+      clearTimeout(timer);
       mobileApi.off('select', onMobileSelect);
       mobileApi.off('reInit', onMobileSelect);
     };
@@ -84,11 +90,14 @@ export default function CategoryV1({ categories }: CategoryShowcaseProps) {
 
   useEffect(() => {
     if (!desktopApi) return;
-    onDesktopSelect();
-    setDesktopSnaps(desktopApi.scrollSnapList());
+    const timer = setTimeout(() => {
+      onDesktopSelect();
+      setDesktopSnaps(desktopApi.scrollSnapList());
+    }, 0);
     desktopApi.on('select', onDesktopSelect);
     desktopApi.on('reInit', onDesktopSelect);
     return () => {
+      clearTimeout(timer);
       desktopApi.off('select', onDesktopSelect);
       desktopApi.off('reInit', onDesktopSelect);
     };

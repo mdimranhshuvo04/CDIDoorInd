@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
@@ -45,12 +46,26 @@ export async function GET(req: NextRequest) {
       .select('shortId totalAmount status createdAt items')
       .lean();
 
+    // Calculate total credit due (Account Payable)
+    const creditOrders = await Order.find({
+      user: userId,
+      paymentMethod: 'Credit',
+      paymentStatus: { $ne: 'Paid' },
+      status: { $ne: 'Cancelled' },
+      deletedAt: null
+    }).select('totalAmount couponDiscountAmount walletAmountUsed');
+    const totalDue = creditOrders.reduce((sum: number, o: any) => {
+      const netPayable = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
+      return sum + netPayable;
+    }, 0);
+
     return NextResponse.json({
       stats: {
         totalOrders,
         pendingOrders,
         totalSpent,
         monthSpent,
+        totalDue,
       },
       recentOrders,
     });

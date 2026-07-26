@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     }
 
     await connectToDatabase();
-    
+
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const type = searchParams.get('type');
@@ -22,10 +23,10 @@ export async function GET(req: NextRequest) {
     const query: any = {};
     if (category) query.category = category;
     if (type) query.type = type;
-    
+
     if (from || to) {
       const dateQuery: any = {};
-      
+
       if (from) {
         const fromDate = new Date(from);
         if (isNaN(fromDate.getTime())) {
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
         }
         dateQuery.$gte = fromDate;
       }
-      
+
       if (to) {
         const toDate = new Date(to);
         if (isNaN(toDate.getTime())) {
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
         toDate.setHours(23, 59, 59, 999);
         dateQuery.$lte = toDate;
       }
-      
+
       query.date = dateQuery;
     }
 
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
     if (showroomId) {
       safePayload.showroom = showroomId;
     }
-    
+
     const expense = await Expense.create(safePayload);
 
     // Log to ledger only if approved

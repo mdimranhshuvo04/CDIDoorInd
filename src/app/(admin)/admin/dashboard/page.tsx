@@ -233,7 +233,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {/* Pending Orders Card */}
         <Link href="/admin/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group h-full">
@@ -273,6 +273,20 @@ export default function AdminDashboard() {
             <p className="text-xs text-muted-foreground">Revenue per ৳1 Ad Spend</p>
           </CardContent>
         </Card>
+
+        {/* Outstanding Receivables Card (NEW) */}
+        <Link href="/admin/wholesalers" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-red-500/5 border-red-500/20 relative overflow-hidden group h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Outstanding Dues (বাকি)</CardTitle>
+              <Receipt className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-700">৳{Math.round(stats?.totalWholesalerDue || 0).toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Wholesaler Receivables</p>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Forecast Card (NEW) */}
         <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group border-dashed">
@@ -466,6 +480,33 @@ export default function AdminDashboard() {
                   <p className="text-xs opacity-70">Pending Orders</p>
                   <p className="text-xl font-bold">{stats?.pendingOrdersCount}</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-orange-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-orange-600">
+                <Receipt className="h-4 w-4" />
+                Wholesaler Dues (বকেয়া তালিকা)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3">
+                {data?.wholesalersDueList?.map((w: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between group text-xs">
+                    <div className="space-y-0.5">
+                      <p className="font-semibold group-hover:text-primary transition-colors">{w.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{w.phone || w.email}</p>
+                    </div>
+                    <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200 bg-red-50 font-bold">
+                      ৳{Math.round(w.due).toLocaleString()}
+                    </Badge>
+                  </div>
+                ))}
+                {(!data?.wholesalersDueList || data.wholesalersDueList.length === 0) && (
+                  <p className="text-center py-4 text-xs text-muted-foreground italic">No outstanding wholesaler dues!</p>
+                )}
               </div>
             </CardContent>
           </Card>

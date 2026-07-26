@@ -28,8 +28,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from "@/lib/utils";
 import { Logo } from '@/components/ui/logo';
 
 const loginSchema = z.object({
@@ -103,7 +101,7 @@ export default function LoginPage() {
       } else {
         toast.success('Logged in successfully!');
         // Redirect to /dashboard — proxy will read fresh JWT and redirect to correct role-based dashboard
-        window.location.href = '/dashboard';
+        window.location.replace('/dashboard');
       }
     } catch (error) {
       toast.error('Something went wrong. Please try again.');

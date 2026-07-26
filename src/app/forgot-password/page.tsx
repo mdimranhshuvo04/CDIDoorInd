@@ -5,12 +5,11 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, GalleryVerticalEnd, ArrowLeft, Send } from 'lucide-react';
+import { Loader2, ArrowLeft, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import {
   Form,
   FormControl,
@@ -78,7 +77,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-bold tracking-tight">Forgot password?</h1>
               <p className="text-sm text-muted-foreground text-balance">
-                Enter your email address and we'll send you a link to reset your password
+                Enter your email address and we&apos;ll send you a link to reset your password
               </p>
             </div>
 

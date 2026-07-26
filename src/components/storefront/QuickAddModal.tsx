@@ -56,18 +56,29 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
     [product.variants, selectedColor, selectedSize]
   );
 
+  // Track the product ID and open status to initialize/reset local state when the modal opens or product changes
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
+  const [wasOpen, setWasOpen] = useState(false);
+
+  if (isOpen && (!wasOpen || activeProductId !== product?._id)) {
+    setWasOpen(true);
+    setActiveProductId(product?._id || null);
+
+    const initialColor = uniqueColors[0] || null;
+    setSelectedColor(initialColor);
+
+    const initialSizes = (product.variants || [])
+      .filter((v: any) => !initialColor || v.color === initialColor)
+      .map((v: any) => v.size)
+      .filter(Boolean);
+    const initialSize = initialSizes[0] || null;
+    setSelectedSize(initialSize);
+  } else if (!isOpen && wasOpen) {
+    setWasOpen(false);
+  }
+
   useEffect(() => {
-    if (isOpen) {
-      const initialColor = uniqueColors[0] || null;
-      setSelectedColor(initialColor);
-
-      const initialSizes = (product.variants || [])
-        .filter((v: any) => !initialColor || v.color === initialColor)
-        .map((v: any) => v.size)
-        .filter(Boolean);
-      const initialSize = initialSizes[0] || null;
-      setSelectedSize(initialSize);
-
+    if (isOpen && product) {
       // Track ViewContent for Quick View
       const viewContentPayload = {
         content_name: product.name,
@@ -80,13 +91,19 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
       fbEvent('ViewContent', viewContentPayload);
       ttEvent('ViewContent', viewContentPayload);
     }
-  }, [isOpen, uniqueColors, product.variants]);
+  }, [isOpen, product]);
 
-  useEffect(() => {
-    if (selectedSize == null || !availableSizes.includes(selectedSize)) {
-      setSelectedSize(availableSizes[0] || null);
+  const handleColorChange = (colorName: string) => {
+    setSelectedColor(colorName);
+    const newAvailableSizes = (product.variants || [])
+      .filter((v: any) => v.color === colorName)
+      .map((v: any) => v.size)
+      .filter(Boolean) as string[];
+
+    if (selectedSize == null || !newAvailableSizes.includes(selectedSize)) {
+      setSelectedSize(newAvailableSizes[0] || null);
     }
-  }, [selectedColor, selectedSize, availableSizes]);
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -185,7 +202,7 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
                     <button
                       key={i}
                       disabled={isOutOfStock}
-                      onClick={(e) => { e.preventDefault(); setSelectedColor(colorName); }}
+                      onClick={(e) => { e.preventDefault(); handleColorChange(colorName); }}
                       title={colorName}
                       className={`relative rounded-lg overflow-hidden transition-all duration-200 border-2 ${
                         selectedColor === colorName

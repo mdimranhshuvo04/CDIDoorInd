@@ -54,7 +54,7 @@ const orderSchema = z.object({
       }
     }
     return val;
-  }, z.enum(['COD', 'Online', 'Manual'])),
+  }, z.enum(['COD', 'Online', 'Manual', 'Credit'])),
   deliveryCharge: z.number().min(0).nullish(),
   useWallet: z.boolean().nullish().default(false),
   couponCode: z.string().nullish(),
@@ -63,6 +63,8 @@ const orderSchema = z.object({
     senderNumber: z.string().optional(),
     transactionId: z.string().optional(),
   }).optional(),
+  isCreditOrder: z.boolean().nullish().default(false),
+  expectedPaymentDate: z.string().nullish(),
 });
 
 export async function POST(req: NextRequest) {
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const { items, shippingAddress, paymentMethod, useWallet, couponCode, manualPaymentDetails } = validation.data;
+    const { items, shippingAddress, paymentMethod, useWallet, couponCode, manualPaymentDetails, isCreditOrder, expectedPaymentDate } = validation.data;
     const clientProvidedDeliveryCharge = validation.data.deliveryCharge;
 
     await connectToDatabase();
@@ -443,6 +445,8 @@ export async function POST(req: NextRequest) {
           transactionId: paymentMethod === 'Online' ? `ORDER-${crypto.randomUUID().replace(/-/g, '').toUpperCase().slice(0, 16)}` : undefined,
           shortId: crypto.randomBytes(4).toString('hex').toUpperCase(),
           manualPaymentDetails,
+          isCreditOrder: !!isCreditOrder,
+          expectedPaymentDate: expectedPaymentDate ? new Date(expectedPaymentDate) : undefined,
         },
       ],
       { session }

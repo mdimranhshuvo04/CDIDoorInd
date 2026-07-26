@@ -12,33 +12,37 @@ interface FlashSaleProps {
 }
 
 export function FlashSale({ products, saleEndTimestamp }: FlashSaleProps) {
-  const calculateTimeLeft = () => {
-    let target: number;
-    
-    if (saleEndTimestamp) {
-      target = typeof saleEndTimestamp === 'string' ? new Date(saleEndTimestamp).getTime() : saleEndTimestamp;
-    } else {
-      // Default to end of current day (client-side timezone)
-      target = new Date().setHours(23, 59, 59, 999);
-    }
-
-    const difference = target - Date.now();
-    
-    if (difference <= 0) return { hours: 0, minutes: 0, seconds: 0 };
-    
-    return {
-      hours: Math.floor((difference / (1000 * 60 * 60))),
-      minutes: Math.floor((difference / 1000 / 60) % 60),
-      seconds: Math.floor((difference / 1000) % 60)
-    };
-  };
-
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setTimeLeft(calculateTimeLeft());
+    const calculateTimeLeft = (): { hours: number; minutes: number; seconds: number } => {
+      let target: number;
+      
+      if (saleEndTimestamp) {
+        target = typeof saleEndTimestamp === 'string' ? new Date(saleEndTimestamp).getTime() : saleEndTimestamp;
+      } else {
+        // Default to end of current day (client-side timezone)
+        target = new Date().setHours(23, 59, 59, 999);
+      }
+
+      const difference = target - Date.now();
+      
+      if (difference <= 0) return { hours: 0, minutes: 0, seconds: 0 };
+      
+      return {
+        hours: Math.floor((difference / (1000 * 60 * 60))),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    };
+    const initialTime = calculateTimeLeft();
+    
+    // Defer state updates to prevent synchronous cascading renders
+    const frameId = requestAnimationFrame(() => {
+      setMounted(true);
+      setTimeLeft(initialTime);
+    });
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -48,8 +52,11 @@ export function FlashSale({ products, saleEndTimestamp }: FlashSaleProps) {
         return prev;
       });
     }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearInterval(timer);
+    };
+  }, [saleEndTimestamp]);
 
   if (!products || products.length === 0) return null;
 

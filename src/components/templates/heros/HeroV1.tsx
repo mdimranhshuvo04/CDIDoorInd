@@ -49,11 +49,16 @@ export default function HeroV1({ banners, layout }: HeroSliderProps) {
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect();
+    
+    const timer = setTimeout(() => {
+      onSelect();
+    }, 0);
+
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
 
     return () => {
+      clearTimeout(timer);
       emblaApi.off('select', onSelect);
       emblaApi.off('reInit', onSelect);
     };

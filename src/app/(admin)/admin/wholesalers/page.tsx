@@ -26,8 +26,17 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 
+interface Wholesaler {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  createdAt: string;
+  totalDue?: number;
+}
+
 export default function AdminWholesalersPage() {
-  const [wholesalers, setWholesalers] = useState<any[]>([]);
+  const [wholesalers, setWholesalers] = useState<Wholesaler[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Register Wholesaler Modal States
@@ -39,12 +48,14 @@ export default function AdminWholesalersPage() {
 
   // Edit Wholesaler Modal States
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingWholesaler, setEditingWholesaler] = useState<any>(null);
+  const [editingWholesaler, setEditingWholesaler] = useState<Wholesaler | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
 
   const fetchData = async () => {
+    // Defer execution to avoid calling setState synchronously within the useEffect hook
+    await Promise.resolve();
     setLoading(true);
     try {
       const res = await fetch('/api/admin/wholesalers');
@@ -63,7 +74,10 @@ export default function AdminWholesalersPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleRegisterWholesaler = async (e: React.FormEvent) => {
@@ -210,6 +224,7 @@ export default function AdminWholesalersPage() {
                       <th className="p-4">Name</th>
                       <th className="p-4">Contact Information</th>
                       <th className="p-4">Joined Date</th>
+                      <th className="p-4">Total Due</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -236,6 +251,11 @@ export default function AdminWholesalersPage() {
                             <Calendar className="h-3.5 w-3.5" />
                             <span>{new Date(w.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
                           </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`font-bold px-2.5 py-1 rounded text-xs inline-block ${(w.totalDue || 0) > 0 ? 'text-red-700 bg-red-50 border border-red-100' : 'text-zinc-500 bg-zinc-50 border border-zinc-200'}`}>
+                            ৳{Math.round(w.totalDue || 0).toLocaleString()}
+                          </span>
                         </td>
                         <td className="p-4 text-right">
                           <DropdownMenu>
