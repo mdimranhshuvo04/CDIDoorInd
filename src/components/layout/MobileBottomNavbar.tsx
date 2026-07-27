@@ -17,13 +17,21 @@ import {
   Settings,
   Truck,
   LogOut,
-  Package
+  Package,
+  Plus
 } from 'lucide-react';
 import { useAppSelector } from '@/store/hooks';
 import { CartDrawer } from '@/components/layout/CartDrawer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { TransactionForm } from '@/components/admin/TransactionForm';
 
 export function MobileBottomNavbar() {
   const pathname = usePathname();
@@ -34,6 +42,7 @@ export function MobileBottomNavbar() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [profile, setProfile] = useState<any>(null);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
@@ -200,6 +209,18 @@ export function MobileBottomNavbar() {
                       </>
                     )}
 
+                    {(session.user as any)?.role === 'showroom_manager' && (
+                      <>
+                        <Link
+                          href="/showroom/dashboard"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-medium transition-colors"
+                        >
+                          <LayoutDashboard className="h-5 w-5 text-primary" /> Showroom Dashboard
+                        </Link>
+                      </>
+                    )}
+
                     {(session.user as any)?.role === 'user' && (
                       <>
                         <Link
@@ -218,6 +239,18 @@ export function MobileBottomNavbar() {
                           <Truck className="h-5 w-5 text-primary" /> Track Order
                         </Link>
                       </>
+                    )}
+
+                    {['admin', 'super_admin', 'showroom_manager'].includes((session.user as any)?.role) && (
+                      <button
+                        onClick={() => {
+                          setIsAccountOpen(false);
+                          setIsTransactionDialogOpen(true);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 text-sm font-bold text-emerald-700 dark:text-emerald-500 transition-colors border border-emerald-500/20"
+                      >
+                        <Plus className="h-5 w-5 text-emerald-600 dark:text-emerald-400" /> Add Transaction
+                      </button>
                     )}
                   </div>
 
@@ -273,6 +306,20 @@ export function MobileBottomNavbar() {
           </form>
         </SheetContent>
       </Sheet>
+      <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
+        <DialogContent className="max-w-md w-full bg-background border shadow-lg rounded-xl z-50 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Add Transaction</DialogTitle>
+          </DialogHeader>
+          <TransactionForm onSuccess={() => {
+            setIsTransactionDialogOpen(false);
+            router.refresh();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('refresh-dashboard'));
+            }
+          }} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

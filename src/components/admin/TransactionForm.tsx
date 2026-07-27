@@ -159,17 +159,18 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2.5 md:space-y-4">
         <FormField
           control={form.control}
           name="date"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date</FormLabel>
+            <FormItem className="space-y-1">
+              <FormLabel className="text-xs md:text-sm">Date</FormLabel>
               <FormControl>
                 <Input 
                   onKeyDown={handleDateKeyDown}
                   type="date" 
+                  className="h-8 md:h-10 text-xs md:text-sm"
                   {...field} 
                   ref={(e) => {
                     field.ref(e);
@@ -178,7 +179,7 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                   autoFocus
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[10px] md:text-xs" />
             </FormItem>
           )}
         />
@@ -186,29 +187,29 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
           control={form.control}
           name="type"
           render={({ field }) => (
-            <FormItem className="space-y-2">
-              <FormLabel>Type</FormLabel>
+            <FormItem className="space-y-1.5">
+              <FormLabel className="text-xs md:text-sm">Type</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
                   onValueChange={field.onChange}
-                  className="flex items-center gap-6 pt-1"
+                  className="flex items-center gap-6 pt-0.5"
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="income" id="type-income" />
-                    <Label htmlFor="type-income" className="text-emerald-600 dark:text-emerald-400 font-semibold cursor-pointer select-none">
+                  <div className="flex items-center space-x-1.5">
+                    <RadioGroupItem value="income" id="type-income" className="h-3.5 w-3.5" />
+                    <Label htmlFor="type-income" className="text-emerald-600 dark:text-emerald-400 font-semibold cursor-pointer select-none text-xs md:text-sm">
                       Income
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="expense" id="type-expense" />
-                    <Label htmlFor="type-expense" className="text-rose-600 dark:text-rose-400 font-semibold cursor-pointer select-none">
+                  <div className="flex items-center space-x-1.5">
+                    <RadioGroupItem value="expense" id="type-expense" className="h-3.5 w-3.5" />
+                    <Label htmlFor="type-expense" className="text-rose-600 dark:text-rose-400 font-semibold cursor-pointer select-none text-xs md:text-sm">
                       Expense
                     </Label>
                   </div>
                 </RadioGroup>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[10px] md:text-xs" />
             </FormItem>
           )}
         />
@@ -216,12 +217,13 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
           control={form.control}
           name="title"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
+            <FormItem className="space-y-1">
+              <FormLabel className="text-xs md:text-sm">Title</FormLabel>
               <FormControl>
                 <Input 
                   onKeyDown={handleTitleKeyDown}
                   placeholder={selectedType === 'expense' ? 'e.g. Facebook Ads April' : 'e.g. Client Project Payment'} 
+                  className="h-8 md:h-10 text-xs md:text-sm"
                   {...field} 
                   ref={(e) => {
                     field.ref(e);
@@ -229,7 +231,7 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[10px] md:text-xs" />
             </FormItem>
           )}
         />
@@ -237,13 +239,14 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
           control={form.control}
           name="amount"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount (Tk)</FormLabel>
+            <FormItem className="space-y-1">
+              <FormLabel className="text-xs md:text-sm">Amount (Tk)</FormLabel>
               <FormControl>
                 <Input 
                   onKeyDown={handleAmountKeyDown}
                   type="number" 
                   placeholder="Enter amount"
+                  className="h-8 md:h-10 text-xs md:text-sm"
                   {...field} 
                   onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
                   ref={(e) => {
@@ -252,33 +255,33 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[10px] md:text-xs" />
             </FormItem>
           )}
         />
-        {isAdmin && showrooms.length > 0 && (
+        {isAdmin && (
           <FormField
             control={form.control}
             name="showroom"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Showroom (Optional)</FormLabel>
+              <FormItem className="space-y-1">
+                <FormLabel className="text-xs md:text-sm">Showroom (Optional)</FormLabel>
                 <Select value={field.value || 'none'} onValueChange={(val) => field.onChange(val === 'none' ? undefined : val)}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
                       <SelectValue placeholder="Select Showroom" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">None (Global)</SelectItem>
+                    <SelectItem value="none" className="text-xs md:text-sm">None (Global)</SelectItem>
                     {showrooms.map((showroom) => (
-                      <SelectItem key={showroom._id} value={showroom._id}>
+                      <SelectItem key={showroom._id} value={showroom._id} className="text-xs md:text-sm">
                         {showroom.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-[10px] md:text-xs" />
               </FormItem>
             )}
           />
@@ -287,12 +290,13 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
+            <FormItem className="space-y-1">
+              <FormLabel className="text-xs md:text-sm">Description</FormLabel>
               <FormControl>
                 <Textarea 
                   onKeyDown={handleDescriptionKeyDown}
                   placeholder="Additional details..." 
+                  className="min-h-[50px] md:min-h-[80px] text-xs md:text-sm py-1.5 md:py-2"
                   {...field} 
                   ref={(e) => {
                     field.ref(e);
@@ -300,12 +304,12 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[10px] md:text-xs" />
             </FormItem>
           )}
         />
-        <Button ref={submitBtnRef} type="submit" className="w-full" disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button ref={submitBtnRef} type="submit" className="w-full h-8 md:h-10 text-xs md:text-sm mt-1" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
           {initialData ? 'Update' : 'Create'} {selectedType === 'expense' ? 'Expense' : 'Income'}
         </Button>
       </form>

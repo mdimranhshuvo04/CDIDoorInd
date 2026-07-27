@@ -18,7 +18,8 @@ import {
   Package,
   Truck,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  Plus
 } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -28,6 +29,13 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ModeToggle } from '@/components/mode-toggle';
 import { useAppSelector } from '@/store/hooks';
 import { CartDrawer } from '@/components/layout/CartDrawer';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { TransactionForm } from '@/components/admin/TransactionForm';
 import { CategoryNav } from '@/components/layout/CategoryNav';
 import { AIChatbot } from '@/components/layout/AIChatbot';
 import { Logo } from '@/components/ui/logo';
@@ -73,6 +81,7 @@ export default function Navbar() {
   const { totalQuantity: cartCount, totalAmount } = useAppSelector((state) => state.cart);
   const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
   const settings = useSettings();
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
@@ -526,6 +535,26 @@ export default function Navbar() {
                             </DropdownMenuItem>
                           </>
                         )}
+
+                        {(session.user as any)?.role === 'showroom_manager' && (
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/showroom/dashboard" className="cursor-pointer">
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> Showroom Dashboard
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
+                        {['admin', 'super_admin', 'showroom_manager'].includes((session.user as any)?.role) && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setIsTransactionDialogOpen(true)} className="cursor-pointer">
+                              <Plus className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                              <span className="font-semibold text-emerald-700 dark:text-emerald-500">Add Transaction</span>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => signOut({ callbackUrl: window.location.origin })} className="text-destructive cursor-pointer">
@@ -548,6 +577,21 @@ export default function Navbar() {
           </div>
         </div>
       </header>
+
+      <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
+        <DialogContent className="max-w-md w-full bg-background border shadow-lg rounded-xl z-50 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Add Transaction</DialogTitle>
+          </DialogHeader>
+          <TransactionForm onSuccess={() => {
+            setIsTransactionDialogOpen(false);
+            router.refresh();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('refresh-dashboard'));
+            }
+          }} />
+        </DialogContent>
+      </Dialog>
 
       {/* ΓöÇΓöÇ Bottom Navigation Row ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {/* Siblings with <header> so sticky works relative to the viewport,      */}

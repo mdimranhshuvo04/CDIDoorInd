@@ -83,17 +83,25 @@ function ExpensesIncomesContent() {
     }
 
     const params = new URLSearchParams(searchParams.toString());
-    if (targetPage > 1) {
-      params.set('page', targetPage.toString());
-    } else {
-      params.delete('page');
+    const newPage = targetPage > 1 ? targetPage.toString() : '';
+    const newType = typeFilter !== 'all' ? typeFilter : '';
+
+    const currentType = searchParams.get('type') || '';
+    const currentPageParam = searchParams.get('page') || '';
+
+    if (newType !== currentType || newPage !== currentPageParam) {
+      if (newPage) {
+        params.set('page', newPage);
+      } else {
+        params.delete('page');
+      }
+      if (newType) {
+        params.set('type', newType);
+      } else {
+        params.delete('type');
+      }
+      router.push(`/admin/expenses-incomes?${params.toString()}`);
     }
-    if (typeFilter !== 'all') {
-      params.set('type', typeFilter);
-    } else {
-      params.delete('type');
-    }
-    router.push(`/admin/expenses-incomes?${params.toString()}`);
   }, [currentPage, searchTerm, typeFilter, statusFilter, dateFilter.from, dateFilter.to, searchParams, router]);
 
   const fetchTransactions = async () => {
@@ -231,7 +239,7 @@ function ExpensesIncomesContent() {
           <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} />}>
             <Plus className="mr-2 h-4 w-4" /> Add Record
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[480px] w-full animate-in fade-in duration-200">
+          <DialogContent className="sm:max-w-[480px] w-full animate-in fade-in duration-200 max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingTransaction ? 'Edit' : 'Add'} Transaction</DialogTitle>
             </DialogHeader>
@@ -460,22 +468,24 @@ function ExpensesIncomesContent() {
                                 </DropdownMenuItem>
                               </>
                             )}
-                            {(!isAdmin || tx.status === 'Pending') && (
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingTransaction(tx);
-                                  setIsDialogOpen(true);
-                                }}
-                              >
-                                <Edit className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
+                            {(isAdmin || tx.status === 'Pending') && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditingTransaction(tx);
+                                    setIsDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => handleDelete(tx._id)}
+                                >
+                                  <Trash className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </>
                             )}
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(tx._id)}
-                            >
-                              <Trash className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

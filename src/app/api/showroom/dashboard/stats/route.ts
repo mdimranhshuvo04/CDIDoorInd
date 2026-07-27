@@ -5,6 +5,7 @@ import Order from '@/models/Order';
 import Expense from '@/models/Expense';
 import Showroom from '@/models/Showroom';
 import Product from '@/models/Product';
+import User from '@/models/User';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,6 +17,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    // Default range: Last 30 days
+    const defaultFrom = new Date();
+    defaultFrom.setDate(defaultFrom.getDate() - 30);
+    const defaultTo = new Date();
+
+    let startDate = defaultFrom;
+    if (from) {
+      const parsedFrom = new Date(from);
+      if (!isNaN(parsedFrom.getTime())) {
+        startDate = parsedFrom;
+      }
+    }
+
+    let endDate = defaultTo;
+    if (to) {
+      const parsedTo = new Date(to);
+      if (!isNaN(parsedTo.getTime())) {
+        endDate = parsedTo;
+      }
+    }
+    endDate.setHours(23, 59, 59, 999);
+
     await connectToDatabase();
 
     // Find the showroom managed by this user
@@ -25,11 +52,9 @@ export async function GET(req: NextRequest) {
     }
     const showroomId = showroom._id;
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
     // Today's orders for this showroom
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayOrders = await Order.find({
       showroom: showroomId,
       createdAt: { $gte: startOfToday },
@@ -39,23 +64,42 @@ export async function GET(req: NextRequest) {
     const todaySales = todayOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
     const todayOrderCount = todayOrders.length;
 
-    // This month's orders
-    const monthOrders = await Order.find({
+    // Date range orders for this showroom
+    const rangeOrders = await Order.find({
       showroom: showroomId,
-      createdAt: { $gte: startOfMonth },
+      createdAt: { $gte: startDate, $lte: endDate },
       deletedAt: null,
-    }).lean();
+      status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }
+    }).lean() as any[];
 
-    const monthSales = monthOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
-    const monthOrderCount = monthOrders.length;
+    const totalRevenue = rangeOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+    const salesCount = rangeOrders.length;
 
-    // This month's approved expenses for this showroom
-    const monthExpenses = await Expense.find({
+    // Unique customers for this showroom
+    const showroomCustomers = await Order.distinct('user', { showroom: showroomId, user: { $ne: null }, deletedAt: null });
+    const totalUsers = showroomCustomers.length;
+
+    // Pending orders assigned to this showroom
+    const pendingOrdersCount = await Order.countDocuments({
+      showroom: showroomId,
+      status: 'Order Placed',
+      deletedAt: null
+    });
+
+    // Date range expenses
+    const rangeExpenses = await Expense.find({
       showroom: showroomId,
       status: 'Approved',
-      createdAt: { $gte: startOfMonth },
-    }).lean();
-    const totalMonthExpenses = monthExpenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+      date: { $gte: startDate, $lte: endDate }
+    }).lean() as any[];
+
+    const totalExpenses = rangeExpenses
+      .filter(e => e.type !== 'income')
+      .reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+
+    const totalIncomes = rangeExpenses
+      .filter(e => e.type === 'income')
+      .reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
 
     // Showroom stock (products with stock for this showroom)
     const products = await Product.find({
@@ -79,12 +123,211 @@ export async function GET(req: NextRequest) {
       .select('orderId totalAmount status createdAt customerName')
       .lean();
 
+    // ----------------------------------------------------
+    // Treasury Calculations (Server-side aggregations to prevent unbounded loads)
+    // ----------------------------------------------------
+    const orderSums = await Order.aggregate([
+      {
+        $match: {
+          showroom: showroomId,
+          deletedAt: null
+        }
+      },
+      {
+        $facet: {
+          cashReceived: [
+            {
+              $match: {
+                paymentMethod: { $nin: ['Online', 'Credit'] },
+                status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }
+              }
+            },
+            { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+          ],
+          bankReceived: [
+            {
+              $match: {
+                paymentMethod: 'Online',
+                status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }
+              }
+            },
+            { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+          ],
+          creditOrders: [
+            {
+              $match: {
+                paymentMethod: 'Credit',
+                paymentStatus: { $ne: 'Paid' },
+                status: { $ne: 'Cancelled' }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalReceivable: {
+                  $sum: {
+                    $subtract: [
+                      { $ifNull: ['$totalAmount', 0] },
+                      { $add: [{ $ifNull: ['$couponDiscountAmount', 0] }, { $ifNull: ['$walletAmountUsed', 0] }] }
+                    ]
+                  }
+                },
+                maturedReceivable: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $ifNull: ['$expectedPaymentDate', false] },
+                          { $lt: ['$expectedPaymentDate', new Date()] }
+                        ]
+                      },
+                      {
+                        $subtract: [
+                          { $ifNull: ['$totalAmount', 0] },
+                          { $add: [{ $ifNull: ['$couponDiscountAmount', 0] }, { $ifNull: ['$walletAmountUsed', 0] }] }
+                        ]
+                      },
+                      0
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]);
+
+    const expenseSums = await Expense.aggregate([
+      {
+        $match: {
+          showroom: showroomId,
+          status: 'Approved'
+        }
+      },
+      {
+        $group: {
+          _id: '$type',
+          total: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const cashReceivedFromOrders = orderSums[0]?.cashReceived[0]?.total || 0;
+    const bankReceivedFromOrders = orderSums[0]?.bankReceived[0]?.total || 0;
+    const accountReceivable = orderSums[0]?.creditOrders[0]?.totalReceivable || 0;
+    const maturedReceivable = orderSums[0]?.creditOrders[0]?.maturedReceivable || 0;
+
+    const expenseMap = new Map(expenseSums.map((e: any) => [e._id, e.total]));
+    const cashPaidForExpenses = expenseMap.get('expense') || 0;
+    const cashReceivedFromIncomes = expenseMap.get('income') || 0;
+
+    // Both expenses and incomes affect the CASH balance (consistent with the Ledger account)
+    const cashBalance = cashReceivedFromOrders + cashReceivedFromIncomes - cashPaidForExpenses;
+    const bankBalance = bankReceivedFromOrders;
+
+    const supplierPayable = 0;
+    const maturedPayable = 0;
+
+    // ----------------------------------------------------
+    // Chart Data aggregation
+    // ----------------------------------------------------
+    const ordersData = await Order.aggregate([
+      {
+        $match: {
+          showroom: showroomId,
+          status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
+          createdAt: { $gte: startDate, $lte: endDate },
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          revenue: { $sum: '$totalAmount' },
+          orders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const expensesIncomesData = await Expense.aggregate([
+      {
+        $match: {
+          showroom: showroomId,
+          date: { $gte: startDate, $lte: endDate },
+          status: 'Approved'
+        }
+      },
+      {
+        $group: {
+          _id: {
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+            type: '$type'
+          },
+          amount: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const mergedData: Record<string, any> = {};
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+    for (let i = 0; i <= days; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      if (dateStr <= endDate.toISOString().split('T')[0]) {
+        mergedData[dateStr] = {
+          date: dateStr,
+          revenue: 0,
+          orders: 0,
+          expense: 0,
+          income: 0,
+          showroomBreakdown: {} // Satisfy custom tooltip type structure if shared
+        };
+      }
+    }
+
+    ordersData.forEach((item: any) => {
+      const dateStr = item._id;
+      if (mergedData[dateStr]) {
+        mergedData[dateStr].revenue = item.revenue || 0;
+        mergedData[dateStr].orders = item.orders || 0;
+      }
+    });
+
+    expensesIncomesData.forEach((item: any) => {
+      const dateStr = item._id.date;
+      if (mergedData[dateStr]) {
+        if (item._id.type === 'income') {
+          mergedData[dateStr].income = item.amount || 0;
+        } else {
+          mergedData[dateStr].expense = item.amount || 0;
+        }
+      }
+    });
+
+    const chartData = Object.values(mergedData).sort((a: any, b: any) => a.date.localeCompare(b.date));
+
     return NextResponse.json({
       showroom: { name: showroom.name, address: showroom.address },
       today: { sales: todaySales, orders: todayOrderCount },
-      month: { sales: monthSales, orders: monthOrderCount, expenses: totalMonthExpenses },
+      stats: {
+        totalRevenue,
+        salesCount,
+        totalUsers,
+        pendingOrdersCount,
+        totalExpenses,
+        totalIncomes,
+        cashBalance,
+        bankBalance,
+        accountReceivable,
+        supplierPayable,
+        maturedReceivable,
+        maturedPayable
+      },
       stockItems,
       recentOrders,
+      chartData
     });
   } catch (error: any) {
     console.error('Showroom Dashboard Stats Error:', error);

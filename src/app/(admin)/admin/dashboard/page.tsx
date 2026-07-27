@@ -1,34 +1,36 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { CartesianGrid, Area, AreaChart, XAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import {
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
-  CardDescription 
+  CardDescription
 } from '@/components/ui/card';
-import { 
-  DollarSign, 
-  Users, 
-  ShoppingBag, 
-  AlertTriangle, 
-  Clock, 
+import {
+  DollarSign,
+  Users,
+  ShoppingBag,
+  AlertTriangle,
+  Clock,
   Wallet,
   ArrowRight,
   Loader2,
   TrendingUp,
-  LineChart as LineChartIcon,
   Filter,
   ArrowDownCircle,
   ArrowUpCircle,
   Receipt,
   Star,
   UserPlus,
-  Target,
-  BarChart3
+  BarChart3,
+  Landmark,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CalendarClock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,18 +44,111 @@ import {
 } from "@/components/ui/chart";
 import { format, subDays, parseISO, isAfter, startOfToday } from 'date-fns';
 
+const CustomTooltip = ({ active, payload, label, activeChart }: any) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0].payload;
+  const dateStr = label ? format(parseISO(label), 'dd MMMM yyyy') : '';
+  const breakdown = data.showroomBreakdown || {};
+  const showroomsList = Object.entries(breakdown);
+
+  // Determine active metric properties
+  let metricLabel = '';
+  let metricColorClass = '';
+  let getValue = (vals: any) => 0;
+  let formatValue = (val: number) => '';
+
+  if (activeChart === 'revenue') {
+    metricLabel = 'Revenue';
+    metricColorClass = 'text-primary';
+    getValue = (vals: any) => vals.revenue || 0;
+    formatValue = (val: number) => `৳${Math.round(val).toLocaleString()}`;
+  } else if (activeChart === 'orders') {
+    metricLabel = 'Sales';
+    metricColorClass = 'text-orange-600';
+    getValue = (vals: any) => vals.orders || 0;
+    formatValue = (val: number) => val.toLocaleString();
+  } else if (activeChart === 'expense') {
+    metricLabel = 'Expense';
+    metricColorClass = 'text-red-600';
+    getValue = (vals: any) => vals.expense || 0;
+    formatValue = (val: number) => `৳${Math.round(val).toLocaleString()}`;
+  } else if (activeChart === 'netIncome') {
+    metricLabel = 'Net Income';
+    metricColorClass = 'text-green-600';
+    getValue = (vals: any) => (vals.revenue || 0) - (vals.expense || 0);
+    formatValue = (val: number) => `৳${Math.round(val).toLocaleString()}`;
+  }
+
+  // Filter showrooms that have a non-zero value for the active metric
+  const activeShowroomsList = showroomsList.filter(([_, vals]: any) => getValue(vals) !== 0);
+
+  return (
+    <div className="bg-background/95 backdrop-blur-md border rounded-xl shadow-xl p-4 min-w-[240px] max-w-[320px] text-xs space-y-3 z-50">
+      <div className="border-b pb-2">
+        <p className="font-bold text-sm text-foreground">{dateStr}</p>
+      </div>
+
+      <div className="space-y-2">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b text-muted-foreground font-semibold">
+              <th className="py-1">Showroom</th>
+              <th className="py-1 text-right">{metricLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeShowroomsList.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="py-2 text-center text-muted-foreground italic">
+                  No {metricLabel.toLowerCase()} data
+                </td>
+              </tr>
+            ) : (
+              activeShowroomsList.map(([name, vals]: any) => (
+                <tr key={name} className="border-b border-muted/20 last:border-0 hover:bg-muted/40 transition-colors">
+                  <td className="py-1.5 font-medium text-foreground truncate max-w-[150px]">{name}</td>
+                  <td className={`py-1.5 text-right font-semibold ${metricColorClass}`}>
+                    {formatValue(getValue(vals))}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-double border-muted font-bold text-foreground bg-muted/30">
+              <td className="py-2 px-1">Total</td>
+              <td className={`py-2 text-right ${metricColorClass}`}>
+                {formatValue(
+                  activeChart === 'revenue' ? data.revenue :
+                    activeChart === 'orders' ? data.orders :
+                      activeChart === 'expense' ? data.expense : (data.revenue - data.expense)
+                )}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 const chartConfig = {
   revenue: {
     label: "Revenue",
     color: "var(--primary)",
   },
-  profit: {
-    label: "Gross Profit",
-    color: "var(--chart-2)",
-  },
   orders: {
     label: "Total Sales",
     color: "#fb923c",
+  },
+  expense: {
+    label: "Expense",
+    color: "#ef4444",
+  },
+  netIncome: {
+    label: "Net Income",
+    color: "#22c55e",
   },
 } satisfies ChartConfig;
 
@@ -63,7 +158,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("revenue");
-  
+
   // Date filter state
   const [dateRange, setDateRange] = useState({
     from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
@@ -71,6 +166,7 @@ export default function AdminDashboard() {
   });
 
   const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Debounce date range changes
   useEffect(() => {
@@ -80,10 +176,19 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, [dateRange]);
 
+  // Clean up abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const handleDateChange = (key: 'from' | 'to', value: string) => {
     const newDate = parseISO(value);
     const today = startOfToday();
-    
+
     // Block future dates
     if (isAfter(newDate, today)) {
       setDateRange(prev => ({ ...prev, [key]: format(today, 'yyyy-MM-dd') }));
@@ -108,6 +213,12 @@ export default function AdminDashboard() {
   };
 
   const fetchStats = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     setError(null);
     try {
@@ -115,8 +226,10 @@ export default function AdminDashboard() {
         from: debouncedDateRange.from,
         to: debouncedDateRange.to,
       }).toString();
-      
-      const response = await fetch(`/api/admin/dashboard/stats?${query}`);
+
+      const response = await fetch(`/api/admin/dashboard/stats?${query}`, {
+        signal: controller.signal,
+      });
       if (response.ok) {
         const stats = await response.json();
         setData(stats);
@@ -126,10 +239,15 @@ export default function AdminDashboard() {
         setError(errData.message || `Failed to fetch: ${response.status}`);
       }
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch stats:', error);
       setError(error.message || 'An unexpected error occurred');
     } finally {
-      setLoading(false);
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+      }
     }
   };
 
@@ -137,35 +255,53 @@ export default function AdminDashboard() {
     fetchStats();
   }, [debouncedDateRange]);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchStats();
+    };
+    window.addEventListener('refresh-dashboard', handleRefresh);
+    return () => {
+      window.removeEventListener('refresh-dashboard', handleRefresh);
+    };
+  }, [debouncedDateRange]);
+
   const total = useMemo(() => {
-    if (!data?.chartData) return { revenue: 0, profit: 0, orders: 0 };
+    if (!data?.chartData) return { revenue: 0, orders: 0, expense: 0, netIncome: 0 };
+    const revenue = data.chartData.reduce((acc: number, curr: any) => acc + curr.revenue, 0);
+    const expense = data.chartData.reduce((acc: number, curr: any) => acc + (curr.expense || 0), 0);
     return {
-      revenue: data.chartData.reduce((acc: number, curr: any) => acc + curr.revenue, 0),
-      profit: data.chartData.reduce((acc: number, curr: any) => acc + curr.profit, 0),
+      revenue,
       orders: data.chartData.reduce((acc: number, curr: any) => acc + curr.orders, 0),
+      expense,
+      netIncome: revenue - expense,
     };
   }, [data]);
 
   const processedChartData = useMemo(() => {
     if (!data?.chartData) return [];
-    
+
     const start = parseISO(dateRange.from);
     const end = parseISO(dateRange.to);
     const result = [];
-    
+
     const dataMap = new Map(data.chartData.map((item: any) => [item.date, item]));
-    
+
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dateStr = format(d, 'yyyy-MM-dd');
       const existing = dataMap.get(dateStr);
       if (existing) {
-        result.push(existing);
+        result.push({
+          ...existing,
+          netIncome: (existing as any).revenue - ((existing as any).expense || 0)
+        });
       } else {
         result.push({
           date: dateStr,
           revenue: 0,
-          profit: 0,
-          orders: 0
+          orders: 0,
+          expense: 0,
+          netIncome: 0,
+          showroomBreakdown: {}
         });
       }
     }
@@ -202,7 +338,7 @@ export default function AdminDashboard() {
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard Overview</h2>
           <p className="text-muted-foreground text-xs md:text-sm">Advanced business intelligence and sales analytics.</p>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border w-full sm:w-auto">
             <div className="flex items-center gap-1 px-2 shrink-0">
@@ -210,17 +346,17 @@ export default function AdminDashboard() {
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Range</span>
             </div>
             <div className="flex items-center gap-1 flex-1 sm:flex-initial">
-              <Input 
-                type="date" 
-                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1" 
+              <Input
+                type="date"
+                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
                 value={dateRange.from}
                 onChange={(e) => handleDateChange('from', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
               />
               <span className="text-muted-foreground text-[10px] shrink-0">to</span>
-              <Input 
-                type="date" 
-                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1" 
+              <Input
+                type="date"
+                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
                 value={dateRange.to}
                 onChange={(e) => handleDateChange('to', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
@@ -233,7 +369,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
         {/* Pending Orders Card */}
         <Link href="/admin/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group h-full">
@@ -243,7 +379,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
-              <p className="text-xs text-muted-foreground">Requires attention</p>
+              <p className="text-xs text-muted-foreground mt-1">Requires attention</p>
             </CardContent>
           </Card>
         </Link>
@@ -257,48 +393,80 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-700">{stats?.totalUsers || 0}</div>
-              <p className="text-xs text-muted-foreground">Across all time</p>
+              <p className="text-xs text-muted-foreground mt-1">Across all time</p>
             </CardContent>
           </Card>
         </Link>
 
-        {/* ROAS Card (NEW) */}
-        <Card className="bg-purple-500/5 border-purple-500/20 relative overflow-hidden group">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ad ROI (ROAS)</CardTitle>
-            <Target className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-700">{stats?.roas ? `${stats.roas}x` : '—'}</div>
-            <p className="text-xs text-muted-foreground">Revenue per ৳1 Ad Spend</p>
-          </CardContent>
-        </Card>
-
-        {/* Outstanding Receivables Card (NEW) */}
-        <Link href="/admin/wholesalers" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-red-500/5 border-red-500/20 relative overflow-hidden group h-full">
+        {/* Cash Balance */}
+        <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-emerald-500/5 border-emerald-500/20 relative overflow-hidden group h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Outstanding Dues (বাকি)</CardTitle>
-              <Receipt className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-medium">Cash Balance</CardTitle>
+              <Wallet className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-700">৳{Math.round(stats?.totalWholesalerDue || 0).toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Wholesaler Receivables</p>
+              <div className="text-2xl font-bold text-emerald-700">
+                ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Physical cash on hand</p>
             </CardContent>
           </Card>
         </Link>
 
-        {/* Forecast Card (NEW) */}
-        <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group border-dashed">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sales Forecast</CardTitle>
-            <LineChartIcon className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-700">৳{Math.round(stats?.projectedMonthlyRevenue || 0).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Projected next 30 days</p>
-          </CardContent>
-        </Card>
+        {/* Bank Balance */}
+        <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-indigo-500/5 border-indigo-500/20 relative overflow-hidden group h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Bank Balance</CardTitle>
+              <Landmark className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-700">
+                ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Liquid bank accounts</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Account Receivable */}
+        <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-blue-500/5 border-blue-500/20 relative overflow-hidden group h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Accounts Receivable</CardTitle>
+              <ArrowUpRight className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-700">
+                ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
+              </div>
+              <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-rose-600">
+                <span>Matured: ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Supplier Account Payable */}
+        <Link href="/admin/supplier-bills" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-amber-500/5 border-amber-500/20 relative overflow-hidden group h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Accounts Payable</CardTitle>
+              <ArrowDownLeft className="h-4 w-4 text-amber-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-700">
+                ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
+              </div>
+              {stats?.maturedPayable !== null && stats?.maturedPayable !== undefined && (
+                <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-600">
+                  <span>Matured: ৳{Math.round(stats.maturedPayable).toLocaleString()}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid gap-4 grid-cols-1">
@@ -307,17 +475,15 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
             <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
               <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
-              <CardDescription className="text-xs md:text-sm">
-                Comparison between Revenue and Gross Profit
-              </CardDescription>
+
             </div>
             <div className="flex overflow-x-auto border-t sm:border-t-0 no-scrollbar">
-              {(["revenue", "profit", "orders"] as const).map((key) => (
+              {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
                 <button
                   key={key}
                   data-active={activeChart === key}
                   className="flex flex-1 min-w-[100px] sm:min-w-[120px] flex-col justify-center gap-1 border-r last:border-r-0 px-4 py-3 md:px-8 md:py-6 text-left data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0"
-                  onClick={() => setActiveChart(key)}
+                  onClick={() => setActiveChart(key as any)}
                 >
                   <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
                     {chartConfig[key].label}
@@ -348,18 +514,6 @@ export default function AdminDashboard() {
                       stopOpacity={0.1}
                     />
                   </linearGradient>
-                  <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-profit)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-profit)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
                   <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
@@ -372,6 +526,30 @@ export default function AdminDashboard() {
                       stopOpacity={0.1}
                     />
                   </linearGradient>
+                  <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-expense)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-expense)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillNetIncome" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-netIncome)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-netIncome)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
                 <XAxis
@@ -380,24 +558,29 @@ export default function AdminDashboard() {
                   axisLine={false}
                   tickMargin={12}
                   minTickGap={32}
-                  tickFormatter={(value) => format(new Date(value), 'dd MMM')}
+                  tickFormatter={(value) => format(parseISO(value), 'dd MMM')}
                 />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      className="w-[180px]"
-                      labelFormatter={(value) => format(new Date(value), 'dd MMMM yyyy')}
-                      indicator="dot"
-                    />
-                  }
+                <Tooltip
+                  cursor={{ strokeDasharray: '3 3', opacity: 0.5 }}
+                  content={<CustomTooltip activeChart={activeChart} />}
                 />
                 {/* Reference Line for Average */}
-                <ReferenceLine 
-                  y={total[activeChart] / (processedChartData?.length || 1)} 
-                  label={{ value: 'Avg', position: 'insideRight', fill: activeChart === "revenue" ? 'var(--primary)' : 'var(--chart-2)', fontSize: 10 }}
-                  stroke={activeChart === "revenue" ? "var(--primary)" : "var(--chart-2)"} 
-                  strokeDasharray="3 3" 
+                <ReferenceLine
+                  y={total[activeChart] / (processedChartData?.length || 1)}
+                  label={{
+                    value: 'Avg',
+                    position: 'insideRight',
+                    fill: activeChart === "revenue" ? 'var(--primary)' :
+                      activeChart === "orders" ? '#fb923c' :
+                        activeChart === "expense" ? '#ef4444' : '#22c55e',
+                    fontSize: 10
+                  }}
+                  stroke={
+                    activeChart === "revenue" ? "var(--primary)" :
+                      activeChart === "orders" ? "#fb923c" :
+                        activeChart === "expense" ? "#ef4444" : "#22c55e"
+                  }
+                  strokeDasharray="3 3"
                   strokeOpacity={0.5}
                 />
                 <Area
@@ -409,20 +592,28 @@ export default function AdminDashboard() {
                   hide={activeChart !== "revenue"}
                 />
                 <Area
-                  dataKey="profit"
-                  type="natural"
-                  fill="url(#fillProfit)"
-                  stroke="var(--color-profit)"
-                  strokeWidth={2}
-                  hide={activeChart !== "profit"}
-                />
-                <Area
                   dataKey="orders"
                   type="natural"
                   fill="url(#fillOrders)"
                   stroke="var(--color-orders)"
                   strokeWidth={2}
                   hide={activeChart !== "orders"}
+                />
+                <Area
+                  dataKey="expense"
+                  type="natural"
+                  fill="url(#fillExpense)"
+                  stroke="var(--color-expense)"
+                  strokeWidth={2}
+                  hide={activeChart !== "expense"}
+                />
+                <Area
+                  dataKey="netIncome"
+                  type="natural"
+                  fill="url(#fillNetIncome)"
+                  stroke="var(--color-netIncome)"
+                  strokeWidth={2}
+                  hide={activeChart !== "netIncome"}
                 />
               </AreaChart>
             </ChartContainer>
@@ -452,7 +643,7 @@ export default function AdminDashboard() {
                   <p className="text-xl font-black">{stats?.returningUsersCount}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Top Spenders</p>
                 {topCustomers && topCustomers.length > 0 ? (
@@ -599,8 +790,8 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <div className="text-sm font-black text-primary">৳{(order?.totalAmount || 0).toLocaleString()}</div>
-                    <Badge 
-                      variant={order.status === 'Delivered' ? 'default' : 'secondary'} 
+                    <Badge
+                      variant={order.status === 'Delivered' ? 'default' : 'secondary'}
                       className={`text-[10px] uppercase font-bold tracking-tighter ${order.status === 'Delivered' ? 'bg-emerald-500' : ''}`}
                     >
                       {order.status}

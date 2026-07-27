@@ -132,7 +132,7 @@ function ShowroomExpensesContent() {
           <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} className="gap-2" />}>
             <Plus className="h-4 w-4" /> Add Expense/Income
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}

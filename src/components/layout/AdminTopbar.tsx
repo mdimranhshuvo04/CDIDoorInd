@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   User, 
   LogOut,
+  Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -19,9 +20,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { TransactionForm } from '@/components/admin/TransactionForm';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminTopbar() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between sticky top-0 z-30">
@@ -66,6 +78,11 @@ export default function AdminTopbar() {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsTransactionDialogOpen(true)} className="cursor-pointer">
+                <Plus className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-semibold text-emerald-700 dark:text-emerald-500">Add Transaction</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 variant="destructive"
                 onClick={() => signOut({ callbackUrl: window.location.origin })}
@@ -82,6 +99,21 @@ export default function AdminTopbar() {
           </Button>
         )}
       </div>
+
+      <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
+        <DialogContent className="max-w-md w-full bg-background border shadow-lg rounded-xl z-50 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Add Transaction</DialogTitle>
+          </DialogHeader>
+          <TransactionForm onSuccess={() => {
+            setIsTransactionDialogOpen(false);
+            router.refresh();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('refresh-dashboard'));
+            }
+          }} />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

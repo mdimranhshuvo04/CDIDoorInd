@@ -193,15 +193,17 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
     <div className={`group relative flex flex-col font-jost animate-in fade-in duration-700 ${layout === 'v3' ? 'lg:rounded-sm lg:overflow-hidden lg:border lg:border-border/40 lg:pb-3 lg:bg-card' : ''}`}>
       {/* Image Container */}
       <div className={`relative aspect-square overflow-hidden bg-muted ${layout === 'v3' ? 'lg:rounded-t-sm' : 'rounded-none'}`}>
-        <Link href={`/product/${product.slug}`} className="relative block h-full w-full">
-          <Image
-            src={product.images?.[0] || '/placeholder.png'}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            priority={priority}
-          />
+        <Link href={`/product/${product.slug}`} className="block h-full w-full">
+          <div className="relative h-full w-full">
+            <Image
+              src={product.images?.[0] || '/placeholder.png'}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              priority={priority}
+            />
+          </div>
         </Link>
 
         {/* Unified Ribbon Badge (Top Left) */}

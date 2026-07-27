@@ -6,6 +6,7 @@ import Order from '@/models/Order';
 import User from '@/models/User';
 import Product from '@/models/Product';
 import Expense from '@/models/Expense';
+import Showroom from '@/models/Showroom';
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,18 +29,21 @@ export async function GET(req: NextRequest) {
     if (from) {
       const parsedFrom = new Date(from);
       if (!isNaN(parsedFrom.getTime())) {
-        startDate = parsedFrom;
+        startDate = new Date(Date.UTC(parsedFrom.getUTCFullYear(), parsedFrom.getUTCMonth(), parsedFrom.getUTCDate()));
       }
+    } else {
+      startDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate() - 30));
     }
 
     let endDate = defaultTo;
     if (to) {
       const parsedTo = new Date(to);
       if (!isNaN(parsedTo.getTime())) {
-        endDate = parsedTo;
+        endDate = new Date(Date.UTC(parsedTo.getUTCFullYear(), parsedTo.getUTCMonth(), parsedTo.getUTCDate(), 23, 59, 59, 999));
       }
+    } else {
+      endDate = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999));
     }
-    endDate.setHours(23, 59, 59, 999);
 
     await connectToDatabase();
 
@@ -85,7 +89,8 @@ export async function GET(req: NextRequest) {
       {
         $match: {
           date: { $gte: startDate, $lte: endDate },
-          type: { $ne: 'income' }
+          type: { $ne: 'income' },
+          status: 'Approved'
         }
       },
       {
@@ -101,7 +106,8 @@ export async function GET(req: NextRequest) {
       {
         $match: {
           date: { $gte: startDate, $lte: endDate },
-          type: 'income'
+          type: 'income',
+          status: 'Approved'
         }
       },
       {
@@ -190,13 +196,7 @@ export async function GET(req: NextRequest) {
       }
     ]);
 
-    // 12. Ad ROI (ROAS)
-    const adExpenses = await Expense.aggregate([
-      { $match: { category: 'Ads', date: { $gte: startDate, $lte: endDate }, type: { $ne: 'income' } } },
-      { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]);
-    const totalAdSpend = adExpenses[0]?.total || 0;
-    const roas = totalAdSpend > 0 ? Number((totalRevenue / totalAdSpend).toFixed(2)) : 0;
+
 
     // 13. New vs Returning (Sample simplified logic)
     const allUsersWithOrders = await Order.aggregate([
@@ -212,7 +212,13 @@ export async function GET(req: NextRequest) {
     const newUsersCount = allUsersWithOrders.filter(u => u.count === 1).length;
 
     // 14. Chart Data & Simple Forecast
-    const chartData = await Order.aggregate([
+    const showrooms = await Showroom.find({}).lean();
+    const showroomMap: Record<string, string> = {};
+    showrooms.forEach((s: any) => {
+      showroomMap[s._id.toString()] = s.name;
+    });
+
+    const ordersData = await Order.aggregate([
       {
         $match: {
           status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
@@ -223,40 +229,99 @@ export async function GET(req: NextRequest) {
       {
         $group: {
           _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            showroom: '$showroom'
           },
           revenue: { $sum: '$totalAmount' },
-          orders: { $sum: 1 },
-          cogs: {
-            $sum: {
-              $sum: {
-                $map: {
-                  input: '$items',
-                  as: 'item',
-                  in: { $multiply: ['$$item.quantity', { $ifNull: ['$$item.purchasePrice', 0] }] }
-                }
-              }
-            }
-          },
-          deliveryCharge: { $sum: '$deliveryCharge' }
+          orders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const expensesIncomesData = await Expense.aggregate([
+      {
+        $match: {
+          date: { $gte: startDate, $lte: endDate },
+          status: 'Approved'
         }
       },
       {
-        $project: {
-          _id: 0,
-          date: '$_id',
-          revenue: 1,
-          orders: 1,
-          profit: { $subtract: [{ $subtract: ['$revenue', '$cogs'] }, '$deliveryCharge'] }
+        $group: {
+          _id: {
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+            showroom: '$showroom',
+            type: '$type'
+          },
+          amount: { $sum: '$amount' }
         }
-      },
-      { $sort: { date: 1 } }
+      }
     ]);
 
-    // Simple Forecasting: Average Daily Revenue * 30
-    const daysInRange = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
-    const avgDailyRevenue = totalRevenue / daysInRange;
-    const projectedMonthlyRevenue = avgDailyRevenue * 30;
+    const mergedData: Record<string, any> = {};
+    const dayMs = 24 * 60 * 60 * 1000;
+    const days = Math.floor((endDate.getTime() - startDate.getTime()) / dayMs);
+    for (let i = 0; i <= days; i++) {
+      const d = new Date(startDate.getTime() + i * dayMs);
+      const dateStr = d.toISOString().split('T')[0];
+      mergedData[dateStr] = {
+        date: dateStr,
+        revenue: 0,
+        orders: 0,
+        expense: 0,
+        income: 0,
+        showroomBreakdown: {}
+      };
+    }
+
+    ordersData.forEach((item: any) => {
+      const dateStr = item._id.date;
+      if (!mergedData[dateStr]) return;
+      
+      const showroomId = item._id.showroom ? item._id.showroom.toString() : null;
+      const showroomName = showroomId ? (showroomMap[showroomId] || 'Unknown Showroom') : 'Direct/Online';
+      
+      const revenue = item.revenue || 0;
+      const orders = item.orders || 0;
+
+      mergedData[dateStr].revenue += revenue;
+      mergedData[dateStr].orders += orders;
+
+      if (!mergedData[dateStr].showroomBreakdown[showroomName]) {
+        mergedData[dateStr].showroomBreakdown[showroomName] = { revenue: 0, orders: 0, expense: 0, income: 0 };
+      }
+      mergedData[dateStr].showroomBreakdown[showroomName].revenue += revenue;
+      mergedData[dateStr].showroomBreakdown[showroomName].orders += orders;
+    });
+
+    expensesIncomesData.forEach((item: any) => {
+      const dateStr = item._id.date;
+      if (!mergedData[dateStr]) return;
+
+      const showroomId = item._id.showroom ? item._id.showroom.toString() : null;
+      const showroomName = showroomId ? (showroomMap[showroomId] || 'Unknown Showroom') : 'Head Office';
+
+      const amount = item.amount || 0;
+      const isIncome = item._id.type === 'income';
+
+      if (isIncome) {
+        mergedData[dateStr].income += amount;
+      } else {
+        mergedData[dateStr].expense += amount;
+      }
+
+      if (!mergedData[dateStr].showroomBreakdown[showroomName]) {
+        mergedData[dateStr].showroomBreakdown[showroomName] = { revenue: 0, orders: 0, expense: 0, income: 0 };
+      }
+      if (isIncome) {
+        mergedData[dateStr].showroomBreakdown[showroomName].income += amount;
+      } else {
+        mergedData[dateStr].showroomBreakdown[showroomName].expense += amount;
+      }
+    });
+
+    const chartData = Object.values(mergedData).sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+
 
     // Calculate credit receivables
     const creditOrders = await Order.find({
@@ -270,6 +335,29 @@ export async function GET(req: NextRequest) {
       const outstanding = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
       return sum + outstanding;
     }, 0);
+
+    const today = new Date();
+    const maturedReceivableRaw = creditOrders.reduce((sum: number, o: any) => {
+      if (o.expectedPaymentDate && new Date(o.expectedPaymentDate) < today) {
+        const outstanding = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
+        return sum + outstanding;
+      }
+      return sum;
+    }, 0);
+
+    // Fetch Ledger balances
+    const LedgerAccount = (await import('@/models/LedgerAccount')).default;
+    const ledgerAccounts = await LedgerAccount.find().lean() as any[];
+    const cashAccount = ledgerAccounts.find(a => a.code === 'CASH');
+    const bankAccount = ledgerAccounts.find(a => a.code === 'BANK');
+    const apAccount = ledgerAccounts.find(a => a.code === 'AP');
+
+    const cashBalance = cashAccount ? cashAccount.currentBalance : 0;
+    const bankBalance = bankAccount ? bankAccount.currentBalance : 0;
+    const accountReceivable = totalWholesalerDue;
+    const maturedReceivable = Math.min(maturedReceivableRaw, accountReceivable);
+    const supplierPayable = apAccount ? apAccount.currentBalance : 0;
+    const maturedPayable = null; // Set to null as supplier due-date data is unavailable
 
     const wholesalerDuesMap: Record<string, any> = {};
     for (const order of creditOrders) {
@@ -301,12 +389,15 @@ export async function GET(req: NextRequest) {
         totalExpenses,
         grossProfit,
         netProfit,
-        roas,
-        totalAdSpend,
         newUsersCount,
         returningUsersCount,
-        projectedMonthlyRevenue,
-        totalWholesalerDue
+        totalWholesalerDue,
+        cashBalance,
+        bankBalance,
+        accountReceivable,
+        supplierPayable,
+        maturedReceivable,
+        maturedPayable
       },
       recentOrders,
       lowStockProducts,
