@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/pagination';
+import { getWhatsAppLink } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -31,7 +32,8 @@ import {
   FileText,
   Filter as FilterIcon,
   Copy,
-  Search
+  Search,
+  Share2
 } from 'lucide-react';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -194,6 +196,16 @@ function OrdersContent() {
       router.push(`/admin/orders?${newQuery}`);
     }
   }, [currentPage, statusFilter, debouncedSearchTerm, dateFilter.from, dateFilter.to]);
+
+  const handleCopyLink = async (orderId: string) => {
+    try {
+      const shareableLink = `${window.location.origin}/orders/${orderId}`;
+      await navigator.clipboard.writeText(shareableLink);
+      toast.success('Shareable order link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to copy link.');
+    }
+  };
 
   const handleDownloadInvoice = async (order: any) => {
     try {
@@ -731,51 +743,51 @@ function OrdersContent() {
       <div className="rounded-md border bg-background overflow-hidden relative">
         {/* Bulk Action Toolbar */}
         {selectedIds.length > 0 && (
-          <div className="sticky top-0 z-20 w-full bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between animate-in slide-in-from-top duration-200">
+          <div className="sticky top-0 z-20 w-full bg-primary text-primary-foreground px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 animate-in slide-in-from-top duration-200">
             <div className="flex items-center gap-4 text-sm font-medium">
-              <span>{selectedIds.length} orders selected</span>
+              <span>{selectedIds.length} selected</span>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-primary-foreground hover:bg-white/10"
                 onClick={() => setSelectedIds([])}
               >
-                Deselect All
+                Deselect
               </Button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white text-primary hover:bg-white/90"
+                className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8"
                 onClick={() => handlePrint(selectedIds)}
               >
-                <Printer className="mr-2 h-3 w-3" /> Print Invoices
+                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Print Invoices</span><span className="sm:hidden">Print</span>
               </Button>
 
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white text-primary hover:bg-white/90"
+                className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8"
                 onClick={() => handlePrintStickers(selectedIds)}
               >
-                <Printer className="mr-2 h-3 w-3" /> Print Stickers
+                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Print Stickers</span><span className="sm:hidden">Stickers</span>
               </Button>
 
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-orange-500 text-white hover:bg-orange-600 border-none"
+                className="bg-orange-500 text-white hover:bg-orange-600 border-none text-xs py-1 h-8"
                 onClick={() => handleSendToSteadfast(selectedIds)}
               >
-                <Truck className="mr-2 h-3 w-3" /> Send to Steadfast
+                <Truck className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Send to Steadfast</span><span className="sm:hidden">Steadfast</span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-white/90">
-                    Update Status <ChevronDown className="ml-2 h-3 w-3" />
+                  <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8">
+                    Status <ChevronDown className="ml-1 h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -794,7 +806,7 @@ function OrdersContent() {
               <Button
                 variant="destructive"
                 size="sm"
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 h-8 px-2"
                 onClick={handleBulkDelete}
               >
                 <Trash2 className="h-4 w-4" />
@@ -803,159 +815,392 @@ function OrdersContent() {
           </div>
         )}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedIds.length === filteredOrders.length && filteredOrders.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead>Order Info</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredOrders.length === 0 ? (
+        {/* Desktop View */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  No orders found.
-                </TableCell>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.includes(o._id))}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>Order Info</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredOrders.map((order) => (
-                <TableRow key={order._id} className={selectedIds.includes(order._id) ? "bg-muted/50" : ""}>
-                  <TableCell>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    No orders found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredOrders.map((order) => (
+                  <TableRow key={order._id} className={selectedIds.includes(order._id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(order._id)}
+                        onCheckedChange={() => toggleSelect(order._id)}
+                      />
+                    </TableCell>
+                    <TableCell className="max-w-[200px] whitespace-normal">
+                      <div className="flex flex-col gap-1.5 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => openDetails(order._id)}
+                          >
+                            <span className={`font-bold hover:underline ${order.isDuplicate ? 'text-red-500 font-extrabold' : order.isRepeat ? 'text-yellow-600 font-extrabold' : 'text-primary'}`}>
+                              #{order._id.slice(-8).toUpperCase()}
+                            </span>
+                          </button>
+                          {order.isDuplicate ? (
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[9px] px-1 py-0 h-4">Duplicate</Badge>
+                          ) : order.isRepeat ? (
+                            <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">Repeat</Badge>
+                          ) : null}
+                        </div>
+                        
+                        <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
+                          <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span 
+                              onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
+                              className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
+                            >
+                              {order.shippingAddress?.phone || 'No Phone'}
+                            </span>
+                            {order.shippingAddress?.phone && (
+                              <>
+                                <a 
+                                   href={getWhatsAppLink(order.shippingAddress.phone)}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                                   title="Chat on WhatsApp"
+                                >
+                                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      await navigator.clipboard.writeText(order.shippingAddress.phone);
+                                      toast.success('Phone number copied!');
+                                    } catch (err) {
+                                      toast.error('Failed to copy phone number.');
+                                    }
+                                  }}
+                                  className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded animate-in fade-in duration-200"
+                                  title="Copy Phone Number"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          {order.shippingAddress?.phone && (
+                            <div className="mt-0.5">
+                              <FraudCheckBadge phone={order.shippingAddress.phone} />
+                            </div>
+                          )}
+                          <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'No Email'}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase mt-0.5">
+                            {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, p') : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {order.items?.map((item: any, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-[9px] px-1 py-0 font-normal truncate max-w-[180px]">
+                              {item.quantity}× {item.name}
+                              {(item.color || item.size) && (
+                                <span className="text-muted-foreground ml-1">
+                                  ({[item.color, item.size].filter(Boolean).join('/')})
+                                </span>
+                              )}
+                            </Badge>
+                          ))}
+                        </div>
+                        {order.internalNote && (
+                          <div className="mt-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line max-w-[200px]" title={order.internalNote}>
+                            Note: {order.internalNote}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-bold">৳{Math.round(order.totalAmount ?? 0)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge
+                          variant="outline"
+                          className={order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 border-none font-bold' : 'bg-yellow-100 text-yellow-700 border-none font-bold'}
+                        >
+                          {order.paymentStatus}
+                        </Badge>
+                        {order.paymentMethod === 'Manual' && order.manualPaymentDetails && (
+                          <div className="flex flex-col text-[10px] text-muted-foreground bg-slate-50 dark:bg-zinc-900 p-1.5 rounded border border-slate-100 dark:border-zinc-800 font-mono">
+                            <span className="font-bold text-primary uppercase text-[9px]">{order.manualPaymentDetails.methodName}</span>
+                            {order.manualPaymentDetails.senderNumber && (
+                              <span>No: {order.manualPaymentDetails.senderNumber}</span>
+                            )}
+                            {order.manualPaymentDetails.transactionId && (
+                              <span className="truncate max-w-[120px] font-bold text-slate-800 dark:text-zinc-200" title={order.manualPaymentDetails.transactionId}>
+                                TrxID: {order.manualPaymentDetails.transactionId}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {order.paymentMethod === 'Manual' && order.paymentStatus === 'Pending' && order.status !== 'Cancelled' && (
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30" 
+                              title="Approve Manual Payment"
+                              onClick={() => {
+                                Swal.fire({
+                                  title: 'Approve Payment?',
+                                  text: `Are you sure you want to approve manual payment for order #${order._id.slice(-8).toUpperCase()}? This will mark the order as Confirmed & Paid.`,
+                                  icon: 'question',
+                                  showCancelButton: true,
+                                  confirmButtonColor: '#00D1B2',
+                                  confirmButtonText: 'Yes, Approve!'
+                                }).then((result) => {
+                                  if (result.isConfirmed) {
+                                    updateStatus(order._id, 'Confirmed', { paymentStatus: 'Paid' });
+                                  }
+                                });
+                              }}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30" 
+                              title="Cancel Order"
+                              onClick={() => handleCancelOrder(order._id)}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openDetails(order._id)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleCopyLink(order._id)}>
+                                <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Invoice/Pay Link
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
+                                <FileText className="mr-2 h-4 w-4 text-primary" /> Download Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePrint([order._id])}>
+                                <Printer className="mr-2 h-4 w-4 text-primary" /> Print Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePrintStickers([order._id])}>
+                                <Printer className="mr-2 h-4 w-4 text-primary" /> Print Sticker Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSendToSteadfast([order._id])} disabled={!!order.shippingDetails?.consignmentId}>
+                                <Truck className="mr-2 h-4 w-4 text-orange-500" /> Send to Steadfast
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Confirmed')}>Confirm</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Paid', { paymentStatus: 'Paid' })}>Mark Paid</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Ready for Delivery')}>Ready for Delivery</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Released for Delivery')}>Release for Delivery</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Delivered')}>Mark Delivered</DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleCancelOrder(order._id)}>Cancel Order</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive font-bold" onClick={() => deleteOrder(order._id)}>Delete Order</DropdownMenuItem>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y">
+          {filteredOrders.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-xs">
+              No orders found.
+            </div>
+          ) : (
+            filteredOrders.map((order) => (
+              <div
+                key={order._id}
+                className={`p-4 transition-colors ${
+                  selectedIds.includes(order._id) ? 'bg-muted/50' : 'bg-background'
+                }`}
+              >
+                {/* Header: Checkbox, Order ID, Status, and Actions dropdown */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
                     <Checkbox
                       checked={selectedIds.includes(order._id)}
                       onCheckedChange={() => toggleSelect(order._id)}
+                      id={`check-${order._id}`}
                     />
-                  </TableCell>
-                  <TableCell className="max-w-[200px] whitespace-normal">
-                    <div className="flex flex-col gap-1.5 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => openDetails(order._id)}
-                        >
-                          <span className={`font-bold hover:underline ${order.isDuplicate ? 'text-red-500 font-extrabold' : order.isRepeat ? 'text-yellow-600 font-extrabold' : 'text-primary'}`}>
-                            #{order._id.slice(-8).toUpperCase()}
-                          </span>
-                        </button>
-                        {order.isDuplicate ? (
-                          <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[9px] px-1 py-0 h-4">Duplicate</Badge>
-                        ) : order.isRepeat ? (
-                          <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">Repeat</Badge>
-                        ) : null}
-                      </div>
-                      
-                      <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
-                        <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
-                        <div className="flex items-center gap-1.5">
-                          <span 
-                            onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
-                            className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
-                          >
-                            {order.shippingAddress?.phone || 'No Phone'}
-                          </span>
-                          {order.shippingAddress?.phone && (
-                            <>
-                              <a 
-                                href={`https://wa.me/${order.shippingAddress.phone.replace(/[^0-9]/g, '').startsWith('88') ? order.shippingAddress.phone.replace(/[^0-9]/g, '') : '88' + (order.shippingAddress.phone.replace(/[^0-9]/g, '').startsWith('0') ? order.shippingAddress.phone.replace(/[^0-9]/g, '').slice(1) : order.shippingAddress.phone.replace(/[^0-9]/g, ''))}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                                title="Chat on WhatsApp"
-                              >
-                                <WhatsAppIcon className="h-3.5 w-3.5" />
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(order.shippingAddress.phone);
-                                  toast.success('Phone number copied!');
-                                }}
-                                className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded animate-in fade-in duration-200"
-                                title="Copy Phone Number"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                        {order.shippingAddress?.phone && (
-                          <div className="mt-0.5">
-                            <FraudCheckBadge phone={order.shippingAddress.phone} />
-                          </div>
-                        )}
-                        <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'No Email'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase mt-0.5">
-                          {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, p') : 'N/A'}
-                        </span>
-                      </div>
+                    <button
+                      type="button"
+                      className="cursor-pointer hover:opacity-80 transition-opacity text-left"
+                      onClick={() => openDetails(order._id)}
+                    >
+                      <span className={`text-xs font-bold hover:underline ${order.isDuplicate ? 'text-red-500 font-extrabold' : order.isRepeat ? 'text-yellow-600 font-extrabold' : 'text-primary'}`}>
+                        #{order._id.slice(-8).toUpperCase()}
+                      </span>
+                    </button>
+                    {order.isDuplicate ? (
+                      <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[8px] px-1 py-0 h-3.5">Duplicate</Badge>
+                    ) : order.isRepeat ? (
+                      <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[8px] px-1 py-0 h-3.5">Repeat</Badge>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {getStatusBadge(order.status)}
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 text-xs">
+                  {/* Name and Price */}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="font-semibold text-slate-900 dark:text-white text-sm flex items-center justify-between">
+                      <span>{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                      <span className="font-bold text-slate-900 dark:text-white">৳{Math.round(order.totalAmount ?? 0)}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {order.items?.map((item: any, idx: number) => (
-                          <Badge key={idx} variant="outline" className="text-[9px] px-1 py-0 font-normal truncate max-w-[180px]">
-                            {item.quantity}× {item.name}
-                            {(item.color || item.size) && (
-                              <span className="text-muted-foreground ml-1">
-                                ({[item.color, item.size].filter(Boolean).join('/')})
-                              </span>
-                            )}
-                          </Badge>
-                        ))}
-                      </div>
-                      {order.internalNote && (
-                        <div className="mt-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line max-w-[200px]" title={order.internalNote}>
-                          Note: {order.internalNote}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-bold">৳{Math.round(order.totalAmount ?? 0)}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <Badge
-                        variant="outline"
-                        className={order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 border-none font-bold' : 'bg-yellow-100 text-yellow-700 border-none font-bold'}
+
+                    {/* Contact details */}
+                    <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                      <span 
+                        onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
+                        className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium text-[11px]"
                       >
-                        {order.paymentStatus}
-                      </Badge>
-                      {order.paymentMethod === 'Manual' && order.manualPaymentDetails && (
-                        <div className="flex flex-col text-[10px] text-muted-foreground bg-slate-50 dark:bg-zinc-900 p-1.5 rounded border border-slate-100 dark:border-zinc-800 font-mono">
-                          <span className="font-bold text-primary uppercase text-[9px]">{order.manualPaymentDetails.methodName}</span>
-                          {order.manualPaymentDetails.senderNumber && (
-                            <span>No: {order.manualPaymentDetails.senderNumber}</span>
-                          )}
-                          {order.manualPaymentDetails.transactionId && (
-                            <span className="truncate max-w-[120px] font-bold text-slate-800 dark:text-zinc-200" title={order.manualPaymentDetails.transactionId}>
-                              TrxID: {order.manualPaymentDetails.transactionId}
-                            </span>
-                          )}
+                        {order.shippingAddress?.phone || 'No Phone'}
+                      </span>
+                      {order.shippingAddress?.phone && (
+                        <div className="flex items-center gap-1">
+                           <a 
+                             href={getWhatsAppLink(order.shippingAddress.phone)}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-green-600 p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                             title="Chat on WhatsApp"
+                           >
+                             <WhatsAppIcon className="h-3.5 w-3.5" />
+                           </a>
+                           <button
+                             type="button"
+                             onClick={async () => {
+                               try {
+                                 await navigator.clipboard.writeText(order.shippingAddress.phone);
+                                 toast.success('Phone number copied!');
+                               } catch (err) {
+                                 toast.error('Failed to copy phone number.');
+                               }
+                             }}
+                             className="text-muted-foreground p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                             title="Copy Phone"
+                           >
+                             <Copy className="h-3 w-3" />
+                           </button>
                         </div>
                       )}
+                      {order.shippingAddress?.phone && (
+                        <FraudCheckBadge phone={order.shippingAddress.phone} />
+                      )}
                     </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                    {order.user?.email && (
+                      <span className="text-muted-foreground text-[10px] truncate max-w-[200px]">{order.user.email}</span>
+                    )}
+                    <span className="text-[9px] text-muted-foreground uppercase mt-0.5">
+                      {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, yyyy p') : 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Payment Details */}
+                  <div className="flex flex-wrap items-center gap-1.5 py-0.5">
+                    <Badge
+                      variant="outline"
+                      className={`text-[9px] ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 border-none font-bold' : 'bg-yellow-100 text-yellow-700 border-none font-bold'}`}
+                    >
+                      {order.paymentStatus}
+                    </Badge>
+                    {order.paymentMethod === 'Manual' && order.manualPaymentDetails && (
+                      <span className="text-[9px] text-muted-foreground font-mono bg-slate-50 dark:bg-zinc-900 px-1.5 py-0.5 rounded border">
+                        {order.manualPaymentDetails.methodName}
+                        {order.manualPaymentDetails.senderNumber ? ` (${order.manualPaymentDetails.senderNumber})` : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Items list */}
+                  <div className="flex flex-wrap gap-1 pt-0.5">
+                    {order.items?.map((item: any, idx: number) => (
+                      <Badge key={idx} variant="outline" className="text-[8px] px-1 py-0 font-normal truncate max-w-[220px]">
+                        {item.quantity}× {item.name}
+                        {(item.color || item.size) && (
+                          <span className="text-muted-foreground ml-0.5">
+                            ({[item.color, item.size].filter(Boolean).join('/')})
+                          </span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {order.internalNote && (
+                    <div className="text-[9px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line">
+                      Note: {order.internalNote}
+                    </div>
+                  )}
+
+                  {/* Footer actions */}
+                  <div className="flex items-center justify-between pt-2 border-t mt-2">
+                    <div className="flex items-center gap-1">
                       {order.paymentMethod === 'Manual' && order.paymentStatus === 'Pending' && order.status !== 'Cancelled' && (
-                        <div className="flex items-center gap-1">
+                        <>
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30" 
-                            title="Approve Manual Payment"
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 text-[10px] px-2 py-0"
                             onClick={() => {
                               Swal.fire({
                                 title: 'Approve Payment?',
@@ -971,33 +1216,37 @@ function OrdersContent() {
                               });
                             }}
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            Approve
                           </Button>
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30" 
-                            title="Cancel Order"
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-destructive hover:text-red-700 hover:bg-red-50 text-[10px] px-2 py-0"
                             onClick={() => handleCancelOrder(order._id)}
                           >
-                            <XCircle className="h-4 w-4" />
+                            Cancel
                           </Button>
-                        </div>
+                        </>
                       )}
+                    </div>
 
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openDetails(order._id)}>
-                        <Eye className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <Button variant="outline" size="sm" className="h-7 text-primary text-[10px] px-2 py-0 flex items-center gap-1" onClick={() => openDetails(order._id)}>
+                        <Eye className="h-3 w-3" /> View
                       </Button>
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuGroup>
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleCopyLink(order._id)}>
+                              <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Invoice/Pay Link
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
                               <FileText className="mr-2 h-4 w-4 text-primary" /> Download Invoice
                             </DropdownMenuItem>
@@ -1028,12 +1277,12 @@ function OrdersContent() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
         {totalPages > 1 && (
           <div className="py-6 border-t bg-white px-6">
             <Pagination

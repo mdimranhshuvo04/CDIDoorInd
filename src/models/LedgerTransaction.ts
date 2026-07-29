@@ -9,6 +9,7 @@ export interface ILedgerTransaction extends Document {
   reference?: string;
   transferId?: string;
   balanceAfter: number;
+  showroom?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +24,7 @@ const LedgerTransactionSchema: Schema<ILedgerTransaction> = new Schema(
     reference: { type: String },
     transferId: { type: String },
     balanceAfter: { type: Number, required: true },
+    showroom: { type: Schema.Types.ObjectId, ref: 'Showroom' },
   },
   { timestamps: true }
 );

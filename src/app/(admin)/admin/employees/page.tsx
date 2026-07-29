@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 export default function AdminEmployeesPage() {
   const [activeTab, setActiveTab] = useState<'directory' | 'salaries' | 'leaves' | 'attendance' | 'tasks'>('directory');
@@ -49,6 +50,15 @@ export default function AdminEmployeesPage() {
   const [formBaseSalary, setFormBaseSalary] = useState('');
   const [formTaskRate, setFormTaskRate] = useState('');
   const [formLetter, setFormLetter] = useState('');
+  const [formImage, setFormImage] = useState('');
+  const [formWeekendDays, setFormWeekendDays] = useState<string[]>(['Friday']);
+  const [formAllowedAbsents, setFormAllowedAbsents] = useState<number>(1);
+  const [formAbsentDeductionRate, setFormAbsentDeductionRate] = useState<number>(0);
+  const [formBasicSalary, setFormBasicSalary] = useState('');
+  const [formAllowance, setFormAllowance] = useState<number>(0);
+  const [formDeduction, setFormDeduction] = useState<number>(0);
+
+  const computedBaseSalary = Math.max(0, Number(formBasicSalary || 0) + Number(formAllowance || 0) - Number(formDeduction || 0));
 
   // Disbursement inputs state
   const [disbursingAmounts, setDisbursingAmounts] = useState<Record<string, string>>({});
@@ -106,7 +116,10 @@ export default function AdminEmployeesPage() {
   }, []);
 
   const handleAddEmployee = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (formWeekendDays && formWeekendDays.length >= 7) {
+      toast.error('All 7 days cannot be selected as weekends.');
+      return;
+    }
     try {
       const response = await fetch('/api/admin/employees', {
         method: 'POST',
@@ -116,9 +129,16 @@ export default function AdminEmployeesPage() {
           email: formEmail,
           password: formPassword,
           phone: formPhone,
+          image: formImage,
           employeeType: formType,
-          baseSalary: formBaseSalary ? Number(formBaseSalary) : 0,
+          baseSalary: computedBaseSalary,
           taskRate: formTaskRate ? Number(formTaskRate) : 0,
+          weekendDays: formWeekendDays,
+          allowedAbsents: formAllowedAbsents,
+          absentDeductionRate: formAbsentDeductionRate,
+          basicSalary: formBasicSalary ? Number(formBasicSalary) : 0,
+          allowance: formAllowance,
+          deduction: formDeduction
         })
       });
 
@@ -138,6 +158,13 @@ export default function AdminEmployeesPage() {
         setFormBaseSalary('');
         setFormTaskRate('');
         setFormLetter('');
+        setFormImage('');
+        setFormWeekendDays(['Friday']);
+        setFormAllowedAbsents(1);
+        setFormAbsentDeductionRate(0);
+        setFormBasicSalary('');
+        setFormAllowance(0);
+        setFormDeduction(0);
         fetchData();
       } else {
         const data = await response.json();
@@ -473,9 +500,24 @@ export default function AdminEmployeesPage() {
                         {employees.map((emp) => (
                           <tr key={emp._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
                             <td className="p-4 font-bold text-zinc-900">
-                              <div>{emp.name}</div>
-                              <div className="text-xs text-zinc-400 font-normal">{emp.email}</div>
-                              {emp.phone && <div className="text-[11px] text-zinc-500 font-normal">{emp.phone}</div>}
+                              <div className="flex items-center gap-3">
+                                {emp.image ? (
+                                  <img 
+                                    src={emp.image} 
+                                    alt={emp.name} 
+                                    className="h-9 w-9 rounded-full object-cover border border-zinc-200"
+                                  />
+                                ) : (
+                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                    {emp.name ? emp.name.charAt(0).toUpperCase() : 'E'}
+                                  </div>
+                                )}
+                                <div>
+                                  <div>{emp.name}</div>
+                                  <div className="text-xs text-zinc-400 font-normal">{emp.email}</div>
+                                  {emp.phone && <div className="text-[11px] text-zinc-500 font-normal">{emp.phone}</div>}
+                                </div>
+                              </div>
                             </td>
                             <td className="p-4">
                               <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold">
@@ -927,8 +969,8 @@ export default function AdminEmployeesPage() {
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden">
-            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5">
+          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-black text-zinc-900">Register New Staff</CardTitle>
                 <button 
@@ -939,8 +981,14 @@ export default function AdminEmployeesPage() {
                 </button>
               </div>
             </CardHeader>
-            <form onSubmit={handleAddEmployee}>
-              <CardContent className="p-5 space-y-4">
+            <form onSubmit={handleAddEmployee} className="flex flex-col flex-1 overflow-hidden">
+              <CardContent className="p-5 space-y-4 overflow-y-auto flex-1">
+                <ImageUpload 
+                  aspect="circle" 
+                  value={formImage} 
+                  onUpload={setFormImage} 
+                  label="Profile Photo"
+                />
                 <div className="space-y-1.5">
                   <Label htmlFor="empName">Full Name</Label>
                   <Input 
@@ -1000,19 +1048,109 @@ export default function AdminEmployeesPage() {
                   </div>
                 </div>
                 {formType === 'monthly' && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="baseSalary">Monthly Salary (Tk)</Label>
-                    <Input 
-                      id="baseSalary"
-                      type="number"
-                      value={formBaseSalary} 
-                      onChange={(e) => setFormBaseSalary(e.target.value)} 
-                      placeholder="e.g. 25000" 
-                    />
+                  <div className="space-y-4 pt-2 border-t border-zinc-100">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-800">Weekend Days (Default: Friday)</Label>
+                      <div className="grid grid-cols-4 gap-2 bg-emerald-50/20 p-3 rounded-lg border border-emerald-100/30">
+                        {['Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'].map((day) => (
+                          <label key={day} className="flex items-center gap-1.5 text-xs font-medium cursor-pointer text-zinc-700">
+                            <input
+                              type="checkbox"
+                              checked={formWeekendDays.includes(day)}
+                              onChange={() => {
+                                if (formWeekendDays.includes(day)) {
+                                  setFormWeekendDays(formWeekendDays.filter(d => d !== day));
+                                } else if (formWeekendDays.length < 6) {
+                                  setFormWeekendDays([...formWeekendDays, day]);
+                                }
+                              }}
+                              className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                            />
+                            <span>{day}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="allowedAbsents" className="text-xs font-bold uppercase tracking-wider text-emerald-800">Allowed Absents Per Month</Label>
+                        <Input
+                          id="allowedAbsents"
+                          type="number"
+                          min="0"
+                          value={formAllowedAbsents}
+                          onChange={(e) => setFormAllowedAbsents(Number(e.target.value))}
+                          placeholder="e.g. 1"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="absentDeductionRate" className="text-xs font-bold uppercase tracking-wider text-emerald-800">Absent Deduction Rate (৳/Day)</Label>
+                        <Input
+                          id="absentDeductionRate"
+                          type="number"
+                          min="0"
+                          value={formAbsentDeductionRate}
+                          onChange={(e) => setFormAbsentDeductionRate(Number(e.target.value))}
+                          placeholder="e.g. 0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-800">Salary Structure</Label>
+                      <div className="grid grid-cols-3 gap-3 bg-zinc-50/50 p-3 rounded-lg border border-zinc-200">
+                        <div className="space-y-1">
+                          <Label htmlFor="basicSal" className="text-[11px] text-zinc-500">Basic (৳) *</Label>
+                          <Input
+                            id="basicSal"
+                            type="number"
+                            required
+                            value={formBasicSalary}
+                            onChange={(e) => {
+                              const basic = e.target.value;
+                              setFormBasicSalary(basic);
+                            }}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="allowanceSal" className="text-[11px] text-zinc-500">Allowance (৳)</Label>
+                          <Input
+                            id="allowanceSal"
+                            type="number"
+                            value={formAllowance}
+                            onChange={(e) => {
+                              const allowance = Number(e.target.value);
+                              setFormAllowance(allowance);
+                            }}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="deductionSal" className="text-[11px] text-zinc-500">Deduction (৳)</Label>
+                          <Input
+                            id="deductionSal"
+                            type="number"
+                            value={formDeduction}
+                            onChange={(e) => {
+                              const deduction = Number(e.target.value);
+                              setFormDeduction(deduction);
+                            }}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      {computedBaseSalary > 0 && (
+                        <p className="text-xs font-bold text-zinc-700 text-right mt-1.5">
+                          Calculated Base Salary: <span className="text-emerald-700 font-extrabold">৳{computedBaseSalary.toLocaleString()}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
-              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
+              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
                 <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
                 <Button type="submit" className="bg-primary text-primary-foreground font-bold">Register Employee</Button>
               </div>

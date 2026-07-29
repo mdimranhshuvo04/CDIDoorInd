@@ -197,14 +197,14 @@ export default function ShowroomsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Showrooms</h2>
+    <div className="flex-1 space-y-4 px-0 py-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between gap-4 px-2 md:px-0">
+        <h2 className="text-xl md:text-3xl font-bold tracking-tight">Showrooms</h2>
         <Button onClick={() => {
           setEditingShowroom(null);
           form.reset({ name: '', address: '', image: '', manager: '', isActive: true });
           setOpen(true);
-        }}>
+        }} className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
           <Plus className="mr-2 h-4 w-4" /> Add Showroom
         </Button>
       </div>
@@ -214,11 +214,11 @@ export default function ShowroomsPage() {
           No showrooms found.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
           {showrooms.map((showroom) => (
             <div key={showroom._id} className="relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition-all duration-300">
               {/* Image Section */}
-              <div className="relative h-44 w-full bg-muted overflow-hidden">
+              <div className="relative h-28 md:h-44 w-full bg-muted overflow-hidden">
                 {showroom.image ? (
                   <img
                     src={showroom.image}
@@ -226,30 +226,30 @@ export default function ShowroomsPage() {
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-sm font-medium">
-                    No Showroom Image
+                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-xs md:text-sm font-medium">
+                    No Showroom
                   </div>
                 )}
                 {/* Active/Inactive Badge */}
-                <div className="absolute top-3 left-3 z-10">
-                  <Badge variant={showroom.isActive ? 'default' : 'secondary'} className="shadow-sm font-semibold">
+                <div className="absolute top-2 left-2 z-10">
+                  <Badge variant={showroom.isActive ? 'default' : 'secondary'} className="shadow-sm font-semibold text-[8px] md:text-xs px-1.5 py-0">
                     {showroom.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
 
                 {/* 3-dot Actions Dropdown (Bottom Right) */}
-                <div className="absolute bottom-3 right-3 z-10">
+                <div className="absolute bottom-2 right-2 z-10">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/95 text-black hover:bg-white shadow-md border border-muted hover:scale-105 active:scale-95 transition-all">
-                        <MoreVertical className="h-4 w-4" />
+                      <Button size="icon" variant="secondary" className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-white/95 text-black hover:bg-white shadow-md border border-muted hover:scale-105 active:scale-95 transition-all">
+                        <MoreVertical className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32">
-                      <DropdownMenuItem onClick={() => handleEdit(showroom)} className="cursor-pointer font-medium">
+                      <DropdownMenuItem onClick={() => handleEdit(showroom)} className="cursor-pointer font-medium text-xs md:text-sm">
                         <Edit className="mr-2 h-4 w-4 text-muted-foreground" /> Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(showroom._id)} className="cursor-pointer text-destructive focus:text-destructive font-medium">
+                      <DropdownMenuItem onClick={() => handleDelete(showroom._id)} className="cursor-pointer text-destructive focus:text-destructive font-medium text-xs md:text-sm">
                         <Trash className="mr-2 h-4 w-4 text-muted-foreground" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -258,48 +258,48 @@ export default function ShowroomsPage() {
               </div>
 
               {/* Body Content */}
-              <div className="flex-1 p-5 space-y-4">
+              <div className="flex-1 p-2 md:p-5 space-y-2.5 md:space-y-4">
                 <div>
                   <Link href={`/showrooms/${showroom._id}`} className="hover:text-primary transition-colors hover:underline">
-                    <h3 className="text-base font-bold text-foreground">{showroom.name}</h3>
+                    <h3 className="text-xs md:text-base font-bold text-foreground truncate">{showroom.name}</h3>
                   </Link>
-                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{showroom.address || 'N/A'}</p>
+                  <p className="text-[10px] md:text-sm text-muted-foreground line-clamp-1 mt-0.5">{showroom.address || 'N/A'}</p>
                 </div>
 
                 {/* Manager Info */}
-                <div className="rounded-lg bg-muted/30 p-3 border border-muted/50">
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground block mb-1">Showroom Manager</span>
+                <div className="rounded-lg bg-muted/30 p-1.5 md:p-3 border border-muted/50">
+                  <span className="text-[8px] md:text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground block mb-0.5">Showroom Manager</span>
                   {showroom.manager ? (
                     <div>
-                      <p className="font-bold text-sm text-foreground">{showroom.manager.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{showroom.manager.email}</p>
+                      <p className="font-bold text-[10px] md:text-sm text-foreground truncate">{showroom.manager.name}</p>
+                      <p className="text-[8px] md:text-xs text-muted-foreground truncate">{showroom.manager.email}</p>
                     </div>
                   ) : (
-                    <span className="text-destructive text-xs font-bold">No Manager Assigned</span>
+                    <span className="text-destructive text-[8px] md:text-xs font-bold">No Manager</span>
                   )}
                 </div>
 
                 {/* Stats Section */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="rounded-lg border bg-card p-3 text-center">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Sales</span>
-                    <span className="text-base font-black text-emerald-600">৳{Math.round(showroom.todaySales || 0)}</span>
+                <div className="grid grid-cols-2 gap-1 md:gap-3 pt-0.5 md:pt-1">
+                  <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Sales</span>
+                    <span className="text-[10px] md:text-base font-black text-emerald-600">৳{Math.round(showroom.todaySales || 0)}</span>
                   </div>
-                  <div className="rounded-lg border bg-card p-3 text-center">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month's Sales</span>
-                    <span className="text-base font-black text-emerald-600">৳{Math.round(showroom.monthSales || 0)}</span>
+                  <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month</span>
+                    <span className="text-[10px] md:text-base font-black text-emerald-600">৳{Math.round(showroom.monthSales || 0)}</span>
                   </div>
-                  <div className="rounded-lg border bg-card p-3 text-center">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Cost</span>
-                    <span className="text-base font-black text-rose-600">৳{Math.round(showroom.todayCost || 0)}</span>
+                  <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Cost</span>
+                    <span className="text-[10px] md:text-base font-black text-rose-600">৳{Math.round(showroom.todayCost || 0)}</span>
                   </div>
-                  <div className="rounded-lg border bg-card p-3 text-center">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month's Cost</span>
-                    <span className="text-base font-black text-rose-600">৳{Math.round(showroom.monthCost || 0)}</span>
+                  <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month</span>
+                    <span className="text-[10px] md:text-base font-black text-rose-600">৳{Math.round(showroom.monthCost || 0)}</span>
                   </div>
-                  <div className="rounded-lg border bg-card p-3 text-center col-span-2">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Pending for Approval</span>
-                    <span className="text-base font-black text-amber-600">৳{Math.round(showroom.pendingCost || 0)}</span>
+                  <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center col-span-2">
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Pending Approval</span>
+                    <span className="text-[10px] md:text-base font-black text-amber-600">৳{Math.round(showroom.pendingCost || 0)}</span>
                   </div>
                 </div>
               </div>

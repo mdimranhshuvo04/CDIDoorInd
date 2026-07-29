@@ -67,6 +67,13 @@ export interface IGlobalSettings extends Document {
     rocket?: { number: string; qrCode?: string; active: boolean };
     banglaQr?: { qrCode?: string; active: boolean };
     instructions?: string;
+    bank?: {
+      bankName?: string;
+      accountNumber?: string;
+      routingNumber?: string;
+      branchName?: string;
+      active?: boolean;
+    };
   };
   googleAnalyticsId?: string; // GA4 Measurement ID (G-XXXXXX)
   googleAnalyticsPropertyId?: string; // GA4 Property ID (Numeric)

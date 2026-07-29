@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import AdminTopbar from '@/components/layout/AdminTopbar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -48,9 +49,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AppSidebar />
       <SidebarInset>
         <AdminTopbar />
-        <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 pb-20 md:pb-0">
           {children}
         </main>
+        <MobileBottomNav />
       </SidebarInset>
     </SidebarProvider>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plus, Trash2, Edit, Search, User, Eye, CreditCard, DollarSign, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit, Search, User, Eye, CreditCard, DollarSign, Loader2, Phone, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,19 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { Pagination } from '@/components/ui/pagination';
+import { getWhatsAppLink } from '@/lib/utils';
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    width="1em"
+    height="1em"
+    {...props}
+  >
+    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.132-1.347a9.937 9.937 0 004.877 1.28h.005c5.505 0 9.989-4.478 9.99-9.985A9.992 9.992 0 0012.012 2zm5.836 14.199c-.32.899-1.576 1.706-2.185 1.761-.559.05-1.286.074-2.074-.176a9.839 9.839 0 01-4.705-3.023 9.388 9.388 0 01-1.926-3.412 5.097 5.097 0 01-.137-2.138c.112-.601.442-1.01.691-1.272.249-.262.502-.328.67-.328.167 0 .335.006.475.014.148.009.347-.058.544.417.202.489.691 1.684.75 1.805.059.12.098.262.019.41-.079.158-.12.262-.24.399-.118.136-.251.306-.358.411-.118.114-.242.238-.104.475.138.238.614 1.01.32.957.382.341.703.56.963.666.26.106.41.088.56-.079.15-.167.643-.75.814-.999.171-.249.34-.208.573-.122.233.086 1.48.697 1.737.825.257.128.428.192.488.295.06.103.06.596-.26 1.495z"/>
+  </svg>
+);
 
 function SuppliersContent() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -38,15 +51,13 @@ function SuppliersContent() {
   const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const [currentPage, setCurrentPage] = useState(initialPage);
 
-  // Sync state changes to URL query parameters
+  // Sync page to URL query parameters
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
     if (currentPage > 1) {
       params.set('page', currentPage.toString());
-    } else {
-      params.delete('page');
     }
-    router.push(`/admin/suppliers?${params.toString()}`);
+    router.replace(`/admin/suppliers${params.toString() ? '?' + params.toString() : ''}`);
   }, [currentPage]);
 
   const isMounted = useRef(false);
@@ -57,10 +68,8 @@ function SuppliersContent() {
       return;
     }
     setCurrentPage(1);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('page');
-    router.push(`/admin/suppliers?${params.toString()}`);
-  }, [searchTerm, searchParams, router]);
+    router.replace('/admin/suppliers');
+  }, [searchTerm]);
 
   // Add/Edit Dialog State
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -258,13 +267,15 @@ function SuppliersContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Suppliers / Vendors</h1>
-          <p className="text-muted-foreground text-sm">Manage product suppliers and outstanding payable balances.</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Suppliers / Vendors</h1>
+          <p className="text-muted-foreground text-xs md:text-sm hidden md:block">
+            Manage product suppliers and outstanding payable balances.
+          </p>
         </div>
-        <Button onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" /> Add Supplier
+        <Button onClick={openAddDialog} size="sm" className="h-9 md:h-10 px-3 md:px-4 shrink-0 font-bold">
+          <Plus className="mr-1.5 h-4 w-4" /> Add Supplier
         </Button>
       </div>
 
@@ -278,61 +289,137 @@ function SuppliersContent() {
         />
       </div>
 
-      <Card>
+      <Card className="border-0 bg-transparent md:border md:bg-card shadow-none md:shadow-sm">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name / Company</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead className="text-right">Outstanding Payable</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
+          {/* Desktop View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                    Loading suppliers...
-                  </TableCell>
+                  <TableHead>Name / Company</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead className="text-right">Outstanding Payable</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : filteredSuppliers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                    No suppliers found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedSuppliers.map((supplier) => (
-                  <TableRow key={supplier._id}>
-                    <TableCell>
-                      <div className="font-medium text-foreground">{supplier.name}</div>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                      Loading suppliers...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredSuppliers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                      No suppliers found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedSuppliers.map((supplier) => (
+                    <TableRow key={supplier._id}>
+                      <TableCell>
+                        <div className="font-medium text-foreground">{supplier.name}</div>
+                        {supplier.companyName && (
+                          <div className="text-xs text-muted-foreground">{supplier.companyName}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>{supplier.phone}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">{supplier.address}</TableCell>
+                      <TableCell className="text-right font-semibold text-rose-600">
+                        ৳{(supplier.currentBalance || 0).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button variant="ghost" size="icon" onClick={() => viewSupplierDetails(supplier)}>
+                          <Eye className="h-4 w-4 text-sky-600" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(supplier)}>
+                          <Edit className="h-4 w-4 text-indigo-600" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(supplier._id)}>
+                          <Trash2 className="h-4 w-4 text-rose-600" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile View */}
+          <div className="block md:hidden space-y-3 p-2">
+            {loading ? (
+              <div className="p-6 text-center text-muted-foreground text-xs">Loading suppliers...</div>
+            ) : filteredSuppliers.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground text-xs">No suppliers found.</div>
+            ) : (
+              paginatedSuppliers.map((supplier) => (
+                <div key={supplier._id} className="p-3 border rounded-lg bg-background shadow-sm space-y-2.5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-semibold text-foreground text-sm">{supplier.name}</div>
                       {supplier.companyName && (
                         <div className="text-xs text-muted-foreground">{supplier.companyName}</div>
                       )}
-                    </TableCell>
-                    <TableCell>{supplier.phone}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{supplier.address}</TableCell>
-                    <TableCell className="text-right font-semibold text-rose-600">
-                      ৳{(supplier.currentBalance || 0).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => viewSupplierDetails(supplier)}>
-                        <Eye className="h-4 w-4 text-sky-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(supplier)}>
-                        <Edit className="h-4 w-4 text-indigo-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(supplier._id)}>
-                        <Trash2 className="h-4 w-4 text-rose-600" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                    <span className="font-bold text-rose-600 text-sm">৳{(supplier.currentBalance || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5" />
+                      <span>{supplier.phone || 'N/A'}</span>
+                      {supplier.phone && (
+                        <div className="flex items-center gap-1">
+                          <a 
+                            href={getWhatsAppLink(supplier.phone)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                            title="Chat on WhatsApp"
+                          >
+                            <WhatsAppIcon className="h-3.5 w-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(supplier.phone);
+                                toast.success('Phone number copied!');
+                              } catch (err) {
+                                // Ignore or silently fail/handle rejection without unhandled promise
+                              }
+                            }}
+                            className="text-muted-foreground p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                            title="Copy Phone"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {supplier.address && (
+                      <div className="text-muted-foreground truncate max-w-full">
+                        Address: {supplier.address}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                    <Button variant="outline" size="sm" className="h-8 text-sky-600" onClick={() => viewSupplierDetails(supplier)}>
+                      <Eye className="h-4 w-4 mr-1" /> View
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 text-indigo-600" onClick={() => openEditDialog(supplier)}>
+                      <Edit className="h-4 w-4 mr-1" /> Edit
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 text-rose-600" onClick={() => handleDelete(supplier._id)}>
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
           {totalPages > 1 && (
             <div className="py-4 border-t bg-background px-6">
               <Pagination

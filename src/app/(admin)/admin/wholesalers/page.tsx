@@ -11,7 +11,9 @@ import {
   Calendar,
   ShieldAlert,
   MoreVertical,
-  Edit
+  Edit,
+  Search,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { ImageUpload } from '@/components/ui/image-upload';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -31,8 +34,11 @@ interface Wholesaler {
   name: string;
   email: string;
   phone?: string;
+  image?: string;
   createdAt: string;
   totalDue?: number;
+  orderCount?: number;
+  totalOrderValue?: number;
 }
 
 export default function AdminWholesalersPage() {
@@ -45,6 +51,7 @@ export default function AdminWholesalersPage() {
   const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formPhone, setFormPhone] = useState('');
+  const [formImage, setFormImage] = useState('');
 
   // Edit Wholesaler Modal States
   const [showEditModal, setShowEditModal] = useState(false);
@@ -52,6 +59,13 @@ export default function AdminWholesalersPage() {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editImage, setEditImage] = useState('');
+
+  // Search & Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'due'>('all');
+  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
+  const [collectingId, setCollectingId] = useState<string | null>(null);
 
   const fetchData = async () => {
     // Defer execution to avoid calling setState synchronously within the useEffect hook
@@ -94,7 +108,8 @@ export default function AdminWholesalersPage() {
           name: formName,
           email: formEmail,
           password: formPassword,
-          phone: formPhone
+          phone: formPhone,
+          image: formImage
         })
       });
 
@@ -110,6 +125,7 @@ export default function AdminWholesalersPage() {
         setFormEmail('');
         setFormPassword('');
         setFormPhone('');
+        setFormImage('');
         fetchData();
       } else {
         const data = await response.json();
@@ -160,7 +176,8 @@ export default function AdminWholesalersPage() {
         body: JSON.stringify({
           name: editName,
           email: editEmail,
-          phone: editPhone
+          phone: editPhone,
+          image: editImage
         })
       });
 
@@ -173,6 +190,7 @@ export default function AdminWholesalersPage() {
         });
         setShowEditModal(false);
         setEditingWholesaler(null);
+        setEditImage('');
         fetchData();
       } else {
         const data = await response.json();
@@ -182,6 +200,81 @@ export default function AdminWholesalersPage() {
       toast.error('Something went wrong');
     }
   };
+
+  const handleCollectCash = async (wholesaler: Wholesaler) => {
+    if (collectingId) return;
+    const dueAmount = wholesaler.totalDue || 0;
+    const { value: amount } = await Swal.fire({
+      title: `Collect Cash from ${wholesaler.name}`,
+      text: `Total outstanding credit due: ৳${dueAmount.toLocaleString()}`,
+      input: 'number',
+      inputLabel: 'Amount Received (৳)',
+      inputValue: dueAmount,
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+          return 'Please enter a valid positive amount';
+        }
+      }
+    });
+
+    if (amount) {
+      setCollectingId(wholesaler._id);
+      try {
+        const res = await fetch(`/api/admin/wholesalers/${wholesaler._id}/collect-cash`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: Number(amount) })
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.message || 'Failed to apply payment');
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Collected!',
+          text: 'Cash received and applied to oldest invoices successfully.',
+          confirmButtonColor: '#eab308'
+        });
+        fetchData();
+      } catch (error: any) {
+        toast.error(error.message || 'Error collecting cash');
+      } finally {
+        setCollectingId(null);
+      }
+    }
+  };
+
+  const filteredWholesalers = wholesalers.filter((w) => {
+    // 1. Search filter
+    const matchesSearch = 
+      w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      w.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (w.phone && w.phone.includes(searchTerm));
+    
+    // 2. Status filter
+    let matchesStatus = true;
+    if (statusFilter === 'paid') {
+      matchesStatus = (w.totalDue || 0) === 0;
+    } else if (statusFilter === 'due') {
+      matchesStatus = (w.totalDue || 0) > 0;
+    }
+    
+    // 3. Date filter
+    let matchesDate = true;
+    if (dateFilter.from) {
+      matchesDate = matchesDate && new Date(w.createdAt) >= new Date(dateFilter.from + 'T00:00:00');
+    }
+    if (dateFilter.to) {
+      const toDate = new Date(dateFilter.to);
+      toDate.setHours(23, 59, 59, 999);
+      matchesDate = matchesDate && new Date(w.createdAt) <= toDate;
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
   return (
     <div className="space-y-6 p-6">
@@ -206,33 +299,84 @@ export default function AdminWholesalersPage() {
         </div>
       ) : (
         <Card className="border border-zinc-200">
-          <CardHeader className="bg-zinc-50/50 border-b border-zinc-200 p-5">
-            <CardTitle className="text-lg font-black text-zinc-900">Wholesalers List</CardTitle>
-            <CardDescription className="text-sm text-zinc-500">List of registered buyers authorized for wholesale pricing plans.</CardDescription>
-          </CardHeader>
+          <div className="p-5 border-b border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-50/50">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+              <Input
+                placeholder="Search name, phone or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 w-full bg-white border-zinc-200"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="flex gap-1.5">
+                {['all', 'paid', 'due'].map((filter) => (
+                  <Button
+                    key={filter}
+                    variant={statusFilter === filter ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter(filter as any)}
+                    className="capitalize font-bold h-9"
+                  >
+                    {filter}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-md border border-zinc-200 text-sm w-full sm:w-auto">
+                <Input
+                  type="date"
+                  className="h-7 w-32 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700"
+                  value={dateFilter.from}
+                  onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                />
+                <span className="text-zinc-400 text-xs">to</span>
+                <Input
+                  type="date"
+                  className="h-7 w-32 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700"
+                  value={dateFilter.to}
+                  onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
           <CardContent className="p-0">
-            {wholesalers.length === 0 ? (
+            {filteredWholesalers.length === 0 ? (
               <div className="text-center py-16 text-zinc-400">
                 <Users className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                <p className="font-medium">No wholesalers registered yet.</p>
+                <p className="font-medium">No wholesalers found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
+                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
                       <th className="p-4">Name</th>
                       <th className="p-4">Contact Information</th>
                       <th className="p-4">Joined Date</th>
+                      <th className="p-4">Order Info</th>
                       <th className="p-4">Total Due</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {wholesalers.map((w) => (
+                    {filteredWholesalers.map((w) => (
                       <tr key={w._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
                         <td className="p-4 font-bold text-zinc-900">
-                          {w.name}
+                          <div className="flex items-center gap-3">
+                            {w.image ? (
+                              <img 
+                                src={w.image} 
+                                alt={w.name} 
+                                className="h-9 w-9 rounded-full object-cover border border-zinc-200"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                {w.name ? w.name.charAt(0).toUpperCase() : 'W'}
+                              </div>
+                            )}
+                            <span>{w.name}</span>
+                          </div>
                         </td>
                         <td className="p-4 space-y-0.5">
                           <div className="flex items-center gap-1 text-zinc-600">
@@ -250,6 +394,14 @@ export default function AdminWholesalersPage() {
                           <div className="flex items-center gap-1 text-xs">
                             <Calendar className="h-3.5 w-3.5" />
                             <span>{new Date(w.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 space-y-0.5">
+                          <div className="font-bold text-zinc-800">
+                            ৳{Math.round(w.totalOrderValue || 0).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-zinc-500 font-medium">
+                            {w.orderCount || 0} {w.orderCount === 1 ? 'order' : 'orders'}
                           </div>
                         </td>
                         <td className="p-4">
@@ -271,15 +423,28 @@ export default function AdminWholesalersPage() {
                                   setEditName(w.name);
                                   setEditEmail(w.email);
                                   setEditPhone(w.phone || '');
+                                  setEditImage(w.image || '');
                                   setShowEditModal(true);
                                 }}
                                 className="flex items-center gap-2 cursor-pointer text-zinc-700 hover:bg-zinc-50 p-2 text-xs rounded transition-colors"
                               >
                                 <Edit className="h-3.5 w-3.5" /> Edit Profile
                               </DropdownMenuItem>
+                              {(w.totalDue || 0) > 0 && (
+                                <DropdownMenuItem 
+                                  disabled={collectingId !== null}
+                                  onClick={() => {
+                                    if (collectingId) return;
+                                    handleCollectCash(w);
+                                  }}
+                                  className={`flex items-center gap-2 cursor-pointer text-green-600 hover:bg-green-50 p-2 text-xs rounded transition-colors font-semibold border-t border-zinc-100/50 ${collectingId ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                  <CreditCard className="h-3.5 w-3.5" /> {collectingId === w._id ? 'Collecting...' : 'Collect Cash'}
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem 
                                 onClick={() => handleRevokeWholesaler(w._id, w.name)}
-                                className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 p-2 text-xs rounded transition-colors"
+                                className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 p-2 text-xs rounded transition-colors border-t border-zinc-100/50"
                               >
                                 <Trash2 className="h-3.5 w-3.5" /> Revoke Privilege
                               </DropdownMenuItem>
@@ -299,8 +464,8 @@ export default function AdminWholesalersPage() {
       {/* Add Wholesaler Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden animate-in fade-in duration-200">
-            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5">
+          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in duration-200">
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-black text-zinc-900">Register Wholesaler</CardTitle>
                 <button 
@@ -311,8 +476,14 @@ export default function AdminWholesalersPage() {
                 </button>
               </div>
             </CardHeader>
-            <form onSubmit={handleRegisterWholesaler}>
-              <CardContent className="p-5 space-y-4">
+            <form onSubmit={handleRegisterWholesaler} className="flex flex-col flex-1 overflow-hidden">
+              <CardContent className="p-5 space-y-4 overflow-y-auto flex-1">
+                <ImageUpload 
+                  aspect="circle" 
+                  value={formImage} 
+                  onUpload={setFormImage} 
+                  label="Profile Photo"
+                />
                 <div className="space-y-1.5">
                   <Label htmlFor="wName">Full Name</Label>
                   <Input 
@@ -355,7 +526,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
               </CardContent>
-              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
+              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
                 <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
                 <Button type="submit" className="bg-primary text-primary-foreground font-bold">Register Wholesaler</Button>
               </div>
@@ -366,8 +537,8 @@ export default function AdminWholesalersPage() {
       {/* Edit Wholesaler Modal */}
       {showEditModal && editingWholesaler && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden animate-in fade-in duration-200">
-            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5">
+          <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in duration-200">
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-black text-zinc-900">Edit Wholesaler Profile</CardTitle>
                 <button 
@@ -381,8 +552,14 @@ export default function AdminWholesalersPage() {
                 </button>
               </div>
             </CardHeader>
-            <form onSubmit={handleEditWholesaler}>
-              <CardContent className="p-5 space-y-4">
+            <form onSubmit={handleEditWholesaler} className="flex flex-col flex-1 overflow-hidden">
+              <CardContent className="p-5 space-y-4 overflow-y-auto flex-1">
+                <ImageUpload 
+                  aspect="circle" 
+                  value={editImage} 
+                  onUpload={setEditImage} 
+                  label="Profile Photo"
+                />
                 <div className="space-y-1.5">
                   <Label htmlFor="editWName">Full Name</Label>
                   <Input 
@@ -414,7 +591,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
               </CardContent>
-              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
+              <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
                 <Button type="button" variant="ghost" onClick={() => {
                   setShowEditModal(false);
                   setEditingWholesaler(null);

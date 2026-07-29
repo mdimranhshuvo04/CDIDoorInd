@@ -42,6 +42,12 @@ export async function GET(req: NextRequest) {
         employeeType: profile?.employeeType || 'monthly',
         baseSalary: profile?.baseSalary || 0,
         taskRate: profile?.taskRate || 0,
+        weekendDays: profile?.weekendDays || ['Friday'],
+        allowedAbsents: profile?.allowedAbsents ?? 1,
+        absentDeductionRate: profile?.absentDeductionRate || 0,
+        basicSalary: profile?.basicSalary || 0,
+        allowance: profile?.allowance || 0,
+        deduction: profile?.deduction || 0,
         appointmentLetter: profile?.appointmentLetter || '',
         joinedDate: profile?.joinedDate || user.createdAt
       };
@@ -64,7 +70,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, email, password, phone, image, employeeType, baseSalary, taskRate, appointmentLetter, joinedDate, userId } = body;
+    const { 
+      name, email, password, phone, image, employeeType, taskRate, appointmentLetter, joinedDate, userId,
+      weekendDays, allowedAbsents, absentDeductionRate, basicSalary, allowance, deduction
+    } = body;
 
     await connectToDatabase();
 
@@ -101,20 +110,38 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Calculate baseSalary based on structure if type is monthly
+    const isMonthly = (employeeType || 'monthly') === 'monthly';
+    const computedBaseSalary = isMonthly 
+      ? Math.max(0, Number(basicSalary || 0) + Number(allowance || 0) - Number(deduction || 0))
+      : 0;
+
     let profile = await EmployeeProfile.findOne({ user: user._id });
     if (!profile) {
       profile = await EmployeeProfile.create({
         user: user._id,
         employeeType: employeeType || 'monthly',
-        baseSalary: baseSalary ? Number(baseSalary) : 0,
+        baseSalary: computedBaseSalary,
         taskRate: taskRate ? Number(taskRate) : 0,
+        weekendDays: weekendDays || ['Friday'],
+        allowedAbsents: allowedAbsents !== undefined ? Number(allowedAbsents) : 1,
+        absentDeductionRate: absentDeductionRate ? Number(absentDeductionRate) : 0,
+        basicSalary: basicSalary ? Number(basicSalary) : 0,
+        allowance: allowance ? Number(allowance) : 0,
+        deduction: deduction ? Number(deduction) : 0,
         appointmentLetter: `/appointment-letter/${user._id}`,
         joinedDate: joinedDate ? new Date(joinedDate) : new Date()
       });
     } else {
       profile.employeeType = employeeType || 'monthly';
-      profile.baseSalary = baseSalary ? Number(baseSalary) : 0;
+      profile.baseSalary = computedBaseSalary;
       profile.taskRate = taskRate ? Number(taskRate) : 0;
+      profile.weekendDays = weekendDays || ['Friday'];
+      profile.allowedAbsents = allowedAbsents !== undefined ? Number(allowedAbsents) : 1;
+      profile.absentDeductionRate = absentDeductionRate ? Number(absentDeductionRate) : 0;
+      profile.basicSalary = basicSalary ? Number(basicSalary) : 0;
+      profile.allowance = allowance ? Number(allowance) : 0;
+      profile.deduction = deduction ? Number(deduction) : 0;
       if (appointmentLetter !== undefined) profile.appointmentLetter = appointmentLetter;
       if (joinedDate) profile.joinedDate = new Date(joinedDate);
       await profile.save();
@@ -131,6 +158,12 @@ export async function POST(req: NextRequest) {
         employeeType: profile.employeeType,
         baseSalary: profile.baseSalary,
         taskRate: profile.taskRate,
+        weekendDays: profile.weekendDays,
+        allowedAbsents: profile.allowedAbsents,
+        absentDeductionRate: profile.absentDeductionRate,
+        basicSalary: profile.basicSalary,
+        allowance: profile.allowance,
+        deduction: profile.deduction,
         appointmentLetter: profile.appointmentLetter,
         joinedDate: profile.joinedDate
       }

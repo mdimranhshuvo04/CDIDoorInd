@@ -259,17 +259,16 @@ export default function ShowroomDashboard() {
 
   const fmt = (n: number) => `৳${Math.round(n).toLocaleString('en-BD')}`;
   const stats = data?.stats;
-
   return (
-    <div className="flex-1 space-y-6 py-6 md:p-8">
+    <div className="flex-1 space-y-6 px-0 py-6 md:p-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2 md:px-0">
         <div>
           <div className="flex items-center gap-2">
             <Store className="h-5 w-5 text-primary" />
-            <h2 className="text-2xl font-bold tracking-tight">{data?.showroom?.name || 'My Showroom'}</h2>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight">{data?.showroom?.name || 'My Showroom'}</h2>
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-xs md:text-sm mt-1">
             স্বাগতম, {session?.user?.name}! এখানে আপনার শো-রুমের সামারি দেখুন।
           </p>
           {data?.showroom?.address && (
@@ -309,17 +308,17 @@ export default function ShowroomDashboard() {
       </div>
 
       {/* Unified Operational & Financial Cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-2 md:px-0">
         {/* Pending Orders Card */}
         <Link href="/showroom/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Pending Orders</CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Requires attention</p>
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Requires attention</p>
             </CardContent>
           </Card>
         </Link>
@@ -327,13 +326,13 @@ export default function ShowroomDashboard() {
         {/* Total Customers Card */}
         <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
           <Card className="bg-blue-500/5 border-blue-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Total Customers</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-700">{stats?.totalUsers || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Across all time</p>
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-blue-700">{stats?.totalUsers || 0}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Across all time</p>
             </CardContent>
           </Card>
         </div>
@@ -341,15 +340,14 @@ export default function ShowroomDashboard() {
         {/* Cash Balance */}
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-emerald-500/5 border-emerald-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cash Balance</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Cash Balance</CardTitle>
               <Wallet className="h-4 w-4 text-emerald-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-700">
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-emerald-700">
                 {fmt(stats?.cashBalance || 0)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Physical cash on hand</p>
             </CardContent>
           </Card>
         </Link>
@@ -357,15 +355,15 @@ export default function ShowroomDashboard() {
         {/* Bank Balance */}
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-indigo-500/5 border-indigo-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Bank Balance</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Bank Balance</CardTitle>
               <Landmark className="h-4 w-4 text-indigo-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-indigo-700">
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-indigo-700">
                 {fmt(stats?.bankBalance || 0)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Liquid bank accounts</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Liquid bank accounts</p>
             </CardContent>
           </Card>
         </Link>
@@ -373,15 +371,15 @@ export default function ShowroomDashboard() {
         {/* Account Receivable */}
         <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
           <Card className="bg-blue-500/5 border-blue-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Accounts Receivable</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Accounts Receivable</CardTitle>
               <ArrowUpRight className="h-4 w-4 text-blue-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-700">
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-blue-700">
                 {fmt(stats?.accountReceivable || 0)}
               </div>
-              <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-rose-600">
+              <div className="flex items-center gap-1 mt-1 text-[10px] md:text-xs font-semibold text-rose-600">
                 <span>Matured: {fmt(stats?.maturedReceivable || 0)}</span>
               </div>
             </CardContent>
@@ -391,15 +389,15 @@ export default function ShowroomDashboard() {
         {/* Supplier Account Payable */}
         <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
           <Card className="bg-amber-500/5 border-amber-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Accounts Payable</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Accounts Payable</CardTitle>
               <ArrowDownLeft className="h-4 w-4 text-amber-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-amber-700">
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-amber-700">
                 N/A
               </div>
-              <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-600">
+              <div className="flex items-center gap-1 mt-1 text-[10px] md:text-xs font-semibold text-red-600">
                 <span>Matured: N/A</span>
               </div>
             </CardContent>
@@ -414,18 +412,18 @@ export default function ShowroomDashboard() {
             <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
               <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
             </div>
-            <div className="flex overflow-x-auto border-t sm:border-t-0 no-scrollbar">
+            <div className="flex w-full border-t sm:border-t-0">
               {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
                 <button
                   key={key}
                   data-active={activeChart === key}
-                  className="flex flex-1 min-w-[100px] sm:min-w-[120px] flex-col justify-center gap-1 border-r last:border-r-0 px-4 py-3 md:px-8 md:py-6 text-left data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0"
+                  className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0 transition-colors"
                   onClick={() => setActiveChart(key as any)}
                 >
-                  <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                  <span className="text-[9px] sm:text-xs text-muted-foreground whitespace-nowrap">
                     {chartConfig[key].label}
                   </span>
-                  <span className="text-base md:text-2xl leading-none font-bold">
+                  <span className="text-xs sm:text-base md:text-2xl leading-none font-bold">
                     {key === 'orders' ? total[key].toLocaleString() : `৳${total[key].toLocaleString()}`}
                   </span>
                 </button>

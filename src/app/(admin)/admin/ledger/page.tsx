@@ -374,30 +374,52 @@ function AccountsLedgerContent() {
         </Button>
       </div>
 
-      {/* Account Balance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {accounts.map((acc) => {
-          const isCash = acc.code === 'CASH';
-          const isBank = acc.code === 'BANK';
+      {/* Account Balance Card (TallyPay Inspired) */}
+      <Card className="relative overflow-hidden rounded-2xl border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm p-0 md:p-6">
+        {/* 4 Cards in 1 Row */}
+        <div className="grid grid-cols-4 gap-2 md:gap-6">
+          {accounts.map((acc) => {
+            const isCash = acc.code === 'CASH';
+            const isBank = acc.code === 'BANK';
+            const isAR = acc.code === 'AR';
+            const isAP = acc.code === 'AP';
 
-          return (
-            <Card key={acc._id} className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            let iconBg = "bg-rose-50 dark:bg-rose-950/30 text-rose-500";
+            let IconComponent = DollarSign;
+            if (isCash) {
+              iconBg = "bg-amber-50 dark:bg-amber-950/30 text-amber-500";
+              IconComponent = Wallet;
+            } else if (isBank) {
+              iconBg = "bg-blue-50 dark:bg-blue-950/30 text-blue-500";
+              IconComponent = Landmark;
+            } else if (isAR) {
+              iconBg = "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500";
+              IconComponent = ArrowDownCircle;
+            } else if (isAP) {
+              iconBg = "bg-purple-50 dark:bg-purple-950/30 text-purple-500";
+              IconComponent = ArrowUpCircle;
+            }
+
+            return (
+              <div key={acc._id} className="flex flex-col items-center text-center p-1 md:p-2 rounded-xl hover:bg-muted/50 transition-colors group relative">
+                {/* Icon Wrapper */}
+                <div className={`flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full ${iconBg} mb-2`}>
+                  <IconComponent className="h-5 w-5 md:h-6 md:w-6" />
+                </div>
+                
+                {/* Account Name */}
+                <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
                   {acc.name}
-                </CardTitle>
-                {isCash ? (
-                  <Wallet className="h-5 w-5 text-primary" />
-                ) : isBank ? (
-                  <Landmark className="h-5 w-5 text-primary" />
-                ) : (
-                  <DollarSign className="h-5 w-5 text-primary" />
-                )}
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-3xl font-bold tracking-tight">৳{Math.round(acc.currentBalance)}</div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-2">
-                  <span>Opening: ৳{Math.round(acc.openingBalance || 0)}</span>
+                </span>
+
+                {/* Account Balance */}
+                <span className="text-xs md:text-lg font-bold text-foreground mt-0.5">
+                  ৳{Math.round(acc.currentBalance)}
+                </span>
+
+                {/* Opening Balance & Edit Button */}
+                <div className="mt-1 flex flex-col items-center gap-0.5 text-[8px] md:text-[10px] text-muted-foreground">
+                  <span className="truncate max-w-full">Op: ৳{Math.round(acc.openingBalance || 0)}</span>
                   <Button
                     variant="ghost"
                     size="xs"
@@ -405,20 +427,20 @@ function AccountsLedgerContent() {
                       setEditingAccount(acc);
                       setNewOpeningBalance(acc.openingBalance || 0);
                     }}
-                    className="h-6 px-2 hover:bg-muted"
+                    className="h-4 px-1 text-[8px] md:text-[10px] hover:bg-muted text-primary mt-0.5"
                   >
-                    <Edit2 className="h-3 w-3 mr-1" /> Edit
+                    <Edit2 className="h-2 w-2 mr-0.5" /> Edit
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
       {/* Transactions Journal */}
-      <Card>
-        <CardHeader>
+      <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
+        <CardHeader className="px-0 md:px-6 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Transaction Journal</CardTitle>
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -462,7 +484,7 @@ function AccountsLedgerContent() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 md:px-6">
           {loading ? (
             <div className="flex h-32 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -473,76 +495,138 @@ function AccountsLedgerContent() {
               <p>No journal entries found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Account</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount (৳)</TableHead>
-                    <TableHead className="text-right">Running Balance (৳)</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedTransactions.map((tx) => (
-                    <TableRow key={tx._id}>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(tx.date), 'dd MMM yyyy')}
-                      </TableCell>
-                      <TableCell className="font-medium">{tx.account?.name}</TableCell>
-                      <TableCell>
-                        <div className="space-y-0.5">
-                          <p>{tx.description}</p>
-                          {tx.reference && (
-                            <span className="text-xs text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
-                              Ref: {tx.reference}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={tx.type === 'debit' ? 'default' : 'outline'}
-                          className={tx.type === 'debit' ? 'bg-primary/20 text-primary hover:bg-primary/20 border-transparent' : ''}
-                        >
-                          {tx.type === 'debit' ? 'Debit (+)' : 'Credit (-)'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">৳{Math.round(tx.amount)}</TableCell>
-                      <TableCell className="text-right font-semibold">৳{Math.round(tx.balanceAfter)}</TableCell>
-                      <TableCell className="text-right">
-                        {tx.reference && ['manual-deposit', 'manual-withdrawal', 'manual-transfer'].includes(tx.reference) ? (
-                          <div className="flex items-center justify-end gap-1.5">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditClick(tx)}>
-                                  <Edit2 className="mr-2 h-4 w-4 text-indigo-600" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => handleDeleteTx(tx._id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
+            <div>
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Account</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Amount (৳)</TableHead>
+                      <TableHead className="text-right">Running Balance (৳)</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedTransactions.map((tx) => (
+                      <TableRow key={tx._id}>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(tx.date), 'dd MMM yyyy')}
+                        </TableCell>
+                        <TableCell className="font-medium">{tx.account?.name}</TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
+                            <p>{tx.description}</p>
+                            {tx.reference && (
+                              <span className="text-xs text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
+                                Ref: {tx.reference}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={tx.type === 'debit' ? 'default' : 'outline'}
+                            className={tx.type === 'debit' ? 'bg-primary/20 text-primary hover:bg-primary/20 border-transparent' : ''}
+                          >
+                            {tx.type === 'debit' ? 'Debit (+)' : 'Credit (-)'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">৳{Math.round(tx.amount)}</TableCell>
+                        <TableCell className="text-right font-semibold">৳{Math.round(tx.balanceAfter)}</TableCell>
+                        <TableCell className="text-right">
+                          {tx.reference && ['manual-deposit', 'manual-withdrawal', 'manual-transfer'].includes(tx.reference) ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleEditClick(tx)}>
+                                    <Edit2 className="mr-2 h-4 w-4 text-indigo-600" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => handleDeleteTx(tx._id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="block md:hidden divide-y divide-border">
+                {paginatedTransactions.map((tx) => {
+                  const isDebit = tx.type === 'debit';
+                  return (
+                    <div key={tx._id} className="py-3 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground font-semibold">
+                          {format(new Date(tx.date), 'dd MMM yyyy')}
+                        </span>
+                        <Badge
+                          variant={isDebit ? 'default' : 'outline'}
+                          className={isDebit ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-transparent font-extrabold text-[10px] px-2 py-0.5' : 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/10 border-transparent font-extrabold text-[10px] px-2 py-0.5'}
+                        >
+                          {isDebit ? 'Received (+)' : 'Spent (-)'}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          <p className="font-bold text-sm leading-snug">{tx.description}</p>
+                          <div className="flex flex-wrap gap-1.5 items-center pt-0.5">
+                            <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-semibold text-muted-foreground">
+                              {tx.account?.name}
+                            </span>
+                            {tx.reference && (
+                              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-semibold text-muted-foreground uppercase">
+                                Ref: {tx.reference}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p className={`font-extrabold text-sm ${isDebit ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {isDebit ? '+' : '-'}৳{Math.round(tx.amount)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-medium pt-0.5">
+                            Balance: ৳{Math.round(tx.balanceAfter)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Manual entries quick actions menu on mobile */}
+                      {tx.reference && ['manual-deposit', 'manual-withdrawal', 'manual-transfer'].includes(tx.reference) && (
+                        <div className="flex justify-end gap-2 pt-2 mt-1">
+                          <Button variant="outline" size="xs" onClick={() => handleEditClick(tx)} className="h-7 px-2.5 text-[10px] font-bold text-indigo-600">
+                            <Edit2 className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button variant="outline" size="xs" onClick={() => handleDeleteTx(tx._id)} className="h-7 px-2.5 text-[10px] font-bold text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-3 w-3 mr-1" /> Delete
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
           {totalPages > 1 && (

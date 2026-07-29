@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Truck, CreditCard, Globe, X, BarChart3, Settings2 } from 'lucide-react';
+import { Loader2, Truck, CreditCard, Globe, X, BarChart3, Settings2, Landmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import {
@@ -62,6 +62,13 @@ const marketingSettingsSchema = z.object({
     }).nullable().optional(),
     banglaQr: z.object({
       qrCode: z.string().nullish().transform(val => val ?? ''),
+      active: z.boolean().default(false),
+    }).nullable().optional(),
+    bank: z.object({
+      bankName: z.string().default(''),
+      accountNumber: z.string().default(''),
+      routingNumber: z.string().default(''),
+      branchName: z.string().default(''),
       active: z.boolean().default(false),
     }).nullable().optional(),
     instructions: z.string().nullish().transform(val => val ?? ''),
@@ -121,6 +128,7 @@ export default function MarketingSettingsPage() {
         nagad: { number: '', qrCode: '', active: false },
         rocket: { number: '', qrCode: '', active: false },
         banglaQr: { qrCode: '', active: false },
+        bank: { bankName: '', accountNumber: '', routingNumber: '', branchName: '', active: false },
         instructions: '',
       },
       courierConfig: {
@@ -186,6 +194,13 @@ export default function MarketingSettingsPage() {
                   banglaQr: {
                     qrCode: result.data.manualPaymentConfig?.banglaQr?.qrCode || '',
                     active: result.data.manualPaymentConfig?.banglaQr?.active ?? false,
+                  },
+                  bank: {
+                    bankName: result.data.manualPaymentConfig?.bank?.bankName || '',
+                    accountNumber: result.data.manualPaymentConfig?.bank?.accountNumber || '',
+                    routingNumber: result.data.manualPaymentConfig?.bank?.routingNumber || '',
+                    branchName: result.data.manualPaymentConfig?.bank?.branchName || '',
+                    active: result.data.manualPaymentConfig?.bank?.active ?? false,
                   },
                   instructions: result.data.manualPaymentConfig?.instructions || '',
                 },
@@ -484,6 +499,113 @@ export default function MarketingSettingsPage() {
                         />
                       </div>
                     ))}
+                  </div>
+
+                  {/* Bank Transfer Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8 mt-8">
+                    <div className="md:col-span-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Landmark className="h-5 w-5 text-primary" />
+                        <div>
+                          <h4 className="font-bold text-sm text-foreground">Bank Transfer Details</h4>
+                          <p className="text-xs text-muted-foreground">Receive payments directly to your business bank account</p>
+                        </div>
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="manualPaymentConfig.bank.active"
+                        render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value ?? false}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                                className="h-5 w-5 rounded-md border-primary text-primary focus:ring-primary"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="manualPaymentConfig.bank.bankName"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-xs font-semibold text-gray-700">Bank Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Islami Bank Bangladesh PLC" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="manualPaymentConfig.bank.accountNumber"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-xs font-semibold text-gray-700">Account Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. 20501234567890123" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="manualPaymentConfig.bank.routingNumber"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-xs font-semibold text-gray-700">Routing Number (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. 125271429" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="manualPaymentConfig.bank.branchName"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-xs font-semibold text-gray-700">Branch Name (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Motijheel Branch" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Payment Instructions */}
+                  <div className="border-t pt-8 mt-8 space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="manualPaymentConfig.instructions"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="font-bold text-sm">Payment Instructions</FormLabel>
+                          <FormControl>
+                            <textarea
+                              {...field}
+                              rows={4}
+                              placeholder="Describe here instructions on how to pay..."
+                              className="w-full rounded-lg border p-3 text-xs bg-transparent border-input"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                 </CardContent>

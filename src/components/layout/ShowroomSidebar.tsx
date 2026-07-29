@@ -45,6 +45,7 @@ const navItems = [
     items: [
       { title: "Orders", url: "/showroom/orders" },
       { title: "Sales Entry", url: "/showroom/sales" },
+      { title: "Client Bills", url: "/showroom/bills" },
     ],
   },
   {

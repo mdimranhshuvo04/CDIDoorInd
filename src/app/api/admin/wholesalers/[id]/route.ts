@@ -49,7 +49,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, email, phone } = body;
+    const { name, email, phone, image } = body;
 
     await connectToDatabase();
 
@@ -68,6 +68,7 @@ export async function PATCH(
       user.email = email;
     }
     if (phone !== undefined) user.phone = phone;
+    if (image !== undefined) user.image = image;
     await user.save();
 
     return NextResponse.json({
@@ -77,6 +78,7 @@ export async function PATCH(
         name: user.name,
         email: user.email,
         phone: user.phone,
+        image: user.image,
         role: user.role,
         createdAt: user.createdAt
       }

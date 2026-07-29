@@ -19,7 +19,8 @@ import {
   Settings2,
   Code,
   X,
-  Database
+  Database,
+  Landmark
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -670,6 +671,118 @@ export default function SuperConfigPage() {
                   </div>
                 </div>
               </div>
+              {/* Bank Transfer Section */}
+              <div className="p-6 rounded-3xl border bg-muted/5 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                      <Landmark className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg">Bank Transfer Details</h4>
+                      <p className="text-xs text-muted-foreground">Receive payments directly to your business bank account</p>
+                    </div>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settings?.manualPaymentConfig?.bank?.active ?? false}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      manualPaymentConfig: {
+                        ...(settings?.manualPaymentConfig || {}),
+                        bank: {
+                          ...(settings?.manualPaymentConfig?.bank || {}),
+                          active: e.target.checked
+                        }
+                      }
+                    })}
+                    className="h-5 w-5 rounded-md border-primary text-primary focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-gray-700">Bank Name</Label>
+                    <input 
+                      type="text"
+                      value={settings?.manualPaymentConfig?.bank?.bankName || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        manualPaymentConfig: {
+                          ...(settings?.manualPaymentConfig || {}),
+                          bank: {
+                            ...(settings?.manualPaymentConfig?.bank || {}),
+                            bankName: e.target.value
+                          }
+                        }
+                      })}
+                      placeholder="e.g. Islami Bank Bangladesh PLC"
+                      className="w-full h-10 rounded-lg border px-3 text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-gray-700">Account Number</Label>
+                    <input 
+                      type="text"
+                      value={settings?.manualPaymentConfig?.bank?.accountNumber || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        manualPaymentConfig: {
+                          ...(settings?.manualPaymentConfig || {}),
+                          bank: {
+                            ...(settings?.manualPaymentConfig?.bank || {}),
+                            accountNumber: e.target.value
+                          }
+                        }
+                      })}
+                      placeholder="e.g. 20501234567890123"
+                      className="w-full h-10 rounded-lg border px-3 text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-gray-700">Routing Number (Optional)</Label>
+                    <input 
+                      type="text"
+                      value={settings?.manualPaymentConfig?.bank?.routingNumber || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        manualPaymentConfig: {
+                          ...(settings?.manualPaymentConfig || {}),
+                          bank: {
+                            ...(settings?.manualPaymentConfig?.bank || {}),
+                            routingNumber: e.target.value
+                          }
+                        }
+                      })}
+                      placeholder="e.g. 125271429"
+                      className="w-full h-10 rounded-lg border px-3 text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-gray-700">Branch Name (Optional)</Label>
+                    <input 
+                      type="text"
+                      value={settings?.manualPaymentConfig?.bank?.branchName || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        manualPaymentConfig: {
+                          ...(settings?.manualPaymentConfig || {}),
+                          bank: {
+                            ...(settings?.manualPaymentConfig?.bank || {}),
+                            branchName: e.target.value
+                          }
+                        }
+                      })}
+                      placeholder="e.g. Motijheel Branch"
+                      className="w-full h-10 rounded-lg border px-3 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label className="font-bold">Payment Instructions</Label>
                 <textarea 

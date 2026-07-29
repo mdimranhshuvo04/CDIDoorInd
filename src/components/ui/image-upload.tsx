@@ -4,7 +4,7 @@ import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, User } from 'lucide-react';
 import { uploadToImgBB } from '@/lib/upload';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ interface ImageUploadProps {
   className?: string;
   iconClassName?: string;
   compact?: boolean;
-  aspect?: "square" | "video" | "banner";
+  aspect?: "square" | "video" | "banner" | "circle";
 }
 
 export function ImageUpload({ onUpload, value, label, className, iconClassName, compact, aspect = "banner" }: ImageUploadProps) {
@@ -64,6 +64,73 @@ export function ImageUpload({ onUpload, value, label, className, iconClassName, 
     e.stopPropagation();
     onUpload('');
   };
+
+  if (aspect === "circle") {
+    return (
+      <div className={cn("flex flex-col items-center justify-center space-y-2", className)}>
+        <div className="relative group w-32 h-32">
+          <Label
+            htmlFor={generatedId}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleFileChange}
+            className={cn(
+              "relative flex flex-col items-center justify-center w-full h-full rounded-full border-2 border-dashed transition-all duration-300 overflow-hidden bg-emerald-50/10 hover:bg-emerald-50/20 cursor-pointer",
+              isDragging 
+                ? "border-primary bg-primary/5 scale-[0.99]" 
+                : "border-primary/40 hover:border-primary hover:shadow-xl hover:shadow-primary/5",
+              loading && "opacity-70 cursor-not-allowed"
+            )}
+          >
+            {loading ? (
+              <div className="flex flex-col items-center gap-1">
+                <Loader2 className="animate-spin text-primary h-8 w-8" />
+                <span className="text-[10px] font-bold text-primary animate-pulse uppercase tracking-tighter">Uploading...</span>
+              </div>
+            ) : value ? (
+              <div className="relative w-full h-full">
+                <Image src={value} alt="Preview" fill unoptimized className="h-full w-full object-cover rounded-full" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full backdrop-blur-[2px]">
+                  <span className="text-white text-[10px] font-bold uppercase tracking-wider">Replace</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center gap-1">
+                <div className={cn("rounded-full bg-emerald-50 p-1 text-primary", iconClassName)}>
+                  <User className="h-8 w-8 text-primary" />
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Upload</span>
+              </div>
+            )}
+            
+            <Input
+              id={generatedId}
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={loading}
+              accept="image/*"
+            />
+          </Label>
+          
+          {value && !loading && (
+            <button
+              type="button"
+              className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-md flex items-center justify-center border border-white z-10"
+              onClick={removeImage}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        {label && (
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">
+            {label}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={cn("w-full", !compact && "space-y-3")}>

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { ImageUpload } from '@/components/ui/image-upload';
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ export default function ShowroomManagersPage() {
   const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formPhone, setFormPhone] = useState('');
+  const [formImage, setFormImage] = useState('');
 
   const fetchManagers = async () => {
     setLoading(true);
@@ -75,6 +77,7 @@ export default function ShowroomManagersPage() {
           body: JSON.stringify({
             name: formName,
             phone: formPhone,
+            image: formImage,
           })
         });
 
@@ -108,6 +111,7 @@ export default function ShowroomManagersPage() {
             email: formEmail,
             password: formPassword,
             phone: formPhone,
+            image: formImage,
           })
         });
 
@@ -136,6 +140,7 @@ export default function ShowroomManagersPage() {
     setFormName(manager.name);
     setFormEmail(manager.email);
     setFormPhone(manager.phone || '');
+    setFormImage(manager.image || '');
     setShowAddModal(true);
   };
 
@@ -179,6 +184,7 @@ export default function ShowroomManagersPage() {
     setFormEmail('');
     setFormPassword('');
     setFormPhone('');
+    setFormImage('');
     setEditingManager(null);
   };
 
@@ -230,9 +236,17 @@ export default function ShowroomManagersPage() {
                     <TableRow key={manager._id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                            {manager.name ? manager.name.charAt(0).toUpperCase() : 'M'}
-                          </div>
+                          {manager.image ? (
+                            <img 
+                              src={manager.image} 
+                              alt={manager.name} 
+                              className="h-9 w-9 rounded-full object-cover border border-muted"
+                            />
+                          ) : (
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                              {manager.name ? manager.name.charAt(0).toUpperCase() : 'M'}
+                            </div>
+                          )}
                           <div>
                             <div className="font-bold text-foreground">{manager.name}</div>
                             <div className="text-xs text-muted-foreground">Showroom Manager</div>
@@ -285,8 +299,8 @@ export default function ShowroomManagersPage() {
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <Card className="w-full max-w-md shadow-2xl border-muted">
-            <CardHeader className="pb-4 border-b">
+          <Card className="w-full max-w-md shadow-2xl border-muted max-h-[90vh] flex flex-col">
+            <CardHeader className="pb-4 border-b shrink-0">
               <CardTitle className="text-xl font-bold">
                 {editingManager ? 'Edit Manager Details' : 'Add Showroom Manager'}
               </CardTitle>
@@ -294,8 +308,15 @@ export default function ShowroomManagersPage() {
                 {editingManager ? 'Update the details for this manager.' : 'Fill in the details to register a new manager.'}
               </CardDescription>
             </CardHeader>
-            <form onSubmit={handleAddOrUpdateManager}>
-              <CardContent className="pt-6 space-y-4">
+            <form onSubmit={handleAddOrUpdateManager} className="flex flex-col flex-1 overflow-hidden">
+              <CardContent className="pt-6 space-y-4 overflow-y-auto flex-1">
+                <ImageUpload 
+                  aspect="circle" 
+                  value={formImage} 
+                  onUpload={setFormImage} 
+                  label="Profile Photo"
+                />
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input 
@@ -344,7 +365,7 @@ export default function ShowroomManagersPage() {
                   />
                 </div>
               </CardContent>
-              <div className="flex justify-end gap-3 p-6 border-t bg-muted/10">
+              <div className="flex justify-end gap-3 p-6 border-t bg-muted/10 shrink-0">
                 <Button 
                   type="button" 
                   variant="outline" 

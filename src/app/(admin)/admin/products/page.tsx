@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash, Loader2, Search, DatabaseZap, Download } from 'lucide-react';
+import { Plus, Edit, Trash, Loader2, Search, DatabaseZap, Download, MoreHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { Pagination } from '@/components/ui/pagination';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface AdminProduct {
   _id: string;
@@ -285,11 +291,11 @@ function ProductsContent() {
   };
 
   return (
-    <div className="flex flex-col gap-4 pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={exportToCSV} disabled={exportLoading}>
+    <div className="flex flex-col gap-4 px-0 py-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between gap-4 px-2 md:px-0">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" onClick={exportToCSV} disabled={exportLoading} className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
             {exportLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -298,34 +304,35 @@ function ProductsContent() {
             {selectedIds.length > 0 ? `Export (${selectedIds.length})` : 'Export All'}
           </Button>
           <Link href="/admin/products/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Product
+            <Button className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Add Product</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-2 md:px-0">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search products..."
-            className="pl-8"
+            className="pl-8 h-9 text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="rounded-md border bg-background overflow-hidden relative">
+      <div className="rounded-md border-none md:border bg-transparent md:bg-background overflow-hidden relative">
         {selectedIds.length > 0 && (
           <div className="sticky top-0 z-20 w-full bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between animate-in slide-in-from-top duration-200">
-            <div className="flex items-center gap-4 text-sm font-medium">
-              <span>{selectedIds.length} products selected</span>
+            <div className="flex items-center gap-4 text-xs md:text-sm font-medium">
+              <span>{selectedIds.length} selected</span>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-primary-foreground hover:bg-white/10"
+                className="text-primary-foreground hover:bg-white/10 text-xs h-7 px-2"
                 onClick={() => setSelectedIds([])}
               >
                 Deselect All
@@ -335,7 +342,7 @@ function ProductsContent() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white text-primary hover:bg-white/90"
+                className="bg-white text-primary hover:bg-white/90 text-xs h-7 px-2"
                 onClick={exportToCSV}
                 disabled={exportLoading}
               >
@@ -350,127 +357,223 @@ function ProductsContent() {
           </div>
         )}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p._id))}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead className="w-[80px]">Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Sales</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+        {/* Desktop View */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
-                </TableCell>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p._id))}
+                    onCheckedChange={toggleSelectAll}
+                    className="border-muted-foreground/50"
+                  />
+                </TableHead>
+                <TableHead className="w-[80px]">Image</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Sales</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : filteredProducts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} className="h-24 text-center">
-                  No products found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredProducts.map((product) => (
-                <TableRow key={product._id} className={selectedIds.includes(product._id) ? "bg-muted/50" : ""}>
-                  <TableCell>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="h-24 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="h-24 text-center">
+                    No products found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredProducts.map((product) => (
+                  <TableRow key={product._id} className={selectedIds.includes(product._id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(product._id)}
+                        onCheckedChange={() => toggleSelect(product._id)}
+                        className="border-muted-foreground/50"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-12 w-12 overflow-hidden rounded-md border bg-muted">
+                        {product.images && product.images.length > 0 ? (
+                          <Image 
+                            src={product.images[0]} 
+                            alt={product.name} 
+                            width={48}
+                            height={48}
+                            className="h-full w-full object-cover" 
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Plus className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium max-w-[250px] truncate">
+                      <Link 
+                        href={`/product/${product.slug}`} 
+                        target="_blank"
+                        className="hover:text-primary transition-colors hover:underline decoration-primary/30 underline-offset-4"
+                      >
+                        {product.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className={product.salePrice ? 'text-xs line-through text-muted-foreground' : ''}>
+                          ৳{product.price ? Math.round(product.price) : '0'}
+                        </span>
+                        {product.salePrice && (
+                          <span className="font-semibold text-primary">
+                            ৳{Math.round(product.salePrice)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={(product.stock ?? 0) <= 5 ? 'text-destructive font-semibold' : ''}>
+                        {product.stock ?? 0}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium text-muted-foreground">{product.views ?? 0}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-bold text-primary">{product.totalSales ?? 0}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.isPublished ? 'default' : 'secondary'}>
+                        {product.isPublished ? 'Published' : 'Draft'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => router.push(`/admin/products/${product._id}/edit`)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive" 
+                          onClick={() => handleDelete(product._id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y divide-border px-2">
+          {loading ? (
+            <div className="py-12 text-center">
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground text-sm">
+              No products found.
+            </div>
+          ) : (
+            filteredProducts.map((product) => {
+              const primaryImage = product.images?.[0];
+              return (
+                <div key={product._id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Checkbox
                       checked={selectedIds.includes(product._id)}
                       onCheckedChange={() => toggleSelect(product._id)}
+                      className="h-4 w-4 shrink-0 border-muted-foreground/50"
                     />
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-12 w-12 overflow-hidden rounded-md border bg-muted">
-                      {product.images && product.images.length > 0 ? (
-                        <Image 
-                          src={product.images[0]} 
+                    {/* Image */}
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md border bg-muted">
+                      {primaryImage ? (
+                        <img 
+                          src={primaryImage} 
                           alt={product.name} 
-                          width={48}
-                          height={48}
                           className="h-full w-full object-cover" 
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
-                          <Plus className="h-4 w-4 text-muted-foreground" />
+                          <Plus className="h-3 w-3 text-muted-foreground" />
                         </div>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className="font-medium max-w-[250px] truncate">
-                    <Link 
-                      href={`/product/${product.slug}`} 
-                      target="_blank"
-                      className="hover:text-primary transition-colors hover:underline decoration-primary/30 underline-offset-4"
-                    >
-                      {product.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{product.sku}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className={product.salePrice ? 'text-xs line-through text-muted-foreground' : ''}>
-                        ৳{product.price ? Math.round(product.price) : '0'}
-                      </span>
-                      {product.salePrice && (
-                        <span className="font-semibold text-primary">
-                          ৳{Math.round(product.salePrice)}
+                    {/* Title & Info */}
+                    <div className="min-w-0 space-y-0.5">
+                      <Link 
+                        href={`/product/${product.slug}`} 
+                        target="_blank"
+                        className="font-bold text-xs text-foreground truncate hover:text-primary transition-colors block max-w-[180px]"
+                      >
+                        {product.name}
+                      </Link>
+                      <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
+                        <span>SKU: {product.sku || 'N/A'}</span>
+                        <span>•</span>
+                        <span className={(product.stock ?? 0) <= 5 ? 'text-destructive font-semibold' : ''}>
+                          Stock: {product.stock ?? 0}
                         </span>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-1.5 pt-0.5">
+                        <span className="text-[10px] font-bold text-primary">
+                          ৳{Math.round(product.salePrice || product.price || 0)}
+                        </span>
+                        {product.salePrice && (
+                          <span className="text-[8px] line-through text-muted-foreground">
+                            ৳{Math.round(product.price)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={(product.stock ?? 0) <= 5 ? 'text-destructive font-semibold' : ''}>
-                      {product.stock ?? 0}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-muted-foreground">{product.views ?? 0}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-bold text-primary">{product.totalSales ?? 0}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={product.isPublished ? 'default' : 'secondary'}>
-                      {product.isPublished ? 'Published' : 'Draft'}
+                  </div>
+
+                  {/* Right side Status & Actions Dropdown */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Badge variant={product.isPublished ? 'default' : 'secondary'} className="text-[8px] px-1 py-0 font-bold tracking-tighter scale-90">
+                      {product.isPublished ? 'Live' : 'Draft'}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => router.push(`/admin/products/${product._id}/edit`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive" 
-                        onClick={() => handleDelete(product._id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => router.push(`/admin/products/${product._id}/edit`)}>
+                          <Edit className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(product._id)}>
+                          <Trash className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
       
       {!loading && pagination.totalPages > 1 && (

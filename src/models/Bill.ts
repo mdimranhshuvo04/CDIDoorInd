@@ -10,6 +10,7 @@ export interface IBill extends Document {
   clientName: string;
   clientPhone: string;
   clientAddress: string;
+  clientEmail?: string;
   invoiceNo: string;
   date: Date;
   items: IBillItem[];
@@ -28,6 +29,8 @@ export interface IBill extends Document {
   expectedReceivableDate?: Date;
   documentType?: 'offer' | 'chalan' | 'bill';
   convertedFrom?: mongoose.Types.ObjectId | string;
+  showroom?: mongoose.Types.ObjectId;
+  transactionId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,8 +40,10 @@ const BillSchema: Schema<IBill> = new Schema(
     clientName: { type: String, required: true },
     clientPhone: { type: String, required: true },
     clientAddress: { type: String, required: true },
+    clientEmail: { type: String },
     invoiceNo: { type: String, required: true, unique: true },
     date: { type: Date, default: Date.now },
+    transactionId: { type: String },
     items: [
       {
         name: { type: String, required: true },
@@ -61,6 +66,7 @@ const BillSchema: Schema<IBill> = new Schema(
     expectedReceivableDate: { type: Date },
     documentType: { type: String, enum: ['offer', 'chalan', 'bill'], default: 'bill' },
     convertedFrom: { type: Schema.Types.ObjectId, ref: 'Bill' },
+    showroom: { type: Schema.Types.ObjectId, ref: 'Showroom' },
   },
   { timestamps: true }
 );

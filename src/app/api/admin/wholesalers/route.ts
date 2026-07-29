@@ -19,19 +19,26 @@ export async function GET(req: NextRequest) {
     // Find all users with role 'wholesaler'
     const wholesalersList = await User.find({ role: 'wholesaler' }).select('-password').sort({ createdAt: -1 }).lean() as any[];
 
-    // Calculate total credit due for each wholesaler
+    // Calculate order metrics and total credit due for each wholesaler
     const wholesalers = await Promise.all(
       wholesalersList.map(async (w) => {
-        const creditOrders = await Order.find({
+        const allOrders = await Order.find({
           user: w._id,
-          paymentMethod: 'Credit',
-          paymentStatus: { $ne: 'Paid' },
           deletedAt: null
-        }).select('totalAmount');
-        const totalDue = creditOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+        }).select('totalAmount paymentMethod paymentStatus paidAmount');
+
+        const orderCount = allOrders.length;
+        const totalOrderValue = allOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+
+        const totalDue = allOrders
+          .filter((o: any) => o.paymentMethod === 'Credit' && o.paymentStatus !== 'Paid')
+          .reduce((sum: number, o: any) => sum + ((o.totalAmount || 0) - (o.paidAmount || 0)), 0);
+
         return {
           ...w,
-          totalDue
+          totalDue,
+          orderCount,
+          totalOrderValue
         };
       })
     );
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, email, password, phone } = body;
+    const { name, email, password, phone, image } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
       user.role = 'wholesaler';
       if (name) user.name = name;
       if (phone) user.phone = phone;
+      if (image) user.image = image;
       await user.save();
     } else {
       user = await User.create({
@@ -81,6 +89,7 @@ export async function POST(req: NextRequest) {
         email,
         password,
         phone,
+        image,
         role: 'wholesaler'
       });
     }
@@ -92,6 +101,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        image: user.image,
         role: user.role,
         createdAt: user.createdAt
       }

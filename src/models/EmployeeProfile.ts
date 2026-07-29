@@ -5,6 +5,12 @@ export interface IEmployeeProfile extends Document {
   employeeType: 'monthly' | 'task-based';
   baseSalary?: number;
   taskRate?: number;
+  weekendDays?: string[];
+  allowedAbsents?: number;
+  absentDeductionRate?: number;
+  basicSalary?: number;
+  allowance?: number;
+  deduction?: number;
   appointmentLetter?: string;
   joinedDate: Date;
   createdAt: Date;
@@ -17,6 +23,12 @@ const EmployeeProfileSchema: Schema<IEmployeeProfile> = new Schema(
     employeeType: { type: String, enum: ['monthly', 'task-based'], required: true },
     baseSalary: { type: Number, default: 0 },
     taskRate: { type: Number, default: 0 },
+    weekendDays: { type: [String], default: ['Friday'] },
+    allowedAbsents: { type: Number, default: 1 },
+    absentDeductionRate: { type: Number, default: 0 },
+    basicSalary: { type: Number, default: 0 },
+    allowance: { type: Number, default: 0 },
+    deduction: { type: Number, default: 0 },
     appointmentLetter: { type: String },
     joinedDate: { type: Date, default: Date.now }
   },

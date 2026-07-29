@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { Plus, Trash, Edit, Search, Loader2, Info, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Trash, Edit, Search, Loader2, Info, Clock, CheckCircle2, XCircle, ArrowDownCircle, ArrowUpCircle, Wallet, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
@@ -19,6 +19,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { TransactionForm } from '@/components/admin/TransactionForm';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -31,7 +44,20 @@ function ShowroomExpensesContent() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Approved' | 'Pending' | 'Rejected'>('all');
+  const [dateFilter, setDateFilter] = useState(() => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      from: format(firstDay, 'yyyy-MM-dd'),
+      to: format(lastDay, 'yyyy-MM-dd'),
+    };
+  });
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -80,11 +106,31 @@ function ShowroomExpensesContent() {
     const term = searchTerm.toLowerCase();
     const title = tx.title?.toLowerCase() || '';
     const category = tx.category?.toLowerCase() || '';
-    return title.includes(term) || category.includes(term);
+    const matchesSearch = title.includes(term) || category.includes(term);
+
+    let matchesDate = true;
+    if (dateFilter.from) {
+      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+    }
+    if (dateFilter.to) {
+      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    }
+
+    let matchesType = true;
+    if (typeFilter !== 'all') {
+      matchesType = (tx.type || 'expense') === typeFilter;
+    }
+
+    let matchesStatus = true;
+    if (statusFilter !== 'all') {
+      matchesStatus = (tx.status || 'Approved') === statusFilter;
+    }
+
+    return matchesSearch && matchesDate && matchesType && matchesStatus;
   });
 
   const totalExpense = filteredTransactions
-    .filter(tx => tx.type === 'expense' && tx.status === 'Approved')
+    .filter(tx => (tx.type === 'expense' || !tx.type) && (tx.status === 'Approved' || !tx.status))
     .reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
   const pendingExpense = filteredTransactions
@@ -93,23 +139,25 @@ function ShowroomExpensesContent() {
 
   const fmt = (n: number) => `৳${n.toLocaleString('en-BD')}`;
 
+  const isFiltered = !!(dateFilter.from || dateFilter.to || searchTerm || statusFilter !== 'all' || typeFilter !== 'all');
+
   const statusBadge = (status: string) => {
     switch (status) {
       case 'Approved':
         return (
-          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 border-emerald-500/30 gap-1">
-            <CheckCircle2 className="h-3 w-3" /> Approved (Admin Synced)
+          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 border-emerald-500/30 gap-1 font-semibold text-xs">
+            <CheckCircle2 className="h-3 w-3" /> Approved
           </Badge>
         );
       case 'Pending':
         return (
-          <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 border-amber-500/30 gap-1">
-            <Clock className="h-3 w-3" /> Pending Admin Approval
+          <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 border-amber-500/30 gap-1 font-semibold text-xs">
+            <Clock className="h-3 w-3" /> Pending Approval
           </Badge>
         );
       case 'Rejected':
         return (
-          <Badge variant="destructive" className="gap-1">
+          <Badge variant="destructive" className="gap-1 font-semibold text-xs">
             <XCircle className="h-3 w-3" /> Rejected
           </Badge>
         );
@@ -121,16 +169,17 @@ function ShowroomExpensesContent() {
   return (
     <div className="flex-1 space-y-6 py-6 md:p-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Showroom Expenses & Incomes</h2>
-          <p className="text-muted-foreground text-sm">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Expenses & Incomes</h2>
+          <p className="text-muted-foreground text-xs md:text-sm">
             আপনার শো-রুমের দৈনন্দিন খরচ ও আয়ের তালিকা এন্ট্রি দিন।
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} className="gap-2" />}>
-            <Plus className="h-4 w-4" /> Add Expense/Income
+          <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} className="h-9 w-9 p-0 md:h-10 md:w-auto md:px-4 shrink-0" />}>
+            <Plus className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Add Expense/Income</span>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader>
@@ -160,57 +209,160 @@ function ShowroomExpensesContent() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">অনুমোদিত খরচ (Approved)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">{fmt(totalExpense)}</div>
-            <p className="text-xs text-muted-foreground mt-1">অ্যাডমিন কর্তৃক অনুমোদিত মোট খরচ</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">অপেক্ষমান খরচ (Pending)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{fmt(pendingExpense)}</div>
-            <p className="text-xs text-muted-foreground mt-1">অ্যাডমিন অনুমোদনের অপেক্ষায়</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">মোট এন্ট্রি সংখ্যা</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredTransactions.length}টি</div>
-            <p className="text-xs text-muted-foreground mt-1">শো-রুমের মোট লেনদেন</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Overview Card (TallyPay Inspired) */}
+      <Card className="relative overflow-hidden rounded-2xl border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm p-0 md:p-6">
+        {/* 3 Cards in 1 Row */}
+        <div className="grid grid-cols-3 gap-2 md:gap-6">
+          {/* Approved Expense Card */}
+          <div className="flex flex-col items-center text-center p-1 md:p-2 rounded-xl hover:bg-muted/50 transition-colors group relative">
+            <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 mb-2">
+              <ArrowDownCircle className="h-5 w-5 md:h-6 md:w-6" />
+            </div>
+            <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
+              Approved Cost
+            </span>
+            <span className="text-xs md:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              {fmt(totalExpense)}
+            </span>
+            <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
+              {isFiltered ? 'Filtered approved' : 'Approved total'}
+            </span>
+          </div>
+
+          {/* Pending Expense Card */}
+          <div className="flex flex-col items-center text-center p-1 md:p-2 rounded-xl hover:bg-muted/50 transition-colors group relative">
+            <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 mb-2">
+              <ArrowUpCircle className="h-5 w-5 md:h-6 md:w-6" />
+            </div>
+            <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
+              Pending Cost
+            </span>
+            <span className="text-xs md:text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+              {fmt(pendingExpense)}
+            </span>
+            <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
+              Awaiting admin check
+            </span>
+          </div>
+
+          {/* Total Entries Card */}
+          <div className="flex flex-col items-center text-center p-1 md:p-2 rounded-xl hover:bg-muted/50 transition-colors group relative">
+            <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-500 mb-2">
+              <Wallet className="h-5 w-5 md:h-6 md:w-6" />
+            </div>
+            <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
+              Total Entries
+            </span>
+            <span className="text-xs md:text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+              {filteredTransactions.length}টি
+            </span>
+            <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
+              Showroom logs count
+            </span>
+          </div>
+        </div>
+      </Card>
 
       {/* Table Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-base">লেনদেনের ইতিহাস (Transactions)</CardTitle>
-              <CardDescription>আপনার শো-রুমের খরচের তালিকা ও অনুমোদন অবস্থা</CardDescription>
+      <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
+        <CardHeader className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 px-0 md:px-6">
+          <div className="flex items-center justify-between w-full lg:w-auto">
+            <CardTitle className="text-base">লেনদেনের ইতিহাস (Transactions)</CardTitle>
+            {/* Mobile Filter Toggle Button */}
+            <div className="block lg:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
+              >
+                <SlidersHorizontal className="mr-2 h-4 w-4" />
+                Filters
+                {isFiltered && (
+                  <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                )}
+              </Button>
             </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search description/category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 text-sm"
-              />
+          </div>
+
+          {/* Desktop & Collapsible Mobile Filters Wrapper */}
+          <div className={`grid transition-all duration-300 ease-in-out lg:block w-full ${showMobileFilters
+              ? 'grid-rows-[1fr] opacity-100 mt-3 visible'
+              : 'grid-rows-[0fr] opacity-0 invisible lg:visible lg:opacity-100 lg:grid-rows-none'
+            }`}>
+            <div className="overflow-hidden flex flex-col lg:flex-row items-stretch lg:items-center gap-2 w-full lg:w-auto">
+              <div className="relative w-full lg:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search description/category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 lg:flex items-center gap-2 w-full lg:w-auto">
+                <Select value={typeFilter} onValueChange={(val: any) => setTypeFilter(val)}>
+                  <SelectTrigger className="w-full lg:w-36">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                    <SelectItem value="income">Income</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
+                  <SelectTrigger className="w-full lg:w-36">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between lg:justify-start gap-2 w-full lg:w-auto">
+                <div className="flex flex-1 lg:flex-initial items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm w-full lg:w-auto">
+                  <Input
+                    type="date"
+                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
+                    value={dateFilter.from}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                  />
+                  <span className="text-muted-foreground text-xs shrink-0">to</span>
+                  <Input
+                    type="date"
+                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
+                    value={dateFilter.to}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                  />
+                </div>
+
+                {(dateFilter.from || dateFilter.to || searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDateFilter({ from: '', to: '' });
+                      setSearchTerm('');
+                      setTypeFilter('all');
+                      setStatusFilter('all');
+                    }}
+                    className="text-xs text-muted-foreground hover:text-primary shrink-0 lg:w-auto"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 md:px-6">
           {loading ? (
             <div className="flex h-48 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -220,82 +372,163 @@ function ShowroomExpensesContent() {
               <p className="text-muted-foreground text-sm">কোনো লেনদেন পাওয়া যায়নি।</p>
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>তারিখ</TableHead>
-                    <TableHead>বিবরণ</TableHead>
-                    <TableHead>ক্যাটাগরি</TableHead>
-                    <TableHead>টাইপ</TableHead>
-                    <TableHead className="text-right">পরিমাণ</TableHead>
-                    <TableHead>অবস্থা (Status)</TableHead>
-                    <TableHead className="text-right">অ্যাকশন</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTransactions.map((tx) => (
-                    <TableRow key={tx._id}>
-                      <TableCell className="text-xs whitespace-nowrap">
-                        {tx.date ? format(new Date(tx.date), 'dd MMM yyyy') : '-'}
-                      </TableCell>
-                      <TableCell className="font-medium text-sm">
-                        {tx.title}
-                        {tx.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{tx.description}</p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs font-normal">
-                          {tx.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={tx.type === 'income' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {tx.type === 'income' ? 'আয় (Income)' : 'খরচ (Expense)'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`text-right font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount || 0)}
-                      </TableCell>
-                      <TableCell>
-                        {statusBadge(tx.status || 'Approved')}
-                      </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        {tx.status === 'Pending' ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                              onClick={() => {
-                                setEditingTransaction(tx);
-                                setIsDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => handleDelete(tx._id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-muted-foreground pr-2">Locked</span>
-                        )}
-                      </TableCell>
+            <>
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>তারিখ</TableHead>
+                      <TableHead>বিবরণ</TableHead>
+                      <TableHead>ক্যাটাগরি</TableHead>
+                      <TableHead>টাইপ</TableHead>
+                      <TableHead className="text-right">পরিমাণ</TableHead>
+                      <TableHead>অবস্থা (Status)</TableHead>
+                      <TableHead className="text-right">অ্যাকশন</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTransactions.map((tx) => (
+                      <TableRow key={tx._id}>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {tx.date ? format(new Date(tx.date), 'dd MMM yyyy') : '-'}
+                        </TableCell>
+                        <TableCell className="font-medium text-sm">
+                          {tx.title}
+                          {tx.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{tx.description}</p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {tx.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={tx.type === 'income' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {tx.type === 'income' ? 'আয় (Income)' : 'খরচ (Expense)'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={`text-right font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount || 0)}
+                        </TableCell>
+                        <TableCell>
+                          {statusBadge(tx.status || 'Approved')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {tx.status === 'Pending' ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditingTransaction(tx);
+                                    setIsDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => handleDelete(tx._id)}
+                                >
+                                  <Trash className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <span className="text-xs text-muted-foreground pr-2">Locked</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="block md:hidden divide-y divide-border">
+                {filteredTransactions.map((tx) => {
+                  const isExpense = (tx.type || 'expense') === 'expense';
+                  return (
+                    <div key={tx._id} className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Details */}
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm text-foreground truncate">{tx.title}</p>
+                          <div className="flex flex-wrap gap-1.5 items-center pt-0.5">
+                            <span className="text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded">
+                              {tx.category || 'General'}
+                            </span>
+                            {tx.status && (
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${tx.status === 'Approved'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400'
+                                  : tx.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400'
+                                    : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400'
+                                }`}>
+                                {tx.status}
+                              </span>
+                            )}
+                          </div>
+                          {tx.description && (
+                            <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[200px]">
+                              {tx.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right side Amount, Date & Action Menu */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="text-right shrink-0">
+                          <p className={`font-extrabold text-sm ${!isExpense ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {!isExpense ? '+' : '-'}{fmt(tx.amount || 0)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-medium pt-0.5">
+                            {tx.date ? format(new Date(tx.date), 'dd MMM yyyy') : '-'}
+                          </p>
+                        </div>
+                        {tx.status === 'Pending' ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingTransaction(tx);
+                                  setIsDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => handleDelete(tx._id)}
+                              >
+                                <Trash className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground font-medium shrink-0 pl-1">Locked</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

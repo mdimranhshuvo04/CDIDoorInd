@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -119,6 +119,13 @@ const settingsSchema = z.object({
       active: z.boolean().default(false),
     }).nullable().optional(),
     instructions: z.string().nullish().transform(val => val ?? ''),
+    bank: z.object({
+      bankName: z.string().default(''),
+      accountNumber: z.string().default(''),
+      routingNumber: z.string().default(''),
+      branchName: z.string().default(''),
+      active: z.boolean().default(false),
+    }).nullable().optional(),
   }).optional(),
   courierConfig: z.object({
     activeProvider: z.string().default('none'),
@@ -192,6 +199,7 @@ export default function SettingsPage() {
         rocket: { number: '', qrCode: '', active: false },
         banglaQr: { qrCode: '', active: false },
         instructions: '',
+        bank: { bankName: '', accountNumber: '', routingNumber: '', branchName: '', active: false },
       },
       courierConfig: {
         activeProvider: 'none',
@@ -280,6 +288,13 @@ export default function SettingsPage() {
                     active: result.data.manualPaymentConfig?.banglaQr?.active ?? false,
                   },
                   instructions: result.data.manualPaymentConfig?.instructions || '',
+                  bank: {
+                    bankName: result.data.manualPaymentConfig?.bank?.bankName || '',
+                    accountNumber: result.data.manualPaymentConfig?.bank?.accountNumber || '',
+                    routingNumber: result.data.manualPaymentConfig?.bank?.routingNumber || '',
+                    branchName: result.data.manualPaymentConfig?.bank?.branchName || '',
+                    active: result.data.manualPaymentConfig?.bank?.active ?? false,
+                  },
                 },
                 courierConfig: {
                   activeProvider: result.data.courierConfig?.activeProvider || 'none',

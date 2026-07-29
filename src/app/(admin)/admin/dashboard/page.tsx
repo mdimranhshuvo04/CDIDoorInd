@@ -369,7 +369,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {/* Pending Orders Card */}
         <Link href="/admin/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group h-full">
@@ -477,18 +477,18 @@ export default function AdminDashboard() {
               <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
 
             </div>
-            <div className="flex overflow-x-auto border-t sm:border-t-0 no-scrollbar">
+            <div className="flex w-full border-t sm:border-t-0">
               {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
                 <button
                   key={key}
                   data-active={activeChart === key}
-                  className="flex flex-1 min-w-[100px] sm:min-w-[120px] flex-col justify-center gap-1 border-r last:border-r-0 px-4 py-3 md:px-8 md:py-6 text-left data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0"
+                  className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0 transition-colors"
                   onClick={() => setActiveChart(key as any)}
                 >
-                  <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                  <span className="text-[9px] sm:text-xs text-muted-foreground whitespace-nowrap">
                     {chartConfig[key].label}
                   </span>
-                  <span className="text-base md:text-2xl leading-none font-bold">
+                  <span className="text-xs sm:text-base md:text-2xl leading-none font-bold">
                     {key === 'orders' ? total[key].toLocaleString() : `৳${total[key].toLocaleString()}`}
                   </span>
                 </button>
