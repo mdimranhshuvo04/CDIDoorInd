@@ -805,6 +805,24 @@ export default function OrderDetailsDialog({
                         </div>
                       </div>
                     )}
+
+                    {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
+                       <div className="mt-3 p-3 bg-red-500/5 rounded-xl border border-red-500/20 space-y-2">
+                         <p className="text-[10px] font-black uppercase text-red-500 tracking-widest">Credit Order / Due</p>
+                         {order.expectedPaymentDate && (
+                           <div className="text-[11px]">
+                             <span className="text-muted-foreground block font-medium">Expected Payment Date:</span>
+                             <span className="font-bold text-red-600 dark:text-red-400">
+                               {new Date(order.expectedPaymentDate).toLocaleDateString('en-US', {
+                                 year: 'numeric',
+                                 month: 'long',
+                                 day: 'numeric'
+                               })}
+                             </span>
+                           </div>
+                         )}
+                       </div>
+                    )}
                   </div>
                 </div>
               </div>

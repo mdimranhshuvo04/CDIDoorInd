@@ -221,6 +221,30 @@ export function MobileBottomNavbar() {
                       </>
                     )}
 
+                    {(session.user as any)?.role === 'wholesaler' && (
+                      <>
+                        <Link
+                          href="/wholesaler/dashboard"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-medium transition-colors"
+                        >
+                          <LayoutDashboard className="h-5 w-5 text-primary" /> Wholesaler Dashboard
+                        </Link>
+                      </>
+                    )}
+
+                    {(session.user as any)?.role === 'employee' && (
+                      <>
+                        <Link
+                          href="/employee/dashboard"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-medium transition-colors"
+                        >
+                          <LayoutDashboard className="h-5 w-5 text-primary" /> Employee Dashboard
+                        </Link>
+                      </>
+                    )}
+
                     {(session.user as any)?.role === 'user' && (
                       <>
                         <Link

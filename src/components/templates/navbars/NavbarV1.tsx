@@ -546,6 +546,26 @@ export default function Navbar() {
                           </>
                         )}
 
+                        {(session.user as any)?.role === 'wholesaler' && (
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/wholesaler/dashboard" className="cursor-pointer">
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> Wholesaler Dashboard
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
+                        {(session.user as any)?.role === 'employee' && (
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/employee/dashboard" className="cursor-pointer">
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> Employee Dashboard
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
                         {['admin', 'super_admin', 'showroom_manager'].includes((session.user as any)?.role) && (
                           <>
                             <DropdownMenuSeparator />

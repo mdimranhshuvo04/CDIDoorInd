@@ -152,7 +152,7 @@ export function MobileNavbar({ navItems, categories }: MobileNavbarProps) {
                     </>
                   )}
 
-                  {(session.user as any)?.role === 'user' && (
+                   {(session.user as any)?.role === 'user' && (
                     <>
                       <DropdownMenuItem asChild>
                         <Link href="/dashboard" className="cursor-pointer">
@@ -162,6 +162,36 @@ export function MobileNavbar({ navItems, categories }: MobileNavbarProps) {
                       <DropdownMenuItem asChild>
                         <Link href="/track-order" className="cursor-pointer">
                           <Truck className="mr-2 h-4 w-4" /> Track Order
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {(session.user as any)?.role === 'showroom_manager' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/showroom/dashboard" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" /> Showroom Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {(session.user as any)?.role === 'wholesaler' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/wholesaler/dashboard" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" /> Wholesaler Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {(session.user as any)?.role === 'employee' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/employee/dashboard" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" /> Employee Dashboard
                         </Link>
                       </DropdownMenuItem>
                     </>

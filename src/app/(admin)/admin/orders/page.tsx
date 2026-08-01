@@ -949,6 +949,18 @@ function OrdersContent() {
                         >
                           {order.paymentStatus}
                         </Badge>
+                        {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
+                          <div className="flex flex-col gap-0.5 mt-1 bg-red-500/10 dark:bg-red-500/20 p-1.5 rounded border border-red-500/20">
+                            <span className="font-extrabold text-red-600 dark:text-red-400 text-[10px] uppercase tracking-wider">
+                              Credit / Due
+                            </span>
+                            {order.expectedPaymentDate && (
+                              <span className="text-[9px] font-semibold text-red-700 dark:text-red-300">
+                                Due: {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {order.paymentMethod === 'Manual' && order.manualPaymentDetails && (
                           <div className="flex flex-col text-[10px] text-muted-foreground bg-slate-50 dark:bg-zinc-900 p-1.5 rounded border border-slate-100 dark:border-zinc-800 font-mono">
                             <span className="font-bold text-primary uppercase text-[9px]">{order.manualPaymentDetails.methodName}</span>
