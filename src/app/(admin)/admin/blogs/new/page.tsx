@@ -128,7 +128,7 @@ export default function CreateBlogPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <Link href="/admin/blogs">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Blogs

@@ -418,16 +418,16 @@ export default function AdminEmployeesPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-6 px-0 py-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-3xl font-black text-zinc-950">Employee Directory</h1>
-          <p className="text-sm text-zinc-500 mt-1">Manage staff, payroll disbursements, leave applications, and daily attendance logs.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">Employee Directory</h1>
+          <p className="text-xs md:text-sm text-zinc-500 mt-1">Manage staff, payroll disbursements, leave applications, and daily attendance logs.</p>
         </div>
         <div className="flex gap-2.5">
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-primary text-primary-foreground font-bold flex items-center gap-2"
+            className="bg-primary text-primary-foreground font-bold flex items-center gap-2 h-10 text-xs md:text-sm md:h-11 px-4 rounded-full"
           >
             <UserPlus className="h-4 w-4" /> Add Employee
           </Button>
@@ -435,36 +435,36 @@ export default function AdminEmployeesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-200">
+      <div className="flex border-b border-zinc-200 overflow-x-auto whitespace-nowrap scrollbar-none px-4 md:px-0 scroll-smooth">
         <button
           onClick={() => setActiveTab('directory')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'directory' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          className={`px-5 py-3 text-xs md:text-sm font-bold border-b-2 transition-colors shrink-0 ${activeTab === 'directory' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
           Staff List ({employees.length})
         </button>
         <button
           onClick={() => setActiveTab('salaries')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'salaries' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          className={`px-5 py-3 text-xs md:text-sm font-bold border-b-2 transition-colors shrink-0 ${activeTab === 'salaries' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
           Disbursements ({disbursements.length})
         </button>
         <button
           onClick={() => setActiveTab('leaves')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'leaves' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          className={`px-5 py-3 text-xs md:text-sm font-bold border-b-2 transition-colors shrink-0 ${activeTab === 'leaves' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
-          Leave Applications ({leaves.filter(l => l.status === 'Pending').length} Pending)
+          Leave Requests ({leaves.filter(l => l.status === 'Pending').length} Pending)
         </button>
         <button
           onClick={() => setActiveTab('attendance')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'attendance' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          className={`px-5 py-3 text-xs md:text-sm font-bold border-b-2 transition-colors shrink-0 ${activeTab === 'attendance' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
           Attendance Log
         </button>
         <button
           onClick={() => setActiveTab('tasks')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'tasks' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          className={`px-5 py-3 text-xs md:text-sm font-bold border-b-2 transition-colors shrink-0 ${activeTab === 'tasks' ? 'border-primary text-primary' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
         >
-          Tasks Assignments ({tasks.filter(t => t.status !== 'Paid').length} Active)
+          Tasks ({tasks.filter(t => t.status !== 'Paid').length} Active)
         </button>
       </div>
 
@@ -484,9 +484,9 @@ export default function AdminEmployeesPage() {
                     <p className="font-medium">No employees found.</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead>
+                  <div className="overflow-x-auto md:overflow-visible p-4 md:p-0">
+                    <table className="w-full text-left border-collapse text-sm block md:table">
+                      <thead className="hidden md:table-header-group">
                         <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
                           <th className="p-4">Name</th>
                           <th className="p-4">Type</th>
@@ -496,10 +496,10 @@ export default function AdminEmployeesPage() {
                           <th className="p-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="block md:table-row-group space-y-3 md:space-y-0">
                         {employees.map((emp) => (
-                          <tr key={emp._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
-                            <td className="p-4 font-bold text-zinc-900">
+                          <tr key={emp._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none hover:bg-zinc-50/50 transition-colors">
+                            <td className="p-2 md:p-4 font-bold text-zinc-900 block md:table-cell text-left">
                               <div className="flex items-center gap-3">
                                 {emp.image ? (
                                   <img 
@@ -513,37 +513,43 @@ export default function AdminEmployeesPage() {
                                   </div>
                                 )}
                                 <div>
-                                  <div>{emp.name}</div>
+                                  <div className="text-sm md:text-base">{emp.name}</div>
                                   <div className="text-xs text-zinc-400 font-normal">{emp.email}</div>
                                   {emp.phone && <div className="text-[11px] text-zinc-500 font-normal">{emp.phone}</div>}
                                 </div>
                               </div>
                             </td>
-                            <td className="p-4">
-                              <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold">
+                            <td className="p-2 md:p-4 block md:table-cell text-left">
+                              <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Type:</span>
+                              <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold text-[10px]">
                                 {emp.employeeType === 'monthly' ? 'Monthly Salary' : 'Task-based'}
                               </Badge>
                             </td>
-                            <td className="p-4 font-black text-zinc-800">
-                              {emp.employeeType === 'monthly' 
-                                ? `${emp.baseSalary?.toLocaleString()} Tk/Mo` 
-                                : 'Task Wise'}
+                            <td className="p-2 md:p-4 font-black text-zinc-800 block md:table-cell text-left">
+                              <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Compensation:</span>
+                              <span className="text-xs md:text-sm">
+                                {emp.employeeType === 'monthly' 
+                                  ? `${emp.baseSalary?.toLocaleString()} Tk/Mo` 
+                                  : 'Task Wise'}
+                              </span>
                             </td>
-                            <td className="p-4 text-zinc-500">
-                              {new Date(emp.joinedDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                            <td className="p-2 md:p-4 text-zinc-500 block md:table-cell text-left">
+                              <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Joined:</span>
+                              <span className="text-xs md:text-sm">{new Date(emp.joinedDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
                             </td>
-                            <td className="p-4">
+                            <td className="p-2 md:p-4 block md:table-cell text-left">
+                              <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Letter:</span>
                               <a 
                                 href={`/appointment-letter/${emp._id}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="text-primary font-bold hover:underline flex items-center gap-1.5"
+                                className="text-primary font-bold hover:underline inline-flex items-center gap-1.5 text-xs md:text-sm"
                               >
                                 <FileText className="h-4 w-4" /> View Letter
                               </a>
                             </td>
-                            <td className="p-4 text-right">
-                              <div className="flex justify-end items-center gap-1.5">
+                            <td className="p-2 md:p-4 text-left md:text-right block md:table-cell border-t md:border-t-0 mt-2 md:mt-0 pt-2 md:pt-4">
+                              <div className="flex gap-2 justify-start md:justify-end">
                                 {emp.employeeType === 'task-based' && (
                                   <Button
                                     onClick={() => {

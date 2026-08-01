@@ -36,12 +36,12 @@ export default function AdminTopbar() {
   const router = useRouter();
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between sticky top-0 z-30">
+    <header className="relative flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <Link href="/" className="inline-flex items-center justify-center rounded-md h-9 w-9 hover:bg-muted md:hidden">
           <Home className="h-5 w-5 text-muted-foreground" />
         </Link>
-        <div className="flex-1 font-semibold text-lg md:hidden">
+        <div className="absolute left-1/2 -translate-x-1/2 font-semibold text-lg md:hidden max-w-[40%] truncate text-center">
           Admin Panel
         </div>
       </div>

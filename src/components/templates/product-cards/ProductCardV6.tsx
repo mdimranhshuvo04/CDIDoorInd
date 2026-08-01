@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Heart, Search } from 'lucide-react';
+import { Plus, Heart, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addToCart, clearCart } from '@/store/slices/cartSlice';
@@ -53,7 +53,7 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
   const isInWishlist = wishlist.includes(initialProduct._id);
 
   const isWholesaler = (session?.user as any)?.role === 'wholesaler';
-  
+
   const resolveWholesale = (p: any) => {
     if (!p) return null;
     return {
@@ -64,10 +64,10 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
   };
 
   const resolvedInitialProduct = resolveWholesale(initialProduct);
-  const firstVariant = resolvedInitialProduct.variants && resolvedInitialProduct.variants.length > 0 
-    ? resolveWholesale(resolvedInitialProduct.variants[0]) 
+  const firstVariant = resolvedInitialProduct.variants && resolvedInitialProduct.variants.length > 0
+    ? resolveWholesale(resolvedInitialProduct.variants[0])
     : null;
-    
+
   const product = firstVariant ? {
     ...resolvedInitialProduct,
     price: firstVariant.price,
@@ -260,13 +260,13 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
         </div>
 
         {/* Floating Cart Button on Image (Bottom Right) */}
-        <div className="absolute bottom-3 right-3 z-20">
+        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-20">
           <button
-            className="text-white hover:text-primary transition-all hover:scale-110 active:scale-95 bg-transparent p-0 border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]"
+            className="flex items-center justify-center w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-full bg-primary text-primary-foreground hover:scale-110 active:scale-95 transition-all shadow-lg"
             onClick={(e) => { e.stopPropagation(); handleAddToCart(e); }}
             aria-label="Add to cart"
           >
-            <ShoppingCart className="h-5 w-5" />
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
           </button>
         </div>
       </div>
@@ -296,8 +296,8 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
         {/* Action Buttons - Visible on hover for Desktop, Always for Mobile */}
         <div className="flex gap-2 pt-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
           <Button
-            size="lg"
-            className={`w-full rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold text-xs sm:text-sm md:text-base ${layout === 'v3' ? 'lg:h-10' : 'h-11 sm:h-12'} shadow-lg shadow-primary/20 transition-all active:scale-95 py-2`}
+            size="sm"
+            className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-sm sm:text-base h-11 sm:h-10 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2"
             onClick={handleBuyNow}
           >
             অর্ডার করুন

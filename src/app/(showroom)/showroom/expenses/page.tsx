@@ -169,7 +169,7 @@ function ShowroomExpensesContent() {
   return (
     <div className="flex-1 space-y-6 py-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0 gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Expenses & Incomes</h2>
           <p className="text-muted-foreground text-xs md:text-sm">
@@ -266,7 +266,7 @@ function ShowroomExpensesContent() {
       {/* Table Section */}
       <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
         <CardHeader className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 px-0 md:px-6">
-          <div className="flex items-center justify-between w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0 w-full lg:w-auto">
             <CardTitle className="text-base">লেনদেনের ইতিহাস (Transactions)</CardTitle>
             {/* Mobile Filter Toggle Button */}
             <div className="block lg:hidden">
@@ -326,7 +326,7 @@ function ShowroomExpensesContent() {
                 </Select>
               </div>
 
-              <div className="flex items-center justify-between lg:justify-start gap-2 w-full lg:w-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center lg:justify-start gap-2 w-full lg:w-auto">
                 <div className="flex flex-1 lg:flex-initial items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm w-full lg:w-auto">
                   <Input
                     type="date"
@@ -375,9 +375,9 @@ function ShowroomExpensesContent() {
             <>
               {/* Desktop View */}
               <div className="hidden md:block overflow-x-auto rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
+                <Table className="block md:table">
+                  <TableHeader className="hidden md:table-header-group">
+                    <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                       <TableHead>তারিখ</TableHead>
                       <TableHead>বিবরণ</TableHead>
                       <TableHead>ক্যাটাগরি</TableHead>
@@ -387,24 +387,24 @@ function ShowroomExpensesContent() {
                       <TableHead className="text-right">অ্যাকশন</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
                     {filteredTransactions.map((tx) => (
-                      <TableRow key={tx._id}>
-                        <TableCell className="text-xs whitespace-nowrap">
+                      <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={tx._id}>
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-xs whitespace-nowrap">
                           {tx.date ? format(new Date(tx.date), 'dd MMM yyyy') : '-'}
                         </TableCell>
-                        <TableCell className="font-medium text-sm">
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left font-medium text-sm">
                           {tx.title}
                           {tx.description && (
                             <p className="text-xs text-muted-foreground line-clamp-1">{tx.description}</p>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                           <Badge variant="outline" className="text-xs font-normal">
                             {tx.category}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                           <Badge
                             variant={tx.type === 'income' ? 'default' : 'secondary'}
                             className="text-xs"
@@ -412,13 +412,13 @@ function ShowroomExpensesContent() {
                             {tx.type === 'income' ? 'আয় (Income)' : 'খরচ (Expense)'}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`text-right font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <TableCell className={`block md:table-cell py-1.5 md:py-4 text-left text-right font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount || 0)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                           {statusBadge(tx.status || 'Approved')}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right">
                           {tx.status === 'Pending' ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>

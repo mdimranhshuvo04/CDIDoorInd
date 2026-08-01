@@ -288,7 +288,7 @@ export default function MarketingSettingsPage() {
 
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <h1 className="text-2xl font-bold tracking-tight">Marketing & Integration Settings</h1>
         <Button type="submit" form="marketing-settings-form" disabled={submitting}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -377,7 +377,7 @@ export default function MarketingSettingsPage() {
                   </CardTitle>
                   <CardDescription>Configure SSLCommerz active payment gateway settings.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <CardContent className="px-0 py-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1 space-y-4">
                     <FormField
                       control={form.control}
@@ -458,11 +458,11 @@ export default function MarketingSettingsPage() {
                   </CardTitle>
                   <CardDescription>Configure manual mobile banking account details.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-8">
+                <CardContent className="px-0 py-4 md:p-6 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {(['bkash', 'nagad', 'rocket'] as const).map((method) => (
                       <div key={method} className="space-y-4 p-4 rounded-2xl border bg-muted/10">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
                             <Image src={`/assets/${method}logo.webp`} alt={method} width={24} height={24} className="h-6 w-6 object-contain" />
                             <span className="font-bold capitalize">{method}</span>
@@ -621,7 +621,7 @@ export default function MarketingSettingsPage() {
                   </CardTitle>
                   <CardDescription>Configure courier logistics and delivery charge parameters.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <CardContent className="px-0 py-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1 space-y-4">
                     <FormField
                       control={form.control}
@@ -765,7 +765,7 @@ export default function MarketingSettingsPage() {
                   </CardTitle>
                   <CardDescription>Configure Meta Pixel and tracking integrations.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="px-0 py-4 md:p-6 space-y-6">
                   <FormField
                     control={form.control}
                     name="googleTagManagerId"

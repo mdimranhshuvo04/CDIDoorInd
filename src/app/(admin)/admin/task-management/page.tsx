@@ -230,33 +230,33 @@ export default function AdminTaskManagementPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
-                      <th className="p-4">Assigned Employee</th>
-                      <th className="p-4">Task Details</th>
-                      <th className="p-4">Payout</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Timeline / Dates</th>
-                      <th className="p-4 text-right">Actions</th>
+                <table className="block md:table w-full text-left border-collapse text-sm">
+                  <thead className="hidden md:table-header-group">
+                    <tr className="block md:table-row bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
+                      <th className="font-bold p-4">Assigned Employee</th>
+                      <th className="font-bold p-4">Task Details</th>
+                      <th className="font-bold p-4">Payout</th>
+                      <th className="font-bold p-4">Status</th>
+                      <th className="font-bold p-4">Timeline / Dates</th>
+                      <th className="font-bold p-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
                     {tasks.map((task) => (
-                      <tr key={task._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
-                        <td className="p-4 font-bold text-zinc-900">
+                      <tr key={task._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left p-4 font-bold text-zinc-900">
                           {task.employee?.name || 'Unknown User'}
                           <div className="text-xs text-zinc-400 font-normal">{task.employee?.email}</div>
                           {task.employee?.phone && <div className="text-[11px] text-zinc-500 font-normal mt-0.5">{task.employee.phone}</div>}
                         </td>
-                        <td className="p-4 max-w-[280px]">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left p-4 max-w-[280px]">
                           <div className="font-bold text-zinc-900">{task.title}</div>
                           {task.description && <div className="text-xs text-zinc-500 mt-0.5 line-clamp-2" title={task.description}>{task.description}</div>}
                         </td>
-                        <td className="p-4 font-black text-zinc-800">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left p-4 font-black text-zinc-800">
                           {task.payout?.toLocaleString()} Tk
                         </td>
-                        <td className="p-4">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left p-4">
                           <Badge 
                             className="font-bold" 
                             variant={
@@ -270,7 +270,7 @@ export default function AdminTaskManagementPage() {
                             {task.status === 'Paid' ? 'Paid Out' : task.status === 'Completed' ? 'Completed' : 'Pending Work'}
                           </Badge>
                         </td>
-                        <td className="p-4 text-xs text-zinc-500 space-y-0.5">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left p-4 text-xs text-zinc-500 space-y-0.5">
                           <div><span className="font-semibold">Assigned:</span> {new Date(task.assignedDate).toLocaleDateString()}</div>
                           {task.dueDate && (
                             <div className="text-amber-600 font-medium"><span className="font-semibold text-zinc-500">Expected Complete:</span> {new Date(task.dueDate).toLocaleDateString()}</div>
@@ -279,7 +279,7 @@ export default function AdminTaskManagementPage() {
                             <div className="text-emerald-600"><span className="font-semibold text-zinc-500">Completed:</span> {new Date(task.completedDate).toLocaleDateString()}</div>
                           )}
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="block md:table-cell py-1.5 md:py-4 text-left md:text-right p-4">
                           <div className="flex justify-end gap-2">
                             {task.status === 'Completed' && (
                               <Button 
@@ -320,7 +320,7 @@ export default function AdminTaskManagementPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden animate-in fade-in duration-200">
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CardTitle className="text-lg font-black text-zinc-900">Assign Task to Staff</CardTitle>
                 <button 
                   onClick={() => setShowAssignModal(false)}

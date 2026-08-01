@@ -70,7 +70,7 @@ export function MobileBottomNav() {
       <div className="absolute left-1/2 bottom-2 -translate-x-1/2 flex flex-col items-center z-50">
         <button
           onClick={handleQuickAdd}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/95 transition-transform active:scale-90 border-4 border-background"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/95 transition-transform active:scale-90 border-4 border-background"
           aria-label="Add Transaction"
         >
           <Plus className="h-6 w-6 stroke-[3]" />

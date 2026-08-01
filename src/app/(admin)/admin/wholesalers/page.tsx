@@ -277,16 +277,16 @@ export default function AdminWholesalersPage() {
   });
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-6 px-0 py-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-3xl font-black text-zinc-950">Wholesalers Directory</h1>
-          <p className="text-sm text-zinc-500 mt-1">Manage wholesale buyers, adjust profile parameters, and grant or revoke wholesale purchasing rights.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">Wholesalers Directory</h1>
+          <p className="text-xs md:text-sm text-zinc-500 mt-1">Manage wholesale buyers, adjust profile parameters, and grant or revoke wholesale purchasing rights.</p>
         </div>
         <div>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-primary text-primary-foreground font-bold flex items-center gap-1.5"
+            className="bg-primary text-primary-foreground font-bold flex items-center gap-1.5 h-10 text-xs md:text-sm md:h-11 px-4 rounded-full w-full sm:w-auto justify-center"
           >
             <UserPlus className="h-4 w-4" /> Register Wholesaler
           </Button>
@@ -298,90 +298,93 @@ export default function AdminWholesalersPage() {
           <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <Card className="border border-zinc-200">
-          <div className="p-5 border-b border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-50/50">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
-              <Input
-                placeholder="Search name, phone or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-full bg-white border-zinc-200"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <div className="flex gap-1.5">
-                {['all', 'paid', 'due'].map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={statusFilter === filter ? 'default' : 'outline'}
-                    onClick={() => setStatusFilter(filter as any)}
-                    className="capitalize font-bold h-9"
-                  >
-                    {filter}
-                  </Button>
-                ))}
+        <div className="px-4 md:px-0">
+          <Card className="border border-zinc-200">
+            <div className="p-5 border-b border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-50/50">
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+                <Input
+                  placeholder="Search name, phone or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 w-full bg-white border-zinc-200 text-xs md:text-sm"
+                />
               </div>
+              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div className="flex gap-1.5">
+                  {['all', 'paid', 'due'].map((filter) => (
+                    <Button
+                      key={filter}
+                      variant={statusFilter === filter ? 'default' : 'outline'}
+                      onClick={() => setStatusFilter(filter as any)}
+                      className="capitalize font-bold h-9 text-xs"
+                    >
+                      {filter}
+                    </Button>
+                  ))}
+                </div>
 
-              <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-md border border-zinc-200 text-sm w-full sm:w-auto">
-                <Input
-                  type="date"
-                  className="h-7 w-32 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700"
-                  value={dateFilter.from}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
-                />
-                <span className="text-zinc-400 text-xs">to</span>
-                <Input
-                  type="date"
-                  className="h-7 w-32 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700"
-                  value={dateFilter.to}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
-                />
+                <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-md border border-zinc-200 text-xs w-full sm:w-auto justify-between sm:justify-start">
+                  <Input
+                    type="date"
+                    aria-label="Start date"
+                    className="h-7 w-28 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700 text-xs"
+                    value={dateFilter.from}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                  />
+                  <span className="text-zinc-400 text-[10px]">to</span>
+                  <Input
+                    type="date"
+                    aria-label="End date"
+                    className="h-7 w-28 border-none bg-transparent focus-visible:ring-0 p-0 text-zinc-700 text-xs"
+                    value={dateFilter.to}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-          <CardContent className="p-0">
-            {filteredWholesalers.length === 0 ? (
-              <div className="text-center py-16 text-zinc-400">
-                <Users className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                <p className="font-medium">No wholesalers found.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                 <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
-                      <th className="p-4">Name</th>
-                      <th className="p-4">Contact Information</th>
-                      <th className="p-4">Joined Date</th>
-                      <th className="p-4">Order Info</th>
-                      <th className="p-4">Total Due</th>
-                      <th className="p-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredWholesalers.map((w) => (
-                      <tr key={w._id} className="border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors">
-                        <td className="p-4 font-bold text-zinc-900">
-                          <div className="flex items-center gap-3">
-                            {w.image ? (
-                              <img 
-                                src={w.image} 
-                                alt={w.name} 
-                                className="h-9 w-9 rounded-full object-cover border border-zinc-200"
-                              />
-                            ) : (
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                                {w.name ? w.name.charAt(0).toUpperCase() : 'W'}
-                              </div>
-                            )}
-                            <span>{w.name}</span>
-                          </div>
-                        </td>
-                        <td className="p-4 space-y-0.5">
+            <CardContent className="p-0">
+              {filteredWholesalers.length === 0 ? (
+                <div className="text-center py-16 text-zinc-400">
+                  <Users className="h-12 w-12 mx-auto mb-3 opacity-60" />
+                  <p className="font-medium">No wholesalers found.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto md:overflow-visible">
+                  <table className="w-full text-left border-collapse text-sm block md:table">
+                    <thead className="hidden md:table-header-group">
+                      <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
+                        <th className="p-4">Name</th>
+                        <th className="p-4">Contact Information</th>
+                        <th className="p-4">Joined Date</th>
+                        <th className="p-4">Order Info</th>
+                        <th className="p-4">Total Due</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
+                      {filteredWholesalers.map((w) => (
+                        <tr key={w._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 hover:bg-zinc-50/50 transition-colors">
+                          <td className="p-2 md:p-4 font-bold text-zinc-900 block md:table-cell text-left">
+                            <div className="flex items-center gap-3">
+                              {w.image ? (
+                                <img 
+                                  src={w.image} 
+                                  alt={w.name} 
+                                  className="h-9 w-9 rounded-full object-cover border border-zinc-200"
+                                />
+                              ) : (
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                  {w.name ? w.name.charAt(0).toUpperCase() : 'W'}
+                                </div>
+                              )}
+                              <span>{w.name}</span>
+                            </div>
+                          </td>
+                          <td className="p-2 md:p-4 space-y-0.5 block md:table-cell text-left">
                           <div className="flex items-center gap-1 text-zinc-600">
                             <Mail className="h-3.5 w-3.5" />
-                            <span>{w.email}</span>
+                            <span className="text-xs sm:text-sm">{w.email}</span>
                           </div>
                           {w.phone && (
                             <div className="flex items-center gap-1 text-zinc-500 text-xs">
@@ -390,26 +393,26 @@ export default function AdminWholesalersPage() {
                             </div>
                           )}
                         </td>
-                        <td className="p-4 text-zinc-500">
-                          <div className="flex items-center gap-1 text-xs">
-                            <Calendar className="h-3.5 w-3.5" />
-                            <span>{new Date(w.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
-                          </div>
+                        <td className="p-2 md:p-4 text-zinc-500 block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Joined:</span>
+                          <span className="text-xs md:text-sm">{new Date(w.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
                         </td>
-                        <td className="p-4 space-y-0.5">
-                          <div className="font-bold text-zinc-800">
+                        <td className="p-2 md:p-4 space-y-0.5 block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Orders:</span>
+                          <span className="font-bold text-zinc-800 text-xs md:text-sm">
                             ৳{Math.round(w.totalOrderValue || 0).toLocaleString()}
-                          </div>
-                          <div className="text-xs text-zinc-500 font-medium">
-                            {w.orderCount || 0} {w.orderCount === 1 ? 'order' : 'orders'}
-                          </div>
+                          </span>
+                          <span className="text-xs text-zinc-500 font-medium ml-1 md:block md:ml-0">
+                            ({w.orderCount || 0} {w.orderCount === 1 ? 'order' : 'orders'})
+                          </span>
                         </td>
-                        <td className="p-4">
+                        <td className="p-2 md:p-4 block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Total Due:</span>
                           <span className={`font-bold px-2.5 py-1 rounded text-xs inline-block ${(w.totalDue || 0) > 0 ? 'text-red-700 bg-red-50 border border-red-100' : 'text-zinc-500 bg-zinc-50 border border-zinc-200'}`}>
                             ৳{Math.round(w.totalDue || 0).toLocaleString()}
                           </span>
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="p-2 md:p-4 text-left md:text-right block md:table-cell border-t md:border-t-0 mt-2 md:mt-0 pt-2 md:pt-4">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
@@ -459,6 +462,7 @@ export default function AdminWholesalersPage() {
             )}
           </CardContent>
         </Card>
+        </div>
       )}
 
       {/* Add Wholesaler Modal */}

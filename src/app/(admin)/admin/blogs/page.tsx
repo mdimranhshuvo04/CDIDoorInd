@@ -137,9 +137,9 @@ function BlogsContent() {
       </div>
 
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
+        <Table className="block md:table">
+          <TableHeader className="hidden md:table-header-group bg-muted/50">
+            <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
               <TableHead className="font-bold">Thumbnail</TableHead>
               <TableHead className="font-bold">Title</TableHead>
               <TableHead className="font-bold">Views</TableHead>
@@ -148,10 +148,10 @@ function BlogsContent() {
               <TableHead className="text-right font-bold">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                     <span>Loading blogs...</span>
@@ -159,15 +159,15 @@ function BlogsContent() {
                 </TableCell>
               </TableRow>
             ) : filteredBlogs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
                   No blogs found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredBlogs.map((blog) => (
-                <TableRow key={blog._id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell>
+                <TableRow key={blog._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 hover:bg-muted/30 transition-colors">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="h-10 w-16 bg-muted rounded overflow-hidden relative">
                       {blog.thumbnail ? (
                         <Image
@@ -185,7 +185,7 @@ function BlogsContent() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Link 
                       href={`/blog/${blog.slug}`} 
                       target="_blank" 
@@ -195,18 +195,18 @@ function BlogsContent() {
                     </Link>
                     <div className="text-[10px] text-muted-foreground font-mono truncate max-w-[300px]">/{blog.slug}</div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <span className="font-bold text-primary">{blog.views ?? 0}</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant={blog.isPublished ? 'default' : 'secondary'}>
                       {blog.isPublished ? 'Published' : 'Draft'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-xs">
                     {new Date(blog.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link href={`/blog/${blog.slug}`} target="_blank">
                         <Button variant="ghost" size="icon-sm" title="View Publicly">

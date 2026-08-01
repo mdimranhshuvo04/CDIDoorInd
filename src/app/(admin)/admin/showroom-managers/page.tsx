@@ -189,15 +189,15 @@ export default function ShowroomManagersPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center flex-wrap gap-4">
+    <div className="px-0 py-4 md:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Showroom Managers</h1>
-          <p className="text-muted-foreground mt-1">Manage and assign showroom managers to different locations.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Showroom Managers</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage and assign showroom managers to different locations.</p>
         </div>
         <Button 
           onClick={() => { resetForm(); setShowAddModal(true); }}
-          className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold flex gap-2"
+          className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold flex gap-2 h-10 text-xs sm:text-sm md:h-11 px-4 rounded-full w-full sm:w-auto justify-center"
         >
           <UserPlus className="h-4 w-4" /> Add Showroom Manager
         </Button>
@@ -208,92 +208,103 @@ export default function ShowroomManagersPage() {
           <Loader2 className="h-10 w-10 animate-spin text-yellow-500" />
         </div>
       ) : managers.length === 0 ? (
-        <Card className="border-dashed border-2 py-10">
-          <CardContent className="flex flex-col items-center justify-center text-center space-y-3">
-            <ShieldAlert className="h-12 w-12 text-muted-foreground" />
-            <h3 className="font-bold text-lg">No Showroom Managers Found</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Click the button above to register a new showroom manager.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="px-4 md:px-0">
+          <Card className="border-dashed border-2 py-10">
+            <CardContent className="flex flex-col items-center justify-center text-center space-y-3">
+              <ShieldAlert className="h-12 w-12 text-muted-foreground" />
+              <h3 className="font-bold text-lg">No Showroom Managers Found</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Click the button above to register a new showroom manager.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
-        <Card className="border-muted overflow-hidden">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Name</TableHead>
-                    <TableHead className="font-bold">Email</TableHead>
-                    <TableHead className="font-bold">Phone</TableHead>
-                    <TableHead className="font-bold">Assigned Showroom</TableHead>
-                    <TableHead className="font-bold text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {managers.map((manager) => (
-                    <TableRow key={manager._id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-medium py-4">
-                        <div className="flex items-center gap-3">
-                          {manager.image ? (
-                            <img 
-                              src={manager.image} 
-                              alt={manager.name} 
-                              className="h-9 w-9 rounded-full object-cover border border-muted"
-                            />
-                          ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                              {manager.name ? manager.name.charAt(0).toUpperCase() : 'M'}
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-bold text-foreground">{manager.name}</div>
-                            <div className="text-xs text-muted-foreground">Showroom Manager</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4 text-muted-foreground">{manager.email}</TableCell>
-                      <TableCell className="py-4 text-muted-foreground">{manager.phone || 'N/A'}</TableCell>
-                      <TableCell className="py-4">
-                        <Badge 
-                          variant={manager.showroomName === 'Not Assigned' ? 'outline' : 'default'}
-                          className={`font-semibold border-none ${
-                            manager.showroomName === 'Not Assigned' 
-                              ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400' 
-                              : 'bg-primary/10 text-primary'
-                          }`}
-                        >
-                          {manager.showroomName}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-4 text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button 
-                            size="icon" 
-                            variant="outline" 
-                            onClick={() => handleEditClick(manager)}
-                            className="h-8 w-8 hover:bg-muted"
-                          >
-                            <Edit className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="outline" 
-                            onClick={() => handleRevokeRole(manager._id)}
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+        <div className="px-4 md:px-0">
+          <Card className="border-muted overflow-hidden">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto md:overflow-visible">
+                <Table className="block md:table">
+                  <TableHeader className="hidden md:table-header-group">
+                    <TableRow>
+                      <TableHead className="font-bold">Name</TableHead>
+                      <TableHead className="font-bold">Email</TableHead>
+                      <TableHead className="font-bold">Phone</TableHead>
+                      <TableHead className="font-bold">Assigned Showroom</TableHead>
+                      <TableHead className="font-bold text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
+                    {managers.map((manager) => (
+                      <TableRow key={manager._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-medium py-2 md:py-4 block md:table-cell text-left">
+                          <div className="flex items-center gap-3">
+                            {manager.image ? (
+                              <img 
+                                src={manager.image} 
+                                alt={manager.name} 
+                                className="h-9 w-9 rounded-full object-cover border border-muted"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                {manager.name ? manager.name.charAt(0).toUpperCase() : 'M'}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-bold text-sm md:text-base text-foreground">{manager.name}</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">Showroom Manager</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-1 md:py-4 text-xs md:text-sm text-muted-foreground block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Email:</span>
+                          {manager.email}
+                        </TableCell>
+                        <TableCell className="py-1 md:py-4 text-xs md:text-sm text-muted-foreground block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Phone:</span>
+                          {manager.phone || 'N/A'}
+                        </TableCell>
+                        <TableCell className="py-1 md:py-4 block md:table-cell text-left">
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Showroom:</span>
+                          <Badge 
+                            variant={manager.showroomName === 'Not Assigned' ? 'outline' : 'default'}
+                            className={`font-semibold border-none text-[10px] ${
+                              manager.showroomName === 'Not Assigned' 
+                                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400' 
+                                : 'bg-primary/10 text-primary'
+                            }`}
+                          >
+                            {manager.showroomName}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 md:py-4 text-left md:text-right block md:table-cell border-t md:border-t-0 mt-2 md:mt-0 pt-2 md:pt-4">
+                          <div className="flex gap-2 justify-start md:justify-end">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleEditClick(manager)}
+                              className="h-8 px-2 hover:bg-muted text-xs flex gap-1 font-bold"
+                            >
+                              <Edit className="h-3.5 w-3.5" /> Edit
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleRevokeRole(manager._id)}
+                              className="h-8 px-2 text-destructive hover:bg-destructive/10 text-xs flex gap-1 font-bold"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Revoke
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Add/Edit Modal */}

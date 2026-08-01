@@ -539,7 +539,7 @@ function ShowroomBillsContent() {
 
       {/* Filter and Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-        <div className="flex items-center justify-between w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0 w-full md:w-auto">
           <h3 className="font-semibold text-lg tracking-tight text-foreground md:hidden">All Invoices</h3>
           {/* Mobile Filter Toggle Button */}
           <div className="block md:hidden">
@@ -693,9 +693,9 @@ function ShowroomBillsContent() {
           <>
             {/* Desktop View */}
             <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
+              <Table className="block md:table">
+                <TableHeader className="hidden md:table-header-group">
+                  <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                     <TableHead>Bill No</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Client Details</TableHead>
@@ -707,10 +707,10 @@ function ShowroomBillsContent() {
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
                   {paginatedBills.map((bill) => (
-                    <TableRow key={bill._id}>
-                      <TableCell>
+                    <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={bill._id}>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                         <button
                           onClick={() => setSelectedBill(bill)}
                           className="font-bold text-primary hover:underline underline-offset-2 flex items-center gap-1 group transition-colors"
@@ -720,23 +720,23 @@ function ShowroomBillsContent() {
                           <Eye className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       </TableCell>
-                      <TableCell>{format(new Date(bill.date), 'dd MMM yyyy')}</TableCell>
-                      <TableCell>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">{format(new Date(bill.date), 'dd MMM yyyy')}</TableCell>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                         <div className="font-medium">{bill.clientName}</div>
                         <div className="text-xs text-muted-foreground">{bill.clientPhone}</div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">৳{bill.gTotal}</TableCell>
-                      <TableCell className="text-right text-green-600">৳{bill.cashIn}</TableCell>
-                      <TableCell className="text-right text-orange-600 font-semibold">৳{bill.currentBillDue}</TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right font-semibold">৳{bill.gTotal}</TableCell>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right text-green-600">৳{bill.cashIn}</TableCell>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right text-orange-600 font-semibold">৳{bill.currentBillDue}</TableCell>
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-center">
                         <Badge variant={bill.status === 'Paid' ? 'default' : 'destructive'} className={bill.status === 'Paid' ? 'bg-green-600 text-white border-none' : ''}>
                           {bill.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center text-xs text-muted-foreground">
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-center text-xs text-muted-foreground">
                         {bill.expectedReceivableDate ? format(new Date(bill.expectedReceivableDate), 'dd MMM yyyy') : '—'}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             variant="ghost"
@@ -821,7 +821,7 @@ function ShowroomBillsContent() {
             <div className="block md:hidden space-y-2 p-1">
               {paginatedBills.map((bill) => (
                 <div key={bill._id} className="p-2.5 border rounded-lg bg-background shadow-sm space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <button
                       onClick={() => setSelectedBill(bill)}
                       className="font-bold text-sm text-primary hover:underline"
@@ -1222,23 +1222,23 @@ function ShowroomBillsContent() {
               />
             </div>
             <div className="border rounded-md overflow-hidden max-h-[50vh] overflow-y-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
+              <Table className="block md:table">
+                <TableHeader className="hidden md:table-header-group">
+                  <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                     <TableHead className="w-12">Select</TableHead>
                     <TableHead>Product</TableHead>
                     <TableHead>Options / Variants</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
                   {products
                     .filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase()))
                     .map((prod) => {
                       const hasVariants = prod.variants && prod.variants.length > 0;
                       return (
-                        <TableRow key={prod._id}>
-                          <TableCell>
+                        <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={prod._id}>
+                          <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                             {!hasVariants && (
                               <Checkbox
                                 checked={selectedProductVariants[prod._id] === null}
@@ -1246,8 +1246,8 @@ function ShowroomBillsContent() {
                               />
                             )}
                           </TableCell>
-                          <TableCell className="font-medium">{prod.name}</TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell py-1.5 md:py-4 text-left font-medium">{prod.name}</TableCell>
+                          <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                             {hasVariants ? (
                               <div className="flex flex-wrap gap-2 py-1">
                                 {prod.variants.map((v: any) => {
@@ -1271,7 +1271,7 @@ function ShowroomBillsContent() {
                               <span className="text-xs text-muted-foreground">Standard Item</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right">
                             {!hasVariants && `৳${prod.salePrice || prod.price}`}
                           </TableCell>
                         </TableRow>
@@ -1280,7 +1280,7 @@ function ShowroomBillsContent() {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex items-center justify-between border-t pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4">
               <span className="text-sm text-muted-foreground">{selectedCount} items selected</span>
               <div className="space-x-2">
                 <Button variant="outline" size="sm" onClick={() => setProductPickerOpen(false)}>Cancel</Button>
@@ -1351,24 +1351,24 @@ function ShowroomBillsContent() {
                     <Package className="h-4 w-4 text-primary-foreground" />
                     <span className="text-sm font-bold text-primary-foreground">Order Items</span>
                   </div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-muted/60 border-b">
-                        <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">#</th>
-                        <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Product / Description</th>
-                        <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">Qty</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Rate (৳)</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Amount (৳)</th>
+                  <table className="block md:table w-full text-sm">
+                    <thead className="hidden md:table-header-group">
+                      <tr className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 bg-muted/60 border-b">
+                        <th className="font-bold text-left px-4 py-2.5 font-semibold text-muted-foreground">#</th>
+                        <th className="font-bold text-left px-4 py-2.5 font-semibold text-muted-foreground">Product / Description</th>
+                        <th className="font-bold text-center px-4 py-2.5 font-semibold text-muted-foreground">Qty</th>
+                        <th className="font-bold text-right px-4 py-2.5 font-semibold text-muted-foreground">Rate (৳)</th>
+                        <th className="font-bold text-right px-4 py-2.5 font-semibold text-muted-foreground">Amount (৳)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0 divide-y">
                       {(selectedBill.items || []).map((item: any, idx: number) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                          <td className="px-4 py-2.5 text-muted-foreground">{idx + 1}</td>
-                          <td className="px-4 py-2.5 font-medium">{item.name}</td>
-                          <td className="px-4 py-2.5 text-center">{item.quantity}</td>
-                          <td className="px-4 py-2.5 text-right">{Math.round(item.price).toLocaleString()}</td>
-                          <td className="px-4 py-2.5 text-right font-semibold">{Math.round(item.price * item.quantity).toLocaleString()}</td>
+                        <tr key={idx} className={`block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 mb-3 md:mb-0 shadow-sm md:shadow-none ${idx % 2 === 0 ? 'bg-white md:bg-background' : 'bg-white md:bg-muted/20'}`}>
+                          <td className="block md:table-cell py-1.5 md:py-4 text-left px-4 py-2.5 text-muted-foreground">{idx + 1}</td>
+                          <td className="block md:table-cell py-1.5 md:py-4 text-left px-4 py-2.5 font-medium">{item.name}</td>
+                          <td className="block md:table-cell py-1.5 md:py-4 text-left px-4 py-2.5 text-center">{item.quantity}</td>
+                          <td className="block md:table-cell py-1.5 md:py-4 text-left px-4 py-2.5 text-right">{Math.round(item.price).toLocaleString()}</td>
+                          <td className="block md:table-cell py-1.5 md:py-4 text-left px-4 py-2.5 text-right font-semibold">{Math.round(item.price * item.quantity).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>

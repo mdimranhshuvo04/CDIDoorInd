@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -97,7 +97,7 @@ export default function BannersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Promotional Banners</h1>
           <p className="text-muted-foreground text-sm">Manage banners appearing in the homepage hero slider</p>
@@ -110,9 +110,9 @@ export default function BannersPage() {
       </div>
 
       <div className="rounded-md border bg-background overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
+        <Table className="block md:table">
+          <TableHeader className="hidden md:table-header-group">
+            <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 bg-muted/50">
               <TableHead className="w-[180px]">Preview</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Order</TableHead>
@@ -122,10 +122,10 @@ export default function BannersPage() {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-40 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading banners...</p>
@@ -133,8 +133,8 @@ export default function BannersPage() {
                 </TableCell>
               </TableRow>
             ) : banners.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-40 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <p className="text-lg font-medium">No banners found</p>
                     <p className="text-sm text-muted-foreground">Add your first promotional banner to get started.</p>
@@ -146,8 +146,8 @@ export default function BannersPage() {
               </TableRow>
             ) : (
               banners.map((banner) => (
-                <TableRow key={banner._id} className="group hover:bg-muted/30 transition-colors">
-                  <TableCell>
+                <TableRow key={banner._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 group hover:bg-muted/30 transition-colors">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="aspect-[21/9] w-full overflow-hidden rounded-md border bg-muted relative">
                       <Image
                         src={banner.image}
@@ -158,15 +158,15 @@ export default function BannersPage() {
                       />
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <span className="font-semibold">{banner.title}</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant="outline" className="font-mono">
                       {banner.order}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <button
                       onClick={() => toggleStatus(banner._id, banner.isActive)}
                       className="transition-opacity hover:opacity-80"
@@ -176,7 +176,7 @@ export default function BannersPage() {
                       </Badge>
                     </button>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium">{banner.primaryBtnText || 'Shop Now'}</span>
                       <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
@@ -184,7 +184,7 @@ export default function BannersPage() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium">{banner.secondaryBtnText || 'Contact'}</span>
                       <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
@@ -192,7 +192,7 @@ export default function BannersPage() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/cms/banners/${banner._id}/edit`}>
                         <Button

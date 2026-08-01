@@ -49,6 +49,7 @@ export default function CouponsPage() {
   const [editingCoupon, setEditingCoupon] = useState<any>(null);
 
   const fetchCoupons = async () => {
+    await Promise.resolve();
     try {
       const response = await fetch('/api/admin/coupons');
       if (response.ok) {
@@ -66,7 +67,10 @@ export default function CouponsPage() {
   };
 
   useEffect(() => {
-    fetchCoupons();
+    const timer = setTimeout(() => {
+      fetchCoupons();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -103,7 +107,7 @@ export default function CouponsPage() {
 
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Coupons</h2>
           <p className="text-muted-foreground">Manage discount codes and promotional offers.</p>
@@ -142,9 +146,9 @@ export default function CouponsPage() {
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
+        <Table className="block md:table">
+          <TableHeader className="hidden md:table-header-group bg-muted/50">
+            <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
               <TableHead className="font-bold">Code</TableHead>
               <TableHead className="font-bold">Discount</TableHead>
               <TableHead className="font-bold">Min Purchase</TableHead>
@@ -154,52 +158,52 @@ export default function CouponsPage() {
               <TableHead className="text-right font-bold">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center">
                   <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                 </TableCell>
               </TableRow>
             ) : filteredCoupons.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
                   No coupons found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredCoupons.map((coupon) => (
-                <TableRow key={coupon._id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell>
+                <TableRow key={coupon._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 hover:bg-muted/30 transition-colors">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-primary" />
                       <span className="font-bold">{coupon.code}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     {coupon.discountType === 'percentage' 
                       ? `${coupon.discountValue}%` 
                       : `৳${coupon.discountValue}`}
                   </TableCell>
-                  <TableCell>৳{coupon.minPurchase}</TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">৳{coupon.minPurchase}</TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex items-center gap-1 text-xs">
                       <Calendar className="h-3 w-3" />
                       {new Date(coupon.expiryDate).toLocaleDateString()}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex items-center gap-1 text-xs">
                       <Users className="h-3 w-3" />
                       {coupon.usedCount} / {coupon.usageLimit || '∞'}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant={coupon.isActive ? "default" : "secondary"}>
                       {coupon.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger 
                         render={

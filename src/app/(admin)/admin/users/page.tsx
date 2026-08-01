@@ -259,23 +259,23 @@ function UsersContent() {
 
   return (
     <div className="flex flex-col gap-6 px-0 py-4 md:p-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter text-slate-900">Users Management</h1>
-          <p className="text-muted-foreground text-sm font-medium">Manage and view all registered customers and staff.</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900">Users Management</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm font-medium">Manage and view all registered customers and staff.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {(isSuperAdmin || (session?.user as any)?.role === 'admin') && (
             <Button 
               onClick={() => setIsAssignAdminOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-6 h-11 shadow-lg shadow-blue-200 border-none transition-all hover:scale-105 active:scale-95"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-4 sm:px-6 h-10 sm:h-11 shadow-lg shadow-blue-200 border-none transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
             >
-              <ShieldCheck className="mr-2 h-4 w-4" />
+              <ShieldCheck className="mr-1.5 sm:mr-2 h-4 w-4" />
               Assign Admin
             </Button>
           )}
-          <div className="bg-primary/10 px-5 py-2.5 rounded-full border border-primary/20">
-            <span className="text-primary font-bold text-sm">{totalCount} Total Users</span>
+          <div className="bg-primary/10 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-primary/20">
+            <span className="text-primary font-bold text-xs sm:text-sm">{totalCount} Total Users</span>
           </div>
         </div>
       </div>
@@ -287,11 +287,12 @@ function UsersContent() {
           placeholder="Search name, email or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 h-11 rounded-xl border bg-white focus-visible:ring-primary/20 shadow-sm"
+          className="pl-9 h-10 sm:h-11 rounded-xl border bg-white focus-visible:ring-primary/20 shadow-sm text-sm"
         />
       </div>
 
-      <div className="rounded-2xl border shadow-sm overflow-hidden bg-white">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-2xl border shadow-sm overflow-hidden bg-white">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
@@ -440,6 +441,146 @@ function UsersContent() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card List View */}
+      <div className="block md:hidden space-y-3">
+        {loading ? (
+          <div className="flex h-32 items-center justify-center bg-white rounded-2xl border border-slate-100 p-6">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground font-medium text-xs">Loading users...</p>
+            </div>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground text-xs bg-white rounded-2xl border border-slate-100">
+            No users found.
+          </div>
+        ) : (
+          users.map((user) => (
+            <div key={user._id} className="bg-white border border-slate-150 rounded-2xl shadow-sm p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {user.image && user.image !== '' ? (
+                    <div className="relative h-10 w-10 rounded-full overflow-hidden border">
+                      <Image 
+                        src={user.image} 
+                        alt={user.name} 
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                      <UserIcon className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div>
+                    <button 
+                      onClick={() => openUserDetails(user)}
+                      className="font-bold text-sm text-slate-900 hover:underline text-left block"
+                    >
+                      {user.name}
+                    </button>
+                    <span className="text-[10px] text-muted-foreground block truncate max-w-[150px]">{user.email}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant={user.role === 'admin' || user.role === 'manager' ? 'default' : 'outline'}
+                    className={`
+                      capitalize px-2 py-0.5 rounded-full font-bold text-[9px] tracking-wider
+                      ${user.role === 'admin' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                      ${user.role === 'manager' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+                    `}
+                  >
+                    {user.role}
+                  </Badge>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">User Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => openUserDetails(user)} className="cursor-pointer">
+                          <Eye className="mr-2 h-4 w-4" /> View Details
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      
+                      <DropdownMenuSeparator />
+                      
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
+                        
+                        {user.role !== 'admin' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateRole(user._id, 'admin')}
+                            className="cursor-pointer text-blue-600 font-bold"
+                          >
+                            <ShieldCheck className="mr-2 h-4 w-4" /> Make Admin
+                          </DropdownMenuItem>
+                        )}
+
+                        {user.role !== 'manager' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateRole(user._id, 'manager')}
+                            className="cursor-pointer text-primary font-bold"
+                          >
+                            <UserCog className="mr-2 h-4 w-4" /> Make Manager
+                          </DropdownMenuItem>
+                        )}
+
+                        {user.role !== 'user' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateRole(user._id, 'user')}
+                            className="cursor-pointer text-slate-600 font-bold"
+                          >
+                            <UserCog className="mr-2 h-4 w-4" /> Make User
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive cursor-pointer font-medium">
+                          <ShieldAlert className="mr-2 h-4 w-4" /> Suspend User
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteUser(user._id, user.name)}
+                          className="text-destructive cursor-pointer font-bold bg-red-50 hover:bg-red-100 mt-1"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete User
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2 mt-2">
+                <div className="text-[10px] text-muted-foreground">
+                  <span>Joined: </span>
+                  <span className="font-semibold text-slate-700">
+                    {new Date(user.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="font-bold text-slate-900 text-xs block">{user.totalOrders} Orders</span>
+                  <span className="text-[10px] text-muted-foreground block font-medium">৳{user.totalSpent.toLocaleString()} spent</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
         {totalPages > 1 && (
           <div className="py-6 border-t bg-white px-6">
             <Pagination 
@@ -454,7 +595,6 @@ function UsersContent() {
             />
           </div>
         )}
-      </div>
 
       {/* User Details Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>

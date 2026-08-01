@@ -96,23 +96,40 @@ export function MobileBottomNavbar() {
             );
           })}
 
-          {/* Cart Item */}
-          <CartDrawer>
-            <div 
-              aria-label="Open cart drawer"
-              role="button"
-              className="flex flex-col items-center justify-center gap-1 min-w-[64px] text-muted-foreground relative cursor-pointer active:scale-95 transition-transform"
-            >
-              <div className="relative">
-                <ShoppingCart className="h-5 w-5 stroke-[1.5]" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-background">
-                    {cartCount}
-                  </span>
-                )}
+          {/* Cart / Add Transaction Item */}
+          {session && ['admin', 'super_admin', 'showroom_manager'].includes((session.user as any)?.role) ? (
+            <>
+              {/* Spacer to keep flex layout intact */}
+              <div className="min-w-[64px]" />
+              {/* Floating Center Button */}
+              <div className="absolute left-1/2 bottom-2 -translate-x-1/2 flex flex-col items-center z-50">
+                <button
+                  onClick={() => setIsTransactionDialogOpen(true)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/95 transition-transform active:scale-90 border-4 border-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  aria-label="Add Transaction"
+                >
+                  <Plus className="h-6 w-6 stroke-[3]" />
+                </button>
               </div>
-            </div>
-          </CartDrawer>
+            </>
+          ) : (
+            <CartDrawer>
+              <button 
+                type="button"
+                aria-label="Open cart drawer"
+                className="flex flex-col items-center justify-center gap-1 min-w-[64px] text-muted-foreground relative cursor-pointer active:scale-95 transition-transform border-none bg-transparent"
+              >
+                <div className="relative">
+                  <ShoppingCart className="h-5 w-5 stroke-[1.5]" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-background">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </button>
+            </CartDrawer>
+          )}
 
           {/* Search Item */}
           <button

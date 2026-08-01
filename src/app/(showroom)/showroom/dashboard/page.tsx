@@ -6,7 +6,7 @@ import {
   ShoppingBag, DollarSign, TrendingUp, Package,
   Loader2, AlertTriangle, ArrowRight, Store,
   Clock, Users, Wallet, Landmark, ArrowUpRight,
-  ArrowDownLeft, CalendarClock, Filter
+  ArrowDownLeft, CalendarClock, Filter, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,7 +70,7 @@ const CustomTooltip = ({ active, payload, label, activeChart }: any) => {
   }
 
   return (
-    <div className="bg-background/95 backdrop-blur-md border rounded-xl shadow-xl p-4 min-w-[200px] text-xs space-y-2 z-50">
+    <div className="bg-background/95 backdrop-blur-md border rounded-xl shadow-xl p-4 min-w-[200px] text-xs space-y-2 z-50 pointer-events-none select-none">
       <div className="border-b pb-1.5">
         <p className="font-bold text-sm text-foreground">{dateStr}</p>
       </div>
@@ -88,6 +88,7 @@ export default function ShowroomDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("revenue");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Date filter state
   const [dateRange, setDateRange] = useState({
@@ -154,7 +155,17 @@ export default function ShowroomDashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
+    let isMounted = true;
+    const loadData = async () => {
+      await Promise.resolve();
+      if (isMounted) {
+        fetchStats();
+      }
+    };
+    loadData();
+    return () => {
+      isMounted = false;
+    };
   }, [debouncedDateRange]);
 
   useEffect(() => {
@@ -262,7 +273,7 @@ export default function ShowroomDashboard() {
   return (
     <div className="flex-1 space-y-6 px-0 py-6 md:p-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2 md:px-0">
+      <div className="flex flex-row items-center justify-between gap-4 px-2 md:px-0">
         <div>
           <div className="flex items-center gap-2">
             <Store className="h-5 w-5 text-primary" />
@@ -272,21 +283,21 @@ export default function ShowroomDashboard() {
             স্বাগতম, {session?.user?.name}! এখানে আপনার শো-রুমের সামারি দেখুন।
           </p>
           {data?.showroom?.address && (
-            <p className="text-xs text-muted-foreground">{data.showroom.address}</p>
+            <p className="text-xs text-muted-foreground hidden md:block">{data.showroom.address}</p>
           )}
         </div>
 
-        {/* Date Filter & Refresh */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border w-full sm:w-auto">
+        {/* Desktop Controls */}
+        <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
             <div className="flex items-center gap-1 px-2 shrink-0">
               <Filter className="h-3 w-3 text-muted-foreground" />
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Range</span>
             </div>
-            <div className="flex items-center gap-1 flex-1 sm:flex-initial">
+            <div className="flex items-center gap-1">
               <Input
                 type="date"
-                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
+                className="h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
                 value={dateRange.from}
                 onChange={(e) => handleDateChange('from', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
@@ -294,92 +305,146 @@ export default function ShowroomDashboard() {
               <span className="text-muted-foreground text-[10px] shrink-0">to</span>
               <Input
                 type="date"
-                className="h-8 w-full sm:w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
+                className="h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
                 value={dateRange.to}
                 onChange={(e) => handleDateChange('to', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
               />
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchStats} className="h-10 px-4 w-full sm:w-auto font-bold">
+          <Button variant="outline" size="sm" onClick={fetchStats} className="h-10 px-4 font-bold">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+          </Button>
+        </div>
+
+        {/* Mobile controls toggle */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Button variant="outline" size="sm" onClick={fetchStats} className="h-9 px-3">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
+          >
+            <Filter className="mr-1.5 h-4 w-4" />
+            <span className="text-xs font-bold">Filter</span>
           </Button>
         </div>
       </div>
 
+      {/* Collapsible Mobile Filters Wrapper (Smooth transition like income-expense) */}
+      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full px-2 ${
+        showMobileFilters 
+          ? 'grid-rows-[1fr] opacity-100 mt-2 visible' 
+          : 'grid-rows-[0fr] opacity-0 invisible h-0'
+      }`}>
+        <div className="overflow-hidden w-full">
+          <div className="bg-muted/30 p-3 rounded-lg border flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground border-b pb-1">
+              <span>DATE FILTER</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <span className="text-[10px] text-muted-foreground font-semibold">From</span>
+                <Input
+                  type="date"
+                  className="h-9 w-full bg-background text-xs"
+                  value={dateRange.from}
+                  onChange={(e) => handleDateChange('from', e.target.value)}
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] text-muted-foreground font-semibold">To</span>
+                <Input
+                  type="date"
+                  className="h-9 w-full bg-background text-xs"
+                  value={dateRange.to}
+                  onChange={(e) => handleDateChange('to', e.target.value)}
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Unified Operational & Financial Cards */}
-      <div className="grid gap-2 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-2 md:px-0">
+      <div className="grid gap-2 md:gap-4 grid-cols-3 px-2 md:px-0">
         {/* Pending Orders Card */}
         <Link href="/showroom/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-orange-500/5 border-orange-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Pending Orders</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+          <Card className="bg-orange-500/5 border-orange-500/10 border-l-2 border-l-orange-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Pending Orders</CardTitle>
+              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Requires attention</p>
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Requires attention</p>
             </CardContent>
           </Card>
         </Link>
 
         {/* Total Customers Card */}
-        <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
-          <Card className="bg-blue-500/5 border-blue-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Total Customers</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
+        <div className="block cursor-default">
+          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Total Customers</CardTitle>
+              <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-blue-700">{stats?.totalUsers || 0}</div>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Across all time</p>
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-blue-700">{stats?.totalUsers || 0}</div>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Across all time</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Cash Balance */}
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-emerald-500/5 border-emerald-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Cash Balance</CardTitle>
-              <Wallet className="h-4 w-4 text-emerald-600" />
+          <Card className="bg-emerald-500/5 border-emerald-500/10 border-l-2 border-l-emerald-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Cash Balance</CardTitle>
+              <Wallet className="h-3.5 w-3.5 md:h-4 md:w-4 text-emerald-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-emerald-700">
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-emerald-700">
                 {fmt(stats?.cashBalance || 0)}
               </div>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Showroom vault cash</p>
             </CardContent>
           </Card>
         </Link>
 
         {/* Bank Balance */}
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-indigo-500/5 border-indigo-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Bank Balance</CardTitle>
-              <Landmark className="h-4 w-4 text-indigo-600" />
+          <Card className="bg-indigo-500/5 border-indigo-500/10 border-l-2 border-l-indigo-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Bank Balance</CardTitle>
+              <Landmark className="h-3.5 w-3.5 md:h-4 md:w-4 text-indigo-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-indigo-700">
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-indigo-700">
                 {fmt(stats?.bankBalance || 0)}
               </div>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Liquid bank accounts</p>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Liquid bank accounts</p>
             </CardContent>
           </Card>
         </Link>
 
         {/* Account Receivable */}
-        <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
-          <Card className="bg-blue-500/5 border-blue-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Accounts Receivable</CardTitle>
-              <ArrowUpRight className="h-4 w-4 text-blue-600" />
+        <div className="block cursor-default">
+          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Receivable</CardTitle>
+              <ArrowUpRight className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-blue-700">
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-blue-700">
                 {fmt(stats?.accountReceivable || 0)}
               </div>
-              <div className="flex items-center gap-1 mt-1 text-[10px] md:text-xs font-semibold text-rose-600">
+              <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-rose-600 truncate">
                 <span>Matured: {fmt(stats?.maturedReceivable || 0)}</span>
               </div>
             </CardContent>
@@ -387,17 +452,17 @@ export default function ShowroomDashboard() {
         </div>
 
         {/* Supplier Account Payable */}
-        <div className="block transition-transform hover:scale-[1.02] active:scale-95 cursor-default">
-          <Card className="bg-amber-500/5 border-amber-500/20 relative overflow-hidden group h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-2 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Accounts Payable</CardTitle>
-              <ArrowDownLeft className="h-4 w-4 text-amber-600" />
+        <div className="block cursor-default">
+          <Card className="bg-amber-500/5 border-amber-500/10 border-l-2 border-l-amber-500 relative overflow-hidden group h-full shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Payable</CardTitle>
+              <ArrowDownLeft className="h-3.5 w-3.5 md:h-4 md:w-4 text-amber-600 shrink-0" />
             </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold text-amber-700">
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-amber-700">
                 N/A
               </div>
-              <div className="flex items-center gap-1 mt-1 text-[10px] md:text-xs font-semibold text-red-600">
+              <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-red-600 truncate">
                 <span>Matured: N/A</span>
               </div>
             </CardContent>
@@ -417,10 +482,10 @@ export default function ShowroomDashboard() {
                 <button
                   key={key}
                   data-active={activeChart === key}
-                  className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-muted/50 sm:border-l sm:border-r-0 transition-colors"
+                  className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-primary data-[active=true]:text-white sm:border-l sm:border-r-0 transition-colors group"
                   onClick={() => setActiveChart(key as any)}
                 >
-                  <span className="text-[9px] sm:text-xs text-muted-foreground whitespace-nowrap">
+                  <span className="text-[9px] sm:text-xs text-muted-foreground group-data-[active=true]:text-white/80 whitespace-nowrap">
                     {chartConfig[key].label}
                   </span>
                   <span className="text-xs sm:text-base md:text-2xl leading-none font-bold">
@@ -466,6 +531,7 @@ export default function ShowroomDashboard() {
                 <Tooltip
                   cursor={{ strokeDasharray: '3 3', opacity: 0.5 }}
                   content={<CustomTooltip activeChart={activeChart} />}
+                  isAnimationActive={false}
                 />
                 <ReferenceLine
                   y={total[activeChart] / (processedChartData?.length || 1)}

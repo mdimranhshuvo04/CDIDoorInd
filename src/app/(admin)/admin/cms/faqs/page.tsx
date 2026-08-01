@@ -96,7 +96,7 @@ export default function FAQsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">FAQ Management</h1>
           <p className="text-muted-foreground text-sm">Manage frequently asked questions for the storefront</p>
@@ -109,19 +109,19 @@ export default function FAQsPage() {
       </div>
 
       <div className="rounded-md border bg-background overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
+        <Table className="block md:table">
+          <TableHeader className="hidden md:table-header-group bg-muted/50">
+            <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
               <TableHead className="w-[400px]">Question</TableHead>
               <TableHead>Order</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={4} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading FAQs...</p>
@@ -129,8 +129,8 @@ export default function FAQsPage() {
                 </TableCell>
               </TableRow>
             ) : faqs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                <TableCell colSpan={4} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <p className="text-lg font-medium">No FAQs found</p>
                     <p className="text-sm text-muted-foreground">Add your first FAQ to get started.</p>
@@ -142,16 +142,16 @@ export default function FAQsPage() {
               </TableRow>
             ) : (
               faqs.map((faq) => (
-                <TableRow key={faq._id} className="group hover:bg-muted/30 transition-colors">
-                  <TableCell>
+                <TableRow key={faq._id} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 group hover:bg-muted/30 transition-colors">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <span className="font-semibold line-clamp-2">{faq.question}</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant="outline" className="font-mono">
                       {faq.order}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <button 
                       onClick={() => toggleStatus(faq._id, faq.isActive)}
                       className="transition-opacity hover:opacity-80"
@@ -161,7 +161,7 @@ export default function FAQsPage() {
                       </Badge>
                     </button>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/cms/faqs/${faq._id}/edit`}>
                         <Button 

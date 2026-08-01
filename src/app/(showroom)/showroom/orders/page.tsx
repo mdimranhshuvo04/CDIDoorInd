@@ -207,9 +207,9 @@ function ShowroomOrdersContent() {
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
         {/* Desktop View */}
         <div className="hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
+          <Table className="block md:table">
+            <TableHeader className="hidden md:table-header-group">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
@@ -219,41 +219,41 @@ function ShowroomOrdersContent() {
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                   </TableCell>
                 </TableRow>
               ) : orders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
                     No orders found.
                   </TableCell>
                 </TableRow>
               ) : (
                 orders.map((order) => (
-                  <TableRow key={order._id}>
-                    <TableCell className="font-bold text-xs">#{order.shortId}</TableCell>
-                    <TableCell>
+                  <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={order._id}>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left font-bold text-xs">#{order.shortId}</TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <div className="font-semibold text-sm">{order.shippingAddress?.fullName}</div>
                       <div className="text-xs text-muted-foreground">{order.shippingAddress?.phone}</div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-xs text-muted-foreground">
                       {order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <div className="text-xs font-semibold">{order.paymentMethod}</div>
                       <Badge variant={order.paymentStatus === 'Paid' ? 'default' : 'secondary'} className="text-[10px] scale-90 -ml-1">
                         {order.paymentStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-right font-extrabold text-sm text-primary">
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">{getStatusBadge(order.status)}</TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right font-extrabold text-sm text-primary">
                       ৳{Math.round(order.totalAmount)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Button 
                           variant="ghost" 

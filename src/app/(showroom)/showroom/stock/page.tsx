@@ -70,7 +70,7 @@ function ShowroomStockContent() {
   return (
     <div className="flex-1 space-y-6 py-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0 gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Stock</h2>
           <p className="text-muted-foreground text-xs md:text-sm">
@@ -96,9 +96,9 @@ function ShowroomStockContent() {
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
         {/* Desktop View */}
         <div className="hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
+          <Table className="block md:table">
+            <TableHeader className="hidden md:table-header-group">
+              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableHead className="w-[80px]">Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>SKU</TableHead>
@@ -107,23 +107,23 @@ function ShowroomStockContent() {
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                   </TableCell>
                 </TableRow>
               ) : products.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
                     No products found in this showroom.
                   </TableCell>
                 </TableRow>
               ) : (
                 products.map((product) => (
-                  <TableRow key={product._id}>
-                    <TableCell>
+                  <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={product._id}>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <div className="h-12 w-12 overflow-hidden rounded-md border bg-muted">
                         {product.images && product.images.length > 0 ? (
                           <img
@@ -138,7 +138,7 @@ function ShowroomStockContent() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium max-w-[300px] truncate">
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left font-medium max-w-[300px] truncate">
                       <Link
                         href={`/product/${product.slug}`}
                         target="_blank"
@@ -147,8 +147,8 @@ function ShowroomStockContent() {
                         {product.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="font-medium text-xs text-muted-foreground">{product.sku}</TableCell>
-                    <TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left font-medium text-xs text-muted-foreground">{product.sku}</TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <div className="flex flex-col">
                         <span className={product.salePrice ? 'text-xs line-through text-muted-foreground' : 'font-semibold'}>
                           ৳{product.price ? Math.round(product.price) : '0'}
@@ -160,12 +160,12 @@ function ShowroomStockContent() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <span className={`font-bold text-sm ${(product.stock ?? 0) <= 5 ? 'text-destructive' : 'text-primary'}`}>
                         {product.stock ?? 0}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                       <Badge variant={product.isPublished ? 'default' : 'secondary'} className="text-[10px] font-bold">
                         {product.isPublished ? 'Live' : 'Draft'}
                       </Badge>
