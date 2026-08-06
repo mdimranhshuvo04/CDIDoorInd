@@ -106,7 +106,7 @@ export const proxy = auth(async (req) => {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
-    if (role !== "employee") {
+    if (!role || !['employee', 'showroom_manager', 'manager'].includes(role)) {
       if (role === "admin" || role === "super_admin" || role === "manager") {
         return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
       }

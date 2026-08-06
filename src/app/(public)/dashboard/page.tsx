@@ -49,7 +49,7 @@ export default function OrdersPage() {
       try {
         const userRole = (session?.user as any)?.role;
 
-        if (userRole === 'employee') {
+        if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
           const [settingsRes, profileRes, attRes, taskRes] = await Promise.all([
             fetch('/api/settings'),
             fetch('/api/user/profile'),
@@ -183,7 +183,7 @@ export default function OrdersPage() {
 
   const userRole = (session?.user as any)?.role;
 
-  if (userRole === 'employee') {
+  if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
     const totalPresent = attendance.filter(a => ['Present', 'Late'].includes(a.status)).length;
     const totalLate = attendance.filter(a => a.status === 'Late').length;
 
@@ -192,74 +192,9 @@ export default function OrdersPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black tracking-tight">Attendance Center</h1>
-            <p className="text-sm text-muted-foreground mt-1">Log your daily work hours and check your attendance records.</p>
+            <p className="text-sm text-muted-foreground mt-1">View your work records and attendance history here.</p>
           </div>
         </div>
-
-        {/* Check In / Out Card */}
-        <Card className="border border-zinc-200 shadow-sm overflow-hidden">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              <div className="space-y-3">
-                <div className="text-sm text-zinc-400 font-bold uppercase tracking-wider">Today's Work Log</div>
-                <div className="text-3xl font-black text-zinc-800">
-                  {todayAtt ? (
-                    todayAtt.checkOut ? 'Shift Completed' : 'Currently Checked In'
-                  ) : (
-                    'Not Checked In Yet'
-                  )}
-                </div>
-                <div className="text-sm text-zinc-500">
-                  {todayAtt?.checkIn && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-zinc-700">Checked In:</span>
-                      <span>{new Date(todayAtt.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      {todayAtt.status === 'Late' && (
-                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 font-bold border-amber-200">Late Check-in</Badge>
-                      )}
-                    </div>
-                  )}
-                  {todayAtt?.checkOut && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-zinc-700">Checked Out:</span>
-                      <span>{new Date(todayAtt.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3.5">
-                {!todayAtt && (
-                  <Button
-                    onClick={() => handleCheckInOut('check-in')}
-                    disabled={checkingInOut}
-                    className="bg-primary text-primary-foreground font-black px-8 py-6 text-base shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2"
-                  >
-                    Check In
-                  </Button>
-                )}
-                {todayAtt && !todayAtt.checkOut && (
-                  <Button
-                    onClick={() => handleCheckInOut('check-out')}
-                    disabled={checkingInOut}
-                    variant="outline"
-                    className="border-zinc-200 text-zinc-800 font-black px-8 py-6 text-base shadow-sm flex items-center gap-2"
-                  >
-                    Check Out
-                  </Button>
-                )}
-                {todayAtt?.checkOut && (
-                  <Button
-                    disabled
-                    className="bg-zinc-100 text-zinc-400 font-black px-8 py-6 text-base cursor-not-allowed flex items-center gap-2"
-                  >
-                    Shift Ended
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

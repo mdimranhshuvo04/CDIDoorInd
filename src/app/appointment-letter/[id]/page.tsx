@@ -143,7 +143,7 @@ export default function AppointmentLetterPage() {
               {employee.employeeType === 'monthly' ? (
                 <span> You will be paid a base monthly salary of <strong>{employee.baseSalary?.toLocaleString()} Tk/Month</strong>, subject to statutory deductions. Payments are made on a monthly schedule.</span>
               ) : (
-                <span> You will be compensated on a task-based rate of <strong>{employee.taskRate?.toLocaleString()} Tk per assigned task</strong>. No fixed monthly salary will be paid, and earnings depend purely on successfully assigned and completed tasks.</span>
+                 <span> You will be compensated on a per-task basis as agreed upon for each assigned task. No fixed monthly salary will be paid, and earnings depend purely on successfully assigned and completed tasks.</span>
               )}
             </li>
             <li>

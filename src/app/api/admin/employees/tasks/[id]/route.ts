@@ -33,7 +33,7 @@ export async function PATCH(
     const body = await req.json();
     const { status } = body;
 
-    if (userRole === 'employee') {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
       // Employees can only mark their own task as completed
       if (task.employee.toString() !== userId.toString()) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

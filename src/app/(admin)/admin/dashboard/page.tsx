@@ -29,7 +29,8 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   CalendarClock,
-  RefreshCw
+  RefreshCw,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -156,6 +157,7 @@ export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("revenue");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'cards' | 'charts'>('cards');
 
   // Date filter state
   const [dateRange, setDateRange] = useState({
@@ -431,105 +433,310 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-2 sm:gap-4 grid-cols-3">
+      {/* Mobile Tabs (only visible on mobile) */}
+      <div className="flex md:hidden border border-muted/50 bg-muted/20 rounded-lg p-0.5 mt-2 gap-1">
+        <button
+          onClick={() => setMobileTab('cards')}
+          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${
+            mobileTab === 'cards'
+              ? 'bg-primary text-white shadow'
+              : 'text-muted-foreground hover:bg-muted/50'
+          }`}
+        >
+          Overview Cards
+        </button>
+        <button
+          onClick={() => setMobileTab('charts')}
+          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${
+            mobileTab === 'charts'
+              ? 'bg-primary text-white shadow'
+              : 'text-muted-foreground hover:bg-muted/50'
+          }`}
+        >
+          Detailed Trends & Reports
+        </button>
+      </div>
+
+      <div className={`grid gap-2 sm:gap-4 grid-cols-3 ${mobileTab === 'cards' ? 'grid' : 'hidden md:grid'}`}>
         {/* Pending Orders Card */}
         <Link href="/admin/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-orange-500/5 border-orange-500/10 border-l-2 border-l-orange-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Pending Orders</CardTitle>
-              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Requires attention</p>
-            </CardContent>
+          <Card className="bg-orange-500/5 border-orange-500/10 border-l-2 border-l-orange-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-orange-700 leading-none">
+                  {stats?.pendingOrdersCount || 0}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Pending Orders
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Pending Orders</CardTitle>
+                <Clock className="h-4 w-4 text-orange-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Requires attention</p>
+              </CardContent>
+            </div>
           </Card>
         </Link>
 
         {/* Total Customers Card */}
         <Link href="/admin/users" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Total Customers</CardTitle>
-              <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-blue-700">{stats?.totalUsers || 0}</div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Across all time</p>
-            </CardContent>
+          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-blue-700 leading-none">
+                  {stats?.totalUsers || 0}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Total Customers
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Total Customers</CardTitle>
+                <Users className="h-4 w-4 text-blue-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-blue-700">{stats?.totalUsers || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Across all time</p>
+              </CardContent>
+            </div>
           </Card>
         </Link>
 
         {/* Cash Balance */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-emerald-500/5 border-emerald-500/10 border-l-2 border-l-emerald-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Cash Balance</CardTitle>
-              <Wallet className="h-3.5 w-3.5 md:h-4 md:w-4 text-emerald-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-emerald-700">
-                ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
+          <Card className="bg-emerald-500/5 border-emerald-500/10 border-l-2 border-l-emerald-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-emerald-700 leading-none">
+                  ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
+                </span>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Physical cash on hand</p>
-            </CardContent>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Cash Balance
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Cash Balance</CardTitle>
+                <Wallet className="h-4 w-4 text-emerald-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-emerald-700">
+                  ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Physical cash on hand</p>
+              </CardContent>
+            </div>
           </Card>
         </Link>
 
         {/* Bank Balance */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-indigo-500/5 border-indigo-500/10 border-l-2 border-l-indigo-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Bank Balance</CardTitle>
-              <Landmark className="h-3.5 w-3.5 md:h-4 md:w-4 text-indigo-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-indigo-700">
-                ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
+          <Card className="bg-indigo-500/5 border-indigo-500/10 border-l-2 border-l-indigo-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-indigo-700 leading-none">
+                  ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
+                </span>
               </div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Liquid bank accounts</p>
-            </CardContent>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Bank Balance
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Bank Balance</CardTitle>
+                <Landmark className="h-4 w-4 text-indigo-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-indigo-700">
+                  ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Liquid bank accounts</p>
+              </CardContent>
+            </div>
           </Card>
         </Link>
 
         {/* Account Receivable */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Receivable</CardTitle>
-              <ArrowUpRight className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-blue-700">
-                ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
+          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex flex-col justify-center items-center gap-0.5">
+                <span className="text-sm font-black text-blue-700 leading-none">
+                  ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
+                </span>
+                <div className="text-[9px] font-bold text-rose-600 leading-none">
+                  Matured: ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}
+                </div>
               </div>
-              <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-rose-600 truncate">
-                <span>Matured: ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}</span>
-              </div>
-            </CardContent>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Accounts Receivable
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Accounts Receivable</CardTitle>
+                <ArrowUpRight className="h-4 w-4 text-blue-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-blue-700">
+                  ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
+                </div>
+                <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-rose-600 truncate">
+                  <span>Matured: ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </div>
           </Card>
         </Link>
 
         {/* Supplier Account Payable */}
         <Link href="/admin/supplier-bills" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-amber-500/5 border-amber-500/10 border-l-2 border-l-amber-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Payable</CardTitle>
-              <ArrowDownLeft className="h-3.5 w-3.5 md:h-4 md:w-4 text-amber-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-amber-700">
-                ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
+          <Card className="bg-amber-500/5 border-amber-500/10 border-l-2 border-l-amber-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex flex-col justify-center items-center gap-0.5">
+                <span className="text-sm font-black text-amber-700 leading-none">
+                  ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
+                </span>
+                <div className="text-[9px] font-bold text-red-600 leading-none">
+                  Matured: ৳{Math.round(stats?.maturedPayable || 0).toLocaleString()}
+                </div>
               </div>
-              <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-red-600 truncate">
-                <span>Matured: ৳{Math.round(stats?.maturedPayable || 0).toLocaleString()}</span>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Accounts Payable
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Accounts Payable</CardTitle>
+                <ArrowDownLeft className="h-4 w-4 text-amber-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-amber-700">
+                  ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
+                </div>
+                <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-600 truncate">
+                  <span>Matured: ৳{Math.round(stats?.maturedPayable || 0).toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </div>
+          </Card>
+        </Link>
+
+        {/* Permanent Salary Payable */}
+        <Link href="/admin/employees/salaries" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-purple-500/5 border-purple-500/10 border-l-2 border-l-purple-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-purple-700 leading-none">
+                  ৳{Math.round(stats?.permanentSalaryPayable || 0).toLocaleString()}
+                </span>
               </div>
-            </CardContent>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Salary Payable
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Salary Payable</CardTitle>
+                <DollarSign className="h-4 w-4 text-purple-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-purple-700">
+                  ৳{Math.round(stats?.permanentSalaryPayable || 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Monthly staff salaries</p>
+              </CardContent>
+            </div>
+          </Card>
+        </Link>
+
+        {/* Temporary Wages Payable */}
+        <Link href="/admin/employees/tasks" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-rose-500/5 border-rose-500/10 border-l-2 border-l-rose-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-rose-700 leading-none">
+                  ৳{Math.round(stats?.temporaryWagesPayable || 0).toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Wages Payable
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Wages Payable</CardTitle>
+                <Receipt className="h-4 w-4 text-rose-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-rose-700">
+                  ৳{Math.round(stats?.temporaryWagesPayable || 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Completed tasks unpaid</p>
+              </CardContent>
+            </div>
+          </Card>
+        </Link>
+
+        {/* Running Assigned Tasks */}
+        <Link href="/admin/employees/tasks" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <Card className="bg-sky-500/5 border-sky-500/10 border-l-2 border-l-sky-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+            {/* Mobile Layout */}
+            <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-sm font-black text-sky-700 leading-none">
+                  {stats?.runningAssignedTasks || 0}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
+                Running Tasks
+              </span>
+            </div>
+            {/* Desktop Layout */}
+            <div className="hidden sm:block">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+                <CardTitle className="text-sm font-semibold leading-tight">Running Tasks</CardTitle>
+                <Briefcase className="h-4 w-4 text-sky-600 shrink-0" />
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="text-lg md:text-2xl font-extrabold text-sky-700">
+                  {stats?.runningAssignedTasks || 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">Active pending tasks</p>
+              </CardContent>
+            </div>
           </Card>
         </Link>
       </div>
 
-      <div className="grid gap-4 grid-cols-1">
+      <div className={mobileTab === 'charts' ? 'space-y-6 block' : 'space-y-6 hidden md:block'}>
+        <div className="grid gap-4 grid-cols-1">
         {/* Interactive Chart */}
         <Card className="col-span-full">
           <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
@@ -537,7 +744,7 @@ export default function AdminDashboard() {
               <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
 
             </div>
-            <div className="flex w-full border-t sm:border-t-0">
+            <div className="flex w-full border-t sm:border-t-0 sm:w-auto sm:ml-auto">
               {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
                 <button
                   key={key}
@@ -865,6 +1072,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
-  );
+  </div>
+);
 }
 

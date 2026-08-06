@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
 import EmployeeProfile from '@/models/EmployeeProfile';
+import SalaryDisbursement from '@/models/SalaryDisbursement';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,8 +17,8 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
-    // Find all users with role 'employee'
-    const users = await User.find({ role: 'employee' }).sort({ createdAt: -1 });
+    // Find all users with role 'employee', 'showroom_manager', or 'manager'
+    const users = await User.find({ role: { $in: ['employee', 'showroom_manager', 'manager'] } }).sort({ createdAt: -1 });
 
     // Find all employee profiles
     const profiles = await EmployeeProfile.find({
@@ -28,6 +29,26 @@ export async function GET(req: NextRequest) {
     const profileMap = new Map();
     profiles.forEach((p) => {
       profileMap.set(p.user.toString(), p);
+    });
+
+    // Aggregate total earned (SalaryDisbursement) per employee
+    const disbursements = await SalaryDisbursement.aggregate([
+      {
+        $match: {
+          employee: { $in: users.map((u) => u._id) }
+        }
+      },
+      {
+        $group: {
+          _id: '$employee',
+          totalEarned: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const earnedMap = new Map();
+    disbursements.forEach((d) => {
+      earnedMap.set(d._id.toString(), d.totalEarned);
     });
 
     const employees = users.map((user) => {
@@ -41,7 +62,6 @@ export async function GET(req: NextRequest) {
         isActive: user.lastActive ? true : false,
         employeeType: profile?.employeeType || 'monthly',
         baseSalary: profile?.baseSalary || 0,
-        taskRate: profile?.taskRate || 0,
         weekendDays: profile?.weekendDays || ['Friday'],
         allowedAbsents: profile?.allowedAbsents ?? 1,
         absentDeductionRate: profile?.absentDeductionRate || 0,
@@ -49,7 +69,9 @@ export async function GET(req: NextRequest) {
         allowance: profile?.allowance || 0,
         deduction: profile?.deduction || 0,
         appointmentLetter: profile?.appointmentLetter || '',
-        joinedDate: profile?.joinedDate || user.createdAt
+        joinedDate: profile?.joinedDate || user.createdAt,
+        status: profile?.status || 'active',
+        totalEarned: earnedMap.get(user._id.toString()) || 0
       };
     });
 
@@ -71,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { 
-      name, email, password, phone, image, employeeType, taskRate, appointmentLetter, joinedDate, userId,
+      name, email, password, phone, image, employeeType, appointmentLetter, joinedDate, userId,
       weekendDays, allowedAbsents, absentDeductionRate, basicSalary, allowance, deduction
     } = body;
 
@@ -122,7 +144,6 @@ export async function POST(req: NextRequest) {
         user: user._id,
         employeeType: employeeType || 'monthly',
         baseSalary: computedBaseSalary,
-        taskRate: taskRate ? Number(taskRate) : 0,
         weekendDays: weekendDays || ['Friday'],
         allowedAbsents: allowedAbsents !== undefined ? Number(allowedAbsents) : 1,
         absentDeductionRate: absentDeductionRate ? Number(absentDeductionRate) : 0,
@@ -135,7 +156,6 @@ export async function POST(req: NextRequest) {
     } else {
       profile.employeeType = employeeType || 'monthly';
       profile.baseSalary = computedBaseSalary;
-      profile.taskRate = taskRate ? Number(taskRate) : 0;
       profile.weekendDays = weekendDays || ['Friday'];
       profile.allowedAbsents = allowedAbsents !== undefined ? Number(allowedAbsents) : 1;
       profile.absentDeductionRate = absentDeductionRate ? Number(absentDeductionRate) : 0;
@@ -157,7 +177,6 @@ export async function POST(req: NextRequest) {
         image: user.image,
         employeeType: profile.employeeType,
         baseSalary: profile.baseSalary,
-        taskRate: profile.taskRate,
         weekendDays: profile.weekendDays,
         allowedAbsents: profile.allowedAbsents,
         absentDeductionRate: profile.absentDeductionRate,
@@ -165,7 +184,8 @@ export async function POST(req: NextRequest) {
         allowance: profile.allowance,
         deduction: profile.deduction,
         appointmentLetter: profile.appointmentLetter,
-        joinedDate: profile.joinedDate
+        joinedDate: profile.joinedDate,
+        status: profile.status
       }
     });
   } catch (error: any) {

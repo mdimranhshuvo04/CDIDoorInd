@@ -336,9 +336,9 @@ export async function GET(req: NextRequest) {
       return sum + outstanding;
     }, 0);
 
-    const today = new Date();
+    const todayDate = new Date();
     const maturedReceivableRaw = creditOrders.reduce((sum: number, o: any) => {
-      if (o.expectedPaymentDate && new Date(o.expectedPaymentDate) < today) {
+      if (o.expectedPaymentDate && new Date(o.expectedPaymentDate) < todayDate) {
         const outstanding = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
         return sum + outstanding;
       }
@@ -358,6 +358,134 @@ export async function GET(req: NextRequest) {
     const maturedReceivable = Math.min(maturedReceivableRaw, accountReceivable);
     const supplierPayable = apAccount ? apAccount.currentBalance : 0;
     const maturedPayable = null; // Set to null as supplier due-date data is unavailable
+
+    // Fetch employee dashboard stats
+    const EmployeeProfile = (await import('@/models/EmployeeProfile')).default;
+    const Task = (await import('@/models/Task')).default;
+    const Attendance = (await import('@/models/Attendance')).default;
+    const SalaryDisbursement = (await import('@/models/SalaryDisbursement')).default;
+
+    const prevMonthDate = new Date(todayDate.getFullYear(), todayDate.getMonth() - 1, 1);
+    const prevYear = prevMonthDate.getFullYear();
+    const prevMonthIdx = prevMonthDate.getMonth();
+    const prevMonthStart = new Date(Date.UTC(prevYear, prevMonthIdx, 1, 0, 0, 0, 0));
+    const prevMonthEnd = new Date(Date.UTC(prevYear, prevMonthIdx + 1, 0, 23, 59, 59, 999));
+    const totalDaysInPrevMonth = new Date(prevYear, prevMonthIdx + 1, 0).getDate();
+    const prevMonthStartStr = prevMonthStart.toLocaleDateString('sv').split('T')[0];
+    const prevMonthEndStr = prevMonthEnd.toLocaleDateString('sv').split('T')[0];
+    const prevMonthPeriod = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+    const employeeProfiles = await EmployeeProfile.find().lean() as any[];
+    const tasksList = await Task.find().lean() as any[];
+
+    // Calculate permanent/monthly employee salary payable
+    const monthlyProfiles = employeeProfiles.filter(p => p.employeeType === 'monthly' && p.status !== 'discontinued');
+    const monthlyUserIds = monthlyProfiles.map(p => p.user?.toString()).filter(Boolean);
+
+    // Filter Attendance and SalaryDisbursement queries by date and relevant employee identifiers
+    const attendanceList = await Attendance.find({
+      employee: { $in: monthlyUserIds },
+      date: { $gte: prevMonthStartStr, $lte: prevMonthEndStr }
+    }).lean() as any[];
+
+    const disbursementsList = await SalaryDisbursement.find({
+      employee: { $in: monthlyUserIds },
+      type: 'monthly_salary',
+      $or: [
+        { period: prevMonthPeriod },
+        { date: { $gte: prevMonthStart, $lte: prevMonthEnd } }
+      ]
+    }).lean() as any[];
+
+    // Build Map indexes keyed by employee identifier
+    const attendanceMap = new Map<string, any[]>();
+    for (const att of attendanceList) {
+      const empId = att.employee?._id?.toString() || att.employee?.toString();
+      if (empId) {
+        if (!attendanceMap.has(empId)) {
+          attendanceMap.set(empId, []);
+        }
+        attendanceMap.get(empId)!.push(att);
+      }
+    }
+
+    const disbursementsMap = new Map<string, any[]>();
+    for (const dis of disbursementsList) {
+      const disEmpId = dis.employee?._id?.toString() || dis.employee?.toString();
+      if (disEmpId) {
+        if (!disbursementsMap.has(disEmpId)) {
+          disbursementsMap.set(disEmpId, []);
+        }
+        disbursementsMap.get(disEmpId)!.push(dis);
+      }
+    }
+
+    let permanentSalaryPayable = 0;
+
+    for (const emp of monthlyProfiles) {
+      const joinedDate = emp.joinedDate ? new Date(emp.joinedDate) : new Date(0);
+      if (joinedDate <= prevMonthEnd) {
+        let activeStartDate = new Date(prevMonthStart);
+        if (joinedDate > prevMonthStart) {
+          activeStartDate = new Date(joinedDate);
+        }
+        const activeDays = Math.ceil((prevMonthEnd.getTime() - activeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        let proratedBaseSalary = emp.baseSalary || 0;
+        if (joinedDate > prevMonthStart) {
+          proratedBaseSalary = Math.round(((emp.baseSalary || 0) / totalDaysInPrevMonth) * activeDays);
+        }
+        
+        let activeExpectedWorkingDays = 0;
+        const weekendDaysList = emp.weekendDays || ['Friday'];
+        const tempDate = new Date(activeStartDate);
+        while (tempDate <= prevMonthEnd) {
+          const dayName = tempDate.toLocaleDateString('en-US', { weekday: 'long' });
+          if (!weekendDaysList.includes(dayName)) {
+            activeExpectedWorkingDays++;
+          }
+          tempDate.setDate(tempDate.getDate() + 1);
+        }
+        
+        const empUserStr = emp.user?.toString();
+        const empAttendance = empUserStr ? (attendanceMap.get(empUserStr) || []) : [];
+        const activePeriodLogs = empAttendance.filter((att: any) => {
+          const attDate = new Date(att.date);
+          return attDate >= activeStartDate && attDate <= prevMonthEnd;
+        });
+        
+        const presentCount = activePeriodLogs.filter((l: any) => l.status === 'Present' || l.status === 'Late').length;
+        const leaveCount = activePeriodLogs.filter((l: any) => l.status === 'Leave').length;
+        const absentCount = activePeriodLogs.filter((l: any) => l.status === 'Absent').length;
+        
+        const totalAbsents = absentCount;
+        
+        const allowedAbsents = emp.allowedAbsents ?? 1;
+        const absentDeductionRate = emp.absentDeductionRate || 0;
+        const netAbsents = Math.max(0, totalAbsents - allowedAbsents);
+        const deduction = netAbsents * absentDeductionRate;
+        
+        const empPaidInPrevMonth = empUserStr ? (disbursementsMap.get(empUserStr) || []).filter((dis: any) => {
+          if (dis.type !== 'monthly_salary') return false;
+          if (dis.period) {
+            return dis.period === prevMonthPeriod;
+          }
+          const disDate = new Date(dis.date).toLocaleDateString('sv').split('T')[0];
+          return disDate >= prevMonthStartStr && disDate <= prevMonthEndStr;
+        }).reduce((sum: number, d: any) => sum + (d.amount || 0), 0) : 0;
+        
+        const payableSalary = Math.max(0, proratedBaseSalary - deduction - empPaidInPrevMonth);
+        permanentSalaryPayable += payableSalary;
+      }
+    }
+
+    // Calculate temporary/task-based employee wages payable (completed tasks not yet paid)
+    const temporaryUserIds = employeeProfiles.filter(p => p.employeeType === 'task-based').map(p => p.user?.toString()).filter(Boolean);
+    const completedTasks = tasksList.filter(t => t.status === 'Completed' && temporaryUserIds.includes(t.employee?.toString() || ''));
+    const temporaryWagesPayable = completedTasks.reduce((sum, t) => sum + (t.payout || 0), 0);
+
+    // Calculate running assigned tasks (count of pending tasks)
+    const runningAssignedTasks = tasksList.filter(t => t.status === 'Pending').length;
 
     const wholesalerDuesMap: Record<string, any> = {};
     for (const order of creditOrders) {
@@ -397,7 +525,10 @@ export async function GET(req: NextRequest) {
         accountReceivable,
         supplierPayable,
         maturedReceivable,
-        maturedPayable
+        maturedPayable,
+        permanentSalaryPayable,
+        temporaryWagesPayable,
+        runningAssignedTasks
       },
       recentOrders,
       lowStockProducts,

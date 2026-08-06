@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
 
     const query: any = {};
-    if (userRole === 'employee') {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
       if (!userId) {
         return NextResponse.json({ tasks: [] });
       }

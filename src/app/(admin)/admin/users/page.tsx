@@ -90,7 +90,9 @@ function UsersContent() {
   // Reset page when filters change
   useEffect(() => {
     if (currentPage > 1) {
-      setCurrentPage(1);
+      Promise.resolve().then(() => {
+        setCurrentPage(1);
+      });
       const params = new URLSearchParams(searchParams.toString());
       params.delete('page');
       router.push(`/admin/users?${params.toString()}`);
@@ -110,18 +112,6 @@ function UsersContent() {
     }
   }, [status, isSuperAdmin, router]);
 
-  if (status === 'loading') {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (status === 'authenticated' && !isSuperAdmin) {
-    return null;
-  }
-
   const fetchUsers = async (page = currentPage) => {
     setLoading(true);
     try {
@@ -140,15 +130,39 @@ function UsersContent() {
   };
 
   useEffect(() => {
-    fetchUsers(currentPage);
+    let active = true;
+    const load = async () => {
+      await Promise.resolve();
+      if (active) {
+        fetchUsers(currentPage);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, [currentPage, debouncedSearchTerm]);
 
   useEffect(() => {
     const pageFromParams = Math.max(1, parseInt(searchParams.get('page') || '1'));
     if (pageFromParams !== currentPage) {
-      setCurrentPage(pageFromParams);
+      Promise.resolve().then(() => {
+        setCurrentPage(pageFromParams);
+      });
     }
   }, [searchParams]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex h-32 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (status === 'authenticated' && !isSuperAdmin) {
+    return null;
+  }
 
   const openUserDetails = (user: UserData) => {
     setSelectedUser(user);

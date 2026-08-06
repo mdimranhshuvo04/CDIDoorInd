@@ -19,18 +19,18 @@ export async function GET(
     }
 
     // Employees can only access their own record; admins can access any
-    if (userRole === 'employee' && userId?.toString() !== id) {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole) && userId?.toString() !== id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!['admin', 'super_admin', 'employee'].includes(userRole)) {
+    if (!['admin', 'super_admin', 'employee', 'showroom_manager', 'manager'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectToDatabase();
 
     const user = await User.findById(id).select('-password');
-    if (!user || user.role !== 'employee') {
+    if (!user || !['employee', 'showroom_manager', 'manager'].includes(user.role)) {
       return NextResponse.json({ message: 'Employee not found' }, { status: 404 });
     }
 
@@ -62,12 +62,15 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, phone, image, employeeType, baseSalary, taskRate, appointmentLetter, joinedDate } = body;
+    const { 
+      name, phone, image, employeeType, baseSalary, appointmentLetter, joinedDate,
+      weekendDays, allowedAbsents, absentDeductionRate, basicSalary, allowance, deduction, status
+    } = body;
 
     await connectToDatabase();
 
     const user = await User.findById(id);
-    if (!user || user.role !== 'employee') {
+    if (!user || !['employee', 'showroom_manager', 'manager'].includes(user.role)) {
       return NextResponse.json({ message: 'Employee not found' }, { status: 404 });
     }
 
@@ -77,21 +80,50 @@ export async function PATCH(
     await user.save();
 
     let profile = await EmployeeProfile.findOne({ user: id });
+    
+    // Recalculate baseSalary if monthly
+    const targetType = employeeType || profile?.employeeType || 'monthly';
+    const hasSalaryUpdate = baseSalary !== undefined || basicSalary !== undefined || allowance !== undefined || deduction !== undefined;
+    const computedBaseSalary = hasSalaryUpdate
+      ? (targetType === 'monthly'
+        ? Math.max(
+            0,
+            Number(basicSalary !== undefined ? basicSalary : (profile?.basicSalary ?? 0)) +
+            Number(allowance !== undefined ? allowance : (profile?.allowance ?? 0)) -
+            Number(deduction !== undefined ? deduction : (profile?.deduction ?? 0))
+          )
+        : 0)
+      : (profile?.baseSalary ?? 0);
+
     if (!profile) {
       profile = await EmployeeProfile.create({
         user: id,
         employeeType: employeeType || 'monthly',
-        baseSalary: baseSalary ? Number(baseSalary) : 0,
-        taskRate: taskRate ? Number(taskRate) : 0,
+        baseSalary: baseSalary !== undefined ? Number(baseSalary) : computedBaseSalary,
+        weekendDays: weekendDays || ['Friday'],
+        allowedAbsents: allowedAbsents !== undefined ? Number(allowedAbsents) : 1,
+        absentDeductionRate: absentDeductionRate !== undefined ? Number(absentDeductionRate) : 0,
+        basicSalary: basicSalary !== undefined ? Number(basicSalary) : 0,
+        allowance: allowance !== undefined ? Number(allowance) : 0,
+        deduction: deduction !== undefined ? Number(deduction) : 0,
         appointmentLetter: appointmentLetter || '',
-        joinedDate: joinedDate ? new Date(joinedDate) : new Date()
+        joinedDate: joinedDate ? new Date(joinedDate) : new Date(),
+        status: status || 'active'
       });
     } else {
       if (employeeType) profile.employeeType = employeeType;
-      if (baseSalary !== undefined) profile.baseSalary = Number(baseSalary);
-      if (taskRate !== undefined) profile.taskRate = Number(taskRate);
+      
+      profile.baseSalary = baseSalary !== undefined ? Number(baseSalary) : computedBaseSalary;
+      
+      if (weekendDays !== undefined) profile.weekendDays = weekendDays;
+      if (allowedAbsents !== undefined) profile.allowedAbsents = Number(allowedAbsents);
+      if (absentDeductionRate !== undefined) profile.absentDeductionRate = Number(absentDeductionRate);
+      if (basicSalary !== undefined) profile.basicSalary = Number(basicSalary);
+      if (allowance !== undefined) profile.allowance = Number(allowance);
+      if (deduction !== undefined) profile.deduction = Number(deduction);
       if (appointmentLetter !== undefined) profile.appointmentLetter = appointmentLetter;
       if (joinedDate) profile.joinedDate = new Date(joinedDate);
+      if (status !== undefined) profile.status = status;
       await profile.save();
     }
 
@@ -105,9 +137,15 @@ export async function PATCH(
         image: user.image,
         employeeType: profile.employeeType,
         baseSalary: profile.baseSalary,
-        taskRate: profile.taskRate,
+        weekendDays: profile.weekendDays,
+        allowedAbsents: profile.allowedAbsents,
+        absentDeductionRate: profile.absentDeductionRate,
+        basicSalary: profile.basicSalary,
+        allowance: profile.allowance,
+        deduction: profile.deduction,
         appointmentLetter: profile.appointmentLetter,
-        joinedDate: profile.joinedDate
+        joinedDate: profile.joinedDate,
+        status: profile.status
       }
     });
   } catch (error: any) {
@@ -131,20 +169,15 @@ export async function DELETE(
 
     await connectToDatabase();
 
-    // Revoke employee role back to 'user' or delete completely?
-    // Demoting their role to 'user' is safer than full deletion to preserve checkout history,
-    // but deleting the EmployeeProfile details is clean.
-    const user = await User.findById(id);
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    const profile = await EmployeeProfile.findOne({ user: id });
+    if (!profile) {
+      return NextResponse.json({ message: 'Employee profile not found' }, { status: 404 });
     }
 
-    user.role = 'user';
-    await user.save();
+    profile.status = 'discontinued';
+    await profile.save();
 
-    await EmployeeProfile.findOneAndDelete({ user: id });
-
-    return NextResponse.json({ message: 'Employee role revoked successfully' });
+    return NextResponse.json({ message: 'Employee status changed to discontinued' });
   } catch (error: any) {
     console.error('Delete Employee Error:', error);
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });

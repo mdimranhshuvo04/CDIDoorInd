@@ -6,6 +6,7 @@ export interface IAttendance extends Document {
   status: 'Present' | 'Absent' | 'Late' | 'Leave';
   checkIn?: Date;
   checkOut?: Date;
+  autoFilled?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,7 +17,8 @@ const AttendanceSchema: Schema<IAttendance> = new Schema(
     date: { type: String, required: true },
     status: { type: String, enum: ['Present', 'Absent', 'Late', 'Leave'], required: true },
     checkIn: { type: Date },
-    checkOut: { type: Date }
+    checkOut: { type: Date },
+    autoFilled: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

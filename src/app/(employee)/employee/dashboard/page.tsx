@@ -94,7 +94,7 @@ export default function EmployeeDashboard() {
         <StatCard
           title="এই মাসের বেতন"
           value={fmt(data?.salary?.thisMonth || 0)}
-          sub={isMonthly ? `বেস: ${fmt(data?.profile?.baseSalary || 0)}` : `রেট: ${fmt(data?.profile?.taskRate || 0)}/কাজ`}
+          sub={isMonthly ? `বেস: ${fmt(data?.profile?.baseSalary || 0)}` : 'কাজের ভিত্তিতে পেমেন্ট'}
           icon={DollarSign}
           color="bg-emerald-500"
         />

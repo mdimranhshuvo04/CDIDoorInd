@@ -25,7 +25,10 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
 
     let query: any = {};
-    if (userRole === 'employee') {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
+      if (!userId) {
+        return NextResponse.json({ attendance: [] });
+      }
       query.employee = userId;
     } else if (!['admin', 'super_admin'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -67,11 +70,53 @@ export async function POST(req: NextRequest) {
       targetEmployee = employeeId;
     }
 
-    if (!action || !['check-in', 'check-out'].includes(action)) {
+    if (!action || !['check-in', 'check-out', 'manual'].includes(action)) {
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
     }
 
     await connectToDatabase();
+
+    if (action === 'manual') {
+      if (!['admin', 'super_admin'].includes(userRole)) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      }
+      const { date, status, checkIn, checkOut } = body;
+      if (!employeeId || !date || !status) {
+        return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+      }
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return NextResponse.json({ message: 'Invalid date format. Expected YYYY-MM-DD.' }, { status: 400 });
+      }
+
+      const allowedStatuses = ['Present', 'Absent', 'Late', 'Leave'];
+      if (!allowedStatuses.includes(status)) {
+        return NextResponse.json({ message: `Invalid status. Allowed values are: ${allowedStatuses.join(', ')}` }, { status: 400 });
+      }
+
+      let checkInDate = undefined;
+      if (status !== 'Absent' && status !== 'Leave' && checkIn) {
+        checkInDate = new Date(checkIn);
+      }
+      let checkOutDate = undefined;
+      if (status !== 'Absent' && status !== 'Leave' && checkOut) {
+        checkOutDate = new Date(checkOut);
+      }
+
+      const attendance = await Attendance.findOneAndUpdate(
+        { employee: employeeId, date },
+        {
+          $set: {
+            status,
+            checkIn: checkInDate,
+            checkOut: checkOutDate
+          }
+        },
+        { new: true, upsert: true }
+      );
+
+      return NextResponse.json({ message: 'Attendance logged successfully', attendance });
+    }
 
     const todayDateStr = getLocalDateString();
 

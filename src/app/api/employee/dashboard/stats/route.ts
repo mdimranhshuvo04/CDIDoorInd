@@ -50,7 +50,6 @@ export async function GET(req: NextRequest) {
       profile: {
         employeeType: profile?.employeeType || 'monthly',
         baseSalary: profile?.baseSalary || 0,
-        taskRate: profile?.taskRate || 0,
         joinedDate: profile?.joinedDate,
       },
       salary: {

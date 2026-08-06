@@ -9,6 +9,7 @@ import {
   DollarSign,
   Package,
   Store,
+  User,
 } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import {
@@ -57,6 +58,16 @@ const navItems = [
     title: "Finance",
     icon: DollarSign,
     items: [{ title: "Expenses", url: "/showroom/expenses" }],
+  },
+  {
+    title: "My Portal",
+    icon: User,
+    items: [
+      { title: "Attendance & Dashboard", url: "/employee/dashboard" },
+      { title: "Salary History", url: "/employee/salary" },
+      { title: "My Leaves", url: "/employee/leaves" },
+      { title: "My Tasks", url: "/employee/tasks" },
+    ],
   },
 ]
 

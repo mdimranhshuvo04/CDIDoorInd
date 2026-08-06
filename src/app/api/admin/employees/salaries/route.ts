@@ -4,6 +4,8 @@ import connectToDatabase from '@/lib/db';
 import SalaryDisbursement from '@/models/SalaryDisbursement';
 import User from '@/models/User';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -11,7 +13,7 @@ export async function GET(req: NextRequest) {
     const userId = (session?.user as any)?.id || (session?.user as any)?._id;
 
     let query: any = {};
-    if (userRole === 'employee') {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
       query.employee = userId;
     } else if (!['admin', 'super_admin'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
       const disbursementsToCreate = [];
 
       for (const item of body.disbursements) {
-        const { employeeId, amount, type, remarks, date } = item;
+        const { employeeId, amount, type, remarks, date, period } = item;
         if (!employeeId || !amount || !type) {
           continue;
         }
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
           employee: employeeId,
           amount: Number(amount),
           type,
+          period: period || '',
           remarks: remarks || '',
           date: date ? new Date(date) : new Date()
         });
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { employeeId, amount, type, remarks, date } = body;
+    const { employeeId, amount, type, remarks, date, period } = body;
 
     if (!employeeId || !amount || !type) {
       return NextResponse.json({ message: 'Missing required disbursement fields' }, { status: 400 });
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     // Verify employee exists
     const employee = await User.findById(employeeId);
-    if (!employee || employee.role !== 'employee') {
+    if (!employee || !['employee', 'showroom_manager', 'manager'].includes(employee.role)) {
       return NextResponse.json({ message: 'Employee user not found' }, { status: 404 });
     }
 
@@ -89,6 +92,7 @@ export async function POST(req: NextRequest) {
       employee: employeeId,
       amount: Number(amount),
       type,
+      period: period || '',
       remarks: remarks || '',
       date: date ? new Date(date) : new Date()
     });

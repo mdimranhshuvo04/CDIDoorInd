@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
 
     let query: any = {};
-    if (userRole === 'employee') {
+    if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
       query.employee = userId;
     } else if (!['admin', 'super_admin'].includes(userRole)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
