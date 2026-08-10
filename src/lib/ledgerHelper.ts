@@ -149,6 +149,27 @@ export async function logOrderPaymentToLedger(order: any) {
       undefined,
       order.showroom ? order.showroom.toString() : undefined
     );
+
+    // If it is a credit order payment, we also need to decrease AR
+    if (order.isCreditOrder || order.paymentMethod === 'Credit') {
+      const arReference = `AR-CREDIT-${shortId}`;
+      const arExists = await LedgerTransaction.findOne({ reference: arReference });
+      if (!arExists) {
+        const netAmount = (order.totalAmount || 0) - (order.couponDiscountAmount || 0) - (order.walletAmountUsed || 0);
+        await logLedgerTransaction(
+          'AR',
+          'credit', // Credit decreases Accounts Receivable
+          netAmount,
+          `Payment received for Credit Order #${shortId}`,
+          arReference,
+          new Date(), // Use current date for payment reception
+          undefined,
+          order.showroom ? order.showroom.toString() : undefined
+        );
+        console.log(`[Ledger] Logged AR credit for Order #${shortId} successfully.`);
+      }
+    }
+
     console.log(`[Ledger] Logged payment for Order #${shortId} to ${accountCode} successfully.`);
   } catch (error) {
     console.error('[Ledger] Error logging order payment to ledger:', error);

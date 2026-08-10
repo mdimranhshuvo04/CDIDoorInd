@@ -7,6 +7,7 @@ import User from '@/models/User';
 import Product from '@/models/Product';
 import Expense from '@/models/Expense';
 import Showroom from '@/models/Showroom';
+import mongoose from 'mongoose';
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const showroomParam = searchParams.get('showroom'); // 'all' or a specific showroom ObjectId
 
     // Default range: Last 30 days
     const defaultFrom = new Date();
@@ -47,13 +49,39 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
+    // Build showroom filter
+    // showroomParam: 'all' = everything, 'online' = no showroom (online/central), ObjectId = specific showroom
+    if (showroomParam && showroomParam !== 'all' && showroomParam !== 'online' && !mongoose.Types.ObjectId.isValid(showroomParam)) {
+      return NextResponse.json({ error: 'Invalid showroom parameter' }, { status: 400 });
+    }
+    const isOnlineFilter = showroomParam === 'online';
+    const isShowroomFiltered = showroomParam && showroomParam !== 'all' && !isOnlineFilter && mongoose.Types.ObjectId.isValid(showroomParam);
+    const showroomObjId = isShowroomFiltered ? new mongoose.Types.ObjectId(showroomParam!) : null;
+
+    // For specific showroom: match that showroom. For online: match null showroom. For all: no filter.
+    const onlineOrderFilter = { $or: [{ showroom: { $exists: false } }, { showroom: null }] };
+    const orderShowroomFilter: any = isShowroomFiltered
+      ? { showroom: showroomObjId }
+      : isOnlineFilter
+        ? onlineOrderFilter
+        : {};
+    const expenseShowroomFilter: any = isShowroomFiltered
+      ? { showroom: showroomObjId }
+      : isOnlineFilter
+        ? onlineOrderFilter
+        : {};
+
+    // Fetch all showrooms for the response
+    const allShowrooms = await Showroom.find({}).select('_id name').lean();
+
     // 1 & 2. Total Revenue, COGS, and Sales Count (Delivered Orders)
     const revenueStats = await Order.aggregate([
       {
         $match: {
           status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
           createdAt: { $gte: startDate, $lte: endDate },
-          deletedAt: null
+          deletedAt: null,
+          ...orderShowroomFilter
         }
       },
       {
@@ -90,7 +118,8 @@ export async function GET(req: NextRequest) {
         $match: {
           date: { $gte: startDate, $lte: endDate },
           type: { $ne: 'income' },
-          status: 'Approved'
+          status: 'Approved',
+          ...expenseShowroomFilter
         }
       },
       {
@@ -107,7 +136,8 @@ export async function GET(req: NextRequest) {
         $match: {
           date: { $gte: startDate, $lte: endDate },
           type: 'income',
-          status: 'Approved'
+          status: 'Approved',
+          ...expenseShowroomFilter
         }
       },
       {
@@ -129,7 +159,7 @@ export async function GET(req: NextRequest) {
     });
 
     // 6. Pending Orders (Total, not date filtered)
-    const pendingOrdersCount = await Order.countDocuments({ status: 'Order Placed', deletedAt: null });
+    const pendingOrdersCount = await Order.countDocuments({ status: 'Order Placed', deletedAt: null, ...orderShowroomFilter });
 
     // 7. Recent Orders
     const recentOrders = await Order.find({ deletedAt: null })
@@ -152,7 +182,7 @@ export async function GET(req: NextRequest) {
 
     // 10. Top Selling Products
     const topSellingProducts = await Order.aggregate([
-      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null } },
+      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null, ...orderShowroomFilter } },
       { $unwind: '$items' },
       {
         $group: {
@@ -167,7 +197,7 @@ export async function GET(req: NextRequest) {
 
     // 11. Top Customers
     const topCustomers = await Order.aggregate([
-      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null } },
+      { $match: { status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }, createdAt: { $gte: startDate, $lte: endDate }, deletedAt: null, ...orderShowroomFilter } },
       {
         $group: {
           _id: '$user',
@@ -203,7 +233,8 @@ export async function GET(req: NextRequest) {
       {
         $match: {
           deletedAt: null,
-          createdAt: { $gte: startDate, $lte: endDate }
+          createdAt: { $gte: startDate, $lte: endDate },
+          ...orderShowroomFilter
         }
       },
       { $group: { _id: '$user', count: { $sum: 1 } } }
@@ -223,7 +254,8 @@ export async function GET(req: NextRequest) {
         $match: {
           status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
           createdAt: { $gte: startDate, $lte: endDate },
-          deletedAt: null
+          deletedAt: null,
+          ...orderShowroomFilter
         }
       },
       {
@@ -242,7 +274,8 @@ export async function GET(req: NextRequest) {
       {
         $match: {
           date: { $gte: startDate, $lte: endDate },
-          status: 'Approved'
+          status: 'Approved',
+          ...expenseShowroomFilter
         }
       },
       {
@@ -324,12 +357,14 @@ export async function GET(req: NextRequest) {
 
 
     // Calculate credit receivables
-    const creditOrders = await Order.find({
+    const creditOrderQuery: any = {
       paymentMethod: 'Credit',
       paymentStatus: { $ne: 'Paid' },
-      status: { $ne: 'Cancelled' },
-      deletedAt: null
-    }).populate('user', 'name email phone').lean() as any[];
+      status: { $nin: ['Cancelled', 'Order Placed'] },
+      deletedAt: null,
+      ...orderShowroomFilter
+    };
+    const creditOrders = await Order.find(creditOrderQuery).populate('user', 'name email phone').lean() as any[];
 
     const totalWholesalerDue = creditOrders.reduce((sum: number, o: any) => {
       const outstanding = (o.totalAmount || 0) - (o.couponDiscountAmount || 0) - (o.walletAmountUsed || 0);
@@ -345,18 +380,84 @@ export async function GET(req: NextRequest) {
       return sum;
     }, 0);
 
+    const Bill = (await import('@/models/Bill')).default;
+    const billQuery: any = { documentType: 'bill', status: 'Due' };
+    if (isShowroomFiltered) billQuery.showroom = showroomObjId;
+    const dueBills = await Bill.find(billQuery).lean() as any[];
+    const totalBillDue = dueBills.reduce((sum: number, b: any) => sum + (b.currentBillDue || 0), 0);
+    const maturedBillDueRaw = dueBills.reduce((sum: number, b: any) => {
+      if (b.expectedReceivableDate && new Date(b.expectedReceivableDate) < todayDate) {
+        return sum + (b.currentBillDue || 0);
+      }
+      return sum;
+    }, 0);
+
     // Fetch Ledger balances
     const LedgerAccount = (await import('@/models/LedgerAccount')).default;
+    const LedgerTransaction = (await import('@/models/LedgerTransaction')).default;
     const ledgerAccounts = await LedgerAccount.find().lean() as any[];
-    const cashAccount = ledgerAccounts.find(a => a.code === 'CASH');
-    const bankAccount = ledgerAccounts.find(a => a.code === 'BANK');
-    const apAccount = ledgerAccounts.find(a => a.code === 'AP');
+    const cashAccount = ledgerAccounts.find((a: any) => a.code === 'CASH');
+    const bankAccount = ledgerAccounts.find((a: any) => a.code === 'BANK');
+    const apAccount = ledgerAccounts.find((a: any) => a.code === 'AP');
 
-    const cashBalance = cashAccount ? cashAccount.currentBalance : 0;
-    const bankBalance = bankAccount ? bankAccount.currentBalance : 0;
-    const accountReceivable = totalWholesalerDue;
-    const maturedReceivable = Math.min(maturedReceivableRaw, accountReceivable);
-    const supplierPayable = apAccount ? apAccount.currentBalance : 0;
+    let cashBalance = cashAccount ? cashAccount.currentBalance : 0;
+    let bankBalance = bankAccount ? bankAccount.currentBalance : 0;
+    let supplierPayable = apAccount ? apAccount.currentBalance : 0;
+
+    // If showroom is filtered, compute per-showroom cash/bank from ledger transactions
+    if (isShowroomFiltered && cashAccount) {
+      const cashTxResult = await LedgerTransaction.aggregate([
+        { $match: { account: cashAccount._id, showroom: showroomObjId } },
+        {
+          $group: {
+            _id: null,
+            net: {
+              $sum: {
+                $cond: [{ $eq: ['$type', 'debit'] }, '$amount', { $multiply: ['$amount', -1] }]
+              }
+            }
+          }
+        }
+      ]);
+      cashBalance = cashTxResult[0]?.net ?? 0;
+    }
+
+    if (isShowroomFiltered && bankAccount) {
+      const bankTxResult = await LedgerTransaction.aggregate([
+        { $match: { account: bankAccount._id, showroom: showroomObjId } },
+        {
+          $group: {
+            _id: null,
+            net: {
+              $sum: {
+                $cond: [{ $eq: ['$type', 'debit'] }, '$amount', { $multiply: ['$amount', -1] }]
+              }
+            }
+          }
+        }
+      ]);
+      bankBalance = bankTxResult[0]?.net ?? 0;
+    }
+
+    if (isShowroomFiltered && apAccount) {
+      const apTxResult = await LedgerTransaction.aggregate([
+        { $match: { account: apAccount._id, showroom: showroomObjId } },
+        {
+          $group: {
+            _id: null,
+            net: {
+              $sum: {
+                $cond: [{ $eq: ['$type', 'credit'] }, '$amount', { $multiply: ['$amount', -1] }]
+              }
+            }
+          }
+        }
+      ]);
+      supplierPayable = apTxResult[0]?.net ?? 0;
+    }
+
+    const accountReceivable = totalWholesalerDue + totalBillDue;
+    const maturedReceivable = Math.min(maturedReceivableRaw + maturedBillDueRaw, accountReceivable);
     const maturedPayable = null; // Set to null as supplier due-date data is unavailable
 
     // Fetch employee dashboard stats
@@ -528,14 +629,16 @@ export async function GET(req: NextRequest) {
         maturedPayable,
         permanentSalaryPayable,
         temporaryWagesPayable,
-        runningAssignedTasks
+        runningAssignedTasks,
+        isShowroomFiltered: !!isShowroomFiltered
       },
       recentOrders,
       lowStockProducts,
       topSellingProducts,
       topCustomers,
       chartData,
-      wholesalersDueList
+      wholesalersDueList,
+      showrooms: allShowrooms
     });
   } catch (error) {
     console.error('Dashboard Stats Error:', error);

@@ -20,24 +20,70 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ message: 'Invalid payment amount' }, { status: 400 });
     }
 
-    await connectToDatabase();
+    const conn = await connectToDatabase();
+    const dbSession = await conn.startSession();
+    dbSession.startTransaction();
 
-    const supplier = await Supplier.findById(id);
-    if (!supplier) {
-      return NextResponse.json({ message: 'Supplier not found' }, { status: 404 });
+    let payment;
+    try {
+      const supplier = await Supplier.findById(id).session(dbSession);
+      if (!supplier) {
+        await dbSession.abortTransaction();
+        dbSession.endSession();
+        return NextResponse.json({ message: 'Supplier not found' }, { status: 404 });
+      }
+
+      const [newPayment] = await SupplierPayment.create([{
+        supplier: id,
+        amount: amountNum,
+        paymentMethod,
+        description,
+        date: date ? new Date(date) : new Date()
+      }], { session: dbSession });
+
+      payment = newPayment;
+
+      // Update supplier balance (payment decreases outstanding payable balance, overpayments result in credit/negative balance)
+      supplier.currentBalance = (supplier.currentBalance || 0) - amountNum;
+      await supplier.save({ session: dbSession });
+
+      const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+      const txDate = date ? new Date(date) : new Date();
+
+      // 1. Debit Accounts Payable (decreases liability)
+      await logLedgerTransaction(
+        'AP',
+        'debit',
+        amountNum,
+        `Supplier Payment: ${supplier.name || supplier.companyName || 'Supplier'}`,
+        payment._id.toString(),
+        txDate,
+        undefined,
+        undefined,
+        dbSession
+      );
+
+      // 2. Credit Cash/Bank (decreases asset)
+      const accCode = paymentMethod === 'Bank' ? 'BANK' : 'CASH';
+      await logLedgerTransaction(
+        accCode,
+        'credit',
+        amountNum,
+        `Supplier Payment: ${supplier.name || supplier.companyName || 'Supplier'}`,
+        payment._id.toString(),
+        txDate,
+        undefined,
+        undefined,
+        dbSession
+      );
+
+      await dbSession.commitTransaction();
+    } catch (txErr) {
+      await dbSession.abortTransaction();
+      throw txErr;
+    } finally {
+      dbSession.endSession();
     }
-
-    const payment = await SupplierPayment.create({
-      supplier: id,
-      amount: amountNum,
-      paymentMethod,
-      description,
-      date: date ? new Date(date) : new Date()
-    });
-
-    // Update supplier balance (payment decreases outstanding payable balance, overpayments result in credit/negative balance)
-    supplier.currentBalance = (supplier.currentBalance || 0) - amountNum;
-    await supplier.save();
 
     return NextResponse.json(payment, { status: 201 });
   } catch (error: any) {

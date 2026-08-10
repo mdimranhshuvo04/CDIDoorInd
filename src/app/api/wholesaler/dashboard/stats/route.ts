@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       user: userId,
       paymentMethod: 'Credit',
       paymentStatus: { $ne: 'Paid' },
-      status: { $ne: 'Cancelled' },
+      status: { $nin: ['Cancelled', 'Order Placed'] },
       deletedAt: null
     }).select('totalAmount couponDiscountAmount walletAmountUsed');
     const totalDue = creditOrders.reduce((sum: number, o: any) => {

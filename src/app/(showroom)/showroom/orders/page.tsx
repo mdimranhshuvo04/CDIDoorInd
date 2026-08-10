@@ -1,7 +1,22 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { Search, Loader2, Calendar, FileText, CheckCircle2, XCircle, Clock, Truck, RefreshCw, Eye, Share2 } from 'lucide-react';
+import { Search, Loader2, Calendar, FileText, CheckCircle2, XCircle, Clock, Truck, RefreshCw, Eye, Share2, Plus, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -13,6 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import ManualOrderDialog from '@/components/admin/ManualOrderDialog';
 import { toast } from 'sonner';
 import { Pagination } from '@/components/ui/pagination';
 import { format } from 'date-fns';
@@ -55,6 +71,9 @@ function ShowroomOrdersContent() {
     returned: 0
   });
   const limit = 15;
+
+  // Manual Order states
+  const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
 
   const handleCopyLink = async (orderId: string) => {
     try {
@@ -106,7 +125,6 @@ function ShowroomOrdersContent() {
 
   useEffect(() => {
     fetchOrders(1, statusFilter);
-    setCurrentPage(1);
   }, [search, dateFilter.from, dateFilter.to]);
 
   const handleTabChange = (val: string) => {
@@ -140,11 +158,16 @@ function ShowroomOrdersContent() {
   return (
     <div className="flex-1 space-y-6 py-6 md:p-8">
       {/* Header */}
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Orders</h2>
-        <p className="text-muted-foreground text-xs md:text-sm">
-          আপনার শো-রুমের মাধ্যমে আসা অর্ডারগুলো ট্র্যাক ও প্রসেস করুন।
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Orders</h2>
+          <p className="text-muted-foreground text-xs md:text-sm">
+            আপনার শো-রুমের মাধ্যমে আসা অর্ডারগুলো ট্র্যাক ও প্রসেস করুন।
+          </p>
+        </div>
+        <Button onClick={() => setIsManualOrderOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
+          <Plus className="mr-2 h-4 w-4" /> Manual Order
+        </Button>
       </div>
 
       {/* Tabs */}
@@ -170,7 +193,10 @@ function ShowroomOrdersContent() {
           <Input
             placeholder="Search by Order ID, name, phone..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-8 text-sm"
           />
         </div>
@@ -181,20 +207,29 @@ function ShowroomOrdersContent() {
             type="date"
             className="h-8 border-none bg-transparent focus-visible:ring-0 p-1 w-32"
             value={dateFilter.from}
-            onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+            onChange={(e) => {
+              setDateFilter(prev => ({ ...prev, from: e.target.value }));
+              setCurrentPage(1);
+            }}
           />
           <span className="text-muted-foreground text-xs">to</span>
           <Input
             type="date"
             className="h-8 border-none bg-transparent focus-visible:ring-0 p-1 w-32"
             value={dateFilter.to}
-            onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+            onChange={(e) => {
+              setDateFilter(prev => ({ ...prev, to: e.target.value }));
+              setCurrentPage(1);
+            }}
           />
           {(dateFilter.from || dateFilter.to) && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setDateFilter({ from: '', to: '' })}
+              onClick={() => {
+                setDateFilter({ from: '', to: '' });
+                setCurrentPage(1);
+              }}
               className="h-7 px-2 text-xs"
             >
               Clear
@@ -342,6 +377,21 @@ function ShowroomOrdersContent() {
           onUpdate={() => fetchOrders(currentPage, statusFilter)}
         />
       )}
+
+      <ManualOrderDialog
+        open={isManualOrderOpen}
+        onOpenChange={setIsManualOrderOpen}
+        onCreated={() => fetchOrders(currentPage, statusFilter)}
+        allowedStatuses={[
+          { value: 'Order Placed', label: 'Order Placed' },
+          { value: 'Processing', label: 'Processing' },
+          { value: 'Shipped via Courier', label: 'Shipped via Courier' },
+          { value: 'Completed', label: 'Completed' },
+          { value: 'Cancelled', label: 'Cancelled' },
+          { value: 'On Hold', label: 'On Hold' },
+          { value: 'Returned', label: 'Returned' }
+        ]}
+      />
 
       {!loading && pagination.totalPages > 1 && (
         <div className="py-4">

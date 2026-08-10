@@ -84,7 +84,12 @@ export async function POST(req: NextRequest) {
           throw new Error('Invalid paid amount');
         }
 
-        const dueNum = Math.max(0, totalNum - paidNum);
+        if (paidNum > totalNum) {
+          customErrorResponse = NextResponse.json({ message: 'Paid amount cannot exceed the total bill amount' }, { status: 400 });
+          throw new Error('Paid amount cannot exceed the total bill amount');
+        }
+
+        const dueNum = totalNum - paidNum;
         const status = dueNum === 0 ? 'Paid' : 'Due';
 
         // Generate sequential purchase bill number using Counter model
@@ -118,6 +123,37 @@ export async function POST(req: NextRequest) {
         // Increment supplier balance by dueAmount
         supplier.currentBalance = (supplier.currentBalance || 0) + dueNum;
         await supplier.save({ session: dbSession });
+
+        const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+
+        if (dueNum > 0) {
+          await logLedgerTransaction(
+            'AP',
+            'credit',
+            dueNum,
+            `Supplier Bill Generated: ${billNo}`,
+            bill._id.toString(),
+            date ? new Date(date) : new Date(),
+            undefined,
+            undefined,
+            dbSession
+          );
+        }
+
+        if (paidNum > 0) {
+          const accCode = paymentMethod === 'Bank' ? 'BANK' : 'CASH';
+          await logLedgerTransaction(
+            accCode,
+            'credit',
+            paidNum,
+            `Supplier Bill Upfront Payment: ${billNo}`,
+            bill._id.toString(),
+            date ? new Date(date) : new Date(),
+            undefined,
+            undefined,
+            dbSession
+          );
+        }
 
         billResult = bill;
       });

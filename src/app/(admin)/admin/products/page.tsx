@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash, Loader2, Search, DatabaseZap, Download, MoreHorizontal } from 'lucide-react';
+import { Plus, Edit, Trash, Loader2, Search, DatabaseZap, Download, MoreHorizontal, Store, Send } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,6 +26,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface AdminProduct {
   _id: string;
@@ -34,6 +41,7 @@ interface AdminProduct {
   price: number;
   salePrice?: number;
   stock: number;
+  showroomStocks?: { showroom: string | { _id: string; name: string }; stock: number }[];
   isPublished: boolean;
   images?: string[];
   slug: string;
@@ -54,6 +62,18 @@ function ProductsContent() {
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [exportLoading, setExportLoading] = useState(false);
+  const [selectedShowroom, setSelectedShowroom] = useState<string>('all');
+  const [showroomsList, setShowroomsList] = useState<{ _id: string; name: string }[]>([]);
+  
+  // Transfer Modal State
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferProduct, setTransferProduct] = useState<AdminProduct | null>(null);
+  const [transferSource, setTransferSource] = useState<string>('central');
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [targetShowroom, setTargetShowroom] = useState('');
+  const [transferQuantity, setTransferQuantity] = useState(1);
+  const [transferring, setTransferring] = useState(false);
+  
   const limit = 10;
 
   const fetchProducts = async (signal?: AbortSignal, page = currentPage) => {
@@ -77,9 +97,70 @@ function ProductsContent() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchProducts(controller.signal);
-    return () => controller.abort();
+    const timer = setTimeout(() => {
+      fetchProducts(controller.signal);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [currentPage]);
+
+  // Fetch showrooms for filter dropdown
+  useEffect(() => {
+    fetch('/api/showrooms')
+      .then(r => r.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data.showrooms || []);
+        setShowroomsList(list.map((s: any) => ({ _id: s._id, name: s.name })));
+      })
+      .catch(() => {});
   }, []);
+
+  // Helper: get effective stock based on filter
+  const getDisplayStock = (product: AdminProduct): number => {
+    if (selectedShowroom === 'all') {
+      // Total: central + all showroom stocks
+      const showroomTotal = (product.showroomStocks || []).reduce((sum, s) => sum + (s.stock || 0), 0);
+      return (product.stock || 0) + showroomTotal;
+    } else if (selectedShowroom === 'central') {
+      return product.stock || 0;
+    } else {
+      // Specific showroom
+      const found = (product.showroomStocks || []).find(s => {
+        const id = typeof s.showroom === 'object' ? s.showroom._id : s.showroom;
+        return id === selectedShowroom;
+      });
+      return found?.stock ?? 0;
+    }
+  };
+
+  const getStockLabel = (): string => {
+    if (selectedShowroom === 'all') return 'Total Stock';
+    if (selectedShowroom === 'central') return 'Central Stock';
+    const found = showroomsList.find(s => s._id === selectedShowroom);
+    return found ? `${found.name} Stock` : 'Stock';
+  };
+
+  const getTransferSourceStock = (product: AdminProduct): number => {
+    const source = selectedShowroom === 'all' ? 'central' : selectedShowroom;
+    if (source === 'central') return product.stock || 0;
+    const found = (product.showroomStocks || []).find(s => {
+      const id = typeof s.showroom === 'object' ? s.showroom._id : s.showroom;
+      return id === source;
+    });
+    return found?.stock ?? 0;
+  };
+
+  const handleInitiateTransfer = (product: AdminProduct) => {
+    setTransferProduct(product);
+    setTransferSource(selectedShowroom === 'all' ? 'central' : selectedShowroom);
+    setTargetShowroom('');
+    setTransferQuantity(1);
+    setIsAddMode(false);
+    setTransferModalOpen(true);
+  };
+
 
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
@@ -113,6 +194,54 @@ function ProductsContent() {
       } catch {
         toast.error('Error deleting product');
       }
+    }
+  };
+
+  const handleTransferSubmit = async () => {
+    if (!transferProduct || !targetShowroom || transferQuantity < 1 || targetShowroom === transferSource) {
+      toast.error('Please select a showroom and enter a valid quantity.');
+      return;
+    }
+    const availableStock = (() => {
+      if (transferSource === 'central') return transferProduct.stock;
+      const srStock = transferProduct.showroomStocks?.find(
+        s => typeof s.showroom === 'string' 
+          ? s.showroom === transferSource 
+          : s.showroom._id === transferSource
+      )?.stock;
+      return srStock ?? 0;
+    })();
+
+    if (transferQuantity > availableStock) {
+      toast.error('Insufficient stock in the source location.');
+      return;
+    }
+    
+    setTransferring(true);
+    try {
+      const response = await fetch('/api/admin/stock-transfers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: transferProduct._id,
+          sourceShowroomId: transferSource,
+          showroomId: targetShowroom,
+          quantity: transferQuantity
+        })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        toast.success('Stock transfer initiated successfully');
+        setTransferModalOpen(false);
+        fetchProducts(); // Refresh products to show updated central stock
+      } else {
+        toast.error(data.message || 'Failed to initiate stock transfer');
+      }
+    } catch (err) {
+      toast.error('An error occurred during transfer');
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -312,7 +441,8 @@ function ProductsContent() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-2 md:px-0">
+      <div className="flex flex-wrap items-center gap-2 px-2 md:px-0">
+        {/* Search */}
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -321,6 +451,24 @@ function ProductsContent() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        {/* Showroom Filter Dropdown */}
+        <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-lg border h-9">
+          <div className="flex items-center gap-1 px-2 shrink-0">
+            <Store className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground hidden sm:block">Stock View</span>
+          </div>
+          <select
+            value={selectedShowroom}
+            onChange={(e) => setSelectedShowroom(e.target.value)}
+            className="h-7 bg-transparent text-xs border-none outline-none cursor-pointer pr-2 font-medium"
+          >
+            <option value="all">Total (All)</option>
+            <option value="central">🏢 Central Only</option>
+            {showroomsList.map(s => (
+              <option key={s._id} value={s._id}>{s.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -373,7 +521,7 @@ function ProductsContent() {
                 <TableHead>Name</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
+                <TableHead>{getStockLabel()}</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead>Sales</TableHead>
                 <TableHead>Status</TableHead>
@@ -443,8 +591,8 @@ function ProductsContent() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={(product.stock ?? 0) <= 5 ? 'text-destructive font-semibold' : ''}>
-                        {product.stock ?? 0}
+                      <span className={(getDisplayStock(product)) <= 5 ? 'text-destructive font-semibold' : ''}>
+                        {getDisplayStock(product)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -460,6 +608,33 @@ function ProductsContent() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {selectedShowroom !== 'all' && selectedShowroom !== 'central' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Add Stock from Central"
+                            disabled={(product.stock || 0) <= 0}
+                            onClick={() => {
+                              setTransferProduct(product);
+                              setTransferSource('central');
+                              setTargetShowroom(selectedShowroom);
+                              setTransferQuantity(1);
+                              setIsAddMode(true);
+                              setTransferModalOpen(true);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 text-green-600" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Transfer Stock"
+                          disabled={getTransferSourceStock(product) <= 0}
+                          onClick={() => handleInitiateTransfer(product)}
+                        >
+                          <Send className="h-4 w-4 text-blue-500" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -531,8 +706,8 @@ function ProductsContent() {
                       <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
                         <span>SKU: {product.sku || 'N/A'}</span>
                         <span>•</span>
-                        <span className={(product.stock ?? 0) <= 5 ? 'text-destructive font-semibold' : ''}>
-                          Stock: {product.stock ?? 0}
+                        <span className={(getDisplayStock(product)) <= 5 ? 'text-destructive font-semibold' : ''}>
+                          {getStockLabel()}: {getDisplayStock(product)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 pt-0.5">
@@ -560,6 +735,27 @@ function ProductsContent() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {selectedShowroom !== 'all' && selectedShowroom !== 'central' && (
+                          <DropdownMenuItem 
+                            disabled={(product.stock || 0) <= 0}
+                            onClick={() => {
+                              setTransferProduct(product);
+                              setTransferSource('central');
+                              setTargetShowroom(selectedShowroom);
+                              setTransferQuantity(1);
+                              setIsAddMode(true);
+                              setTransferModalOpen(true);
+                            }}
+                          >
+                            <Plus className="mr-2 h-4 w-4 text-green-600" /> Add Stock
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          disabled={getTransferSourceStock(product) <= 0}
+                          onClick={() => handleInitiateTransfer(product)}
+                        >
+                          <Send className="mr-2 h-4 w-4 text-blue-500" /> Transfer Stock
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push(`/admin/products/${product._id}/edit`)}>
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
@@ -591,6 +787,74 @@ function ProductsContent() {
           />
         </div>
       )}
+
+      {/* Transfer Stock Modal */}
+      <Dialog open={transferModalOpen} onOpenChange={setTransferModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{isAddMode ? 'Add Stock from Central' : 'Transfer Stock'}</DialogTitle>
+          </DialogHeader>
+          {transferProduct && (() => {
+            const getAvailableStock = () => {
+              if (transferSource === 'central') return transferProduct.stock;
+              const srStock = transferProduct.showroomStocks?.find(
+                s => typeof s.showroom === 'string' 
+                  ? s.showroom === transferSource 
+                  : s.showroom._id === transferSource
+              )?.stock;
+              return srStock ?? 0;
+            };
+            const availableStock = getAvailableStock();
+            
+            return (
+              <div className="grid gap-4 py-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">Product:</span>
+                  <span className="text-sm text-muted-foreground">{transferProduct.name}</span>
+                  <span className="text-xs text-muted-foreground">Available Stock in {transferSource === 'central' ? 'Central' : showroomsList.find(s => s._id === transferSource)?.name || 'Source'}: {availableStock}</span>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label className="text-right text-sm font-medium">Destination</label>
+                  <select
+                    className="col-span-3 h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                    value={targetShowroom}
+                    onChange={(e) => setTargetShowroom(e.target.value)}
+                    disabled={isAddMode}
+                  >
+                    <option value="" disabled>Select destination</option>
+                    {transferSource !== 'central' && (
+                      <option value="central">Central Warehouse</option>
+                    )}
+                    {showroomsList
+                      .filter(s => s._id !== transferSource)
+                      .map(s => (
+                        <option key={s._id} value={s._id}>{s.name}</option>
+                      ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label className="text-right text-sm font-medium">Quantity</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max={availableStock > 0 ? availableStock : 1}
+                    className="col-span-3"
+                    value={transferQuantity}
+                    onChange={(e) => setTransferQuantity(parseInt(e.target.value) || 1)}
+                  />
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleTransferSubmit} disabled={transferring}>
+              {transferring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              Send Stock
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -30,7 +30,8 @@ import {
   ArrowDownLeft,
   CalendarClock,
   RefreshCw,
-  Briefcase
+  Briefcase,
+  Store
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -158,6 +159,8 @@ export default function AdminDashboard() {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("revenue");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [mobileTab, setMobileTab] = useState<'cards' | 'charts'>('cards');
+  const [selectedShowroom, setSelectedShowroom] = useState<string>('all');
+  const [showroomsList, setShowroomsList] = useState<{ _id: string; name: string }[]>([]);
 
   // Date filter state
   const [dateRange, setDateRange] = useState({
@@ -222,10 +225,14 @@ export default function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const query = new URLSearchParams({
+      const params: Record<string, string> = {
         from: debouncedDateRange.from,
         to: debouncedDateRange.to,
-      }).toString();
+      };
+      if (selectedShowroom !== 'all') {
+        params.showroom = selectedShowroom;
+      }
+      const query = new URLSearchParams(params).toString();
 
       const response = await fetch(`/api/admin/dashboard/stats?${query}`, {
         signal: controller.signal,
@@ -233,6 +240,9 @@ export default function AdminDashboard() {
       if (response.ok) {
         const stats = await response.json();
         setData(stats);
+        if (stats.showrooms) {
+          setShowroomsList(stats.showrooms);
+        }
         setLastUpdated(new Date().toLocaleTimeString());
       } else {
         const errData = await response.json().catch(() => ({}));
@@ -263,7 +273,7 @@ export default function AdminDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [debouncedDateRange]);
+  }, [debouncedDateRange, selectedShowroom]);
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -273,7 +283,7 @@ export default function AdminDashboard() {
     return () => {
       window.removeEventListener('refresh-dashboard', handleRefresh);
     };
-  }, [debouncedDateRange]);
+  }, [debouncedDateRange, selectedShowroom]);
 
   const total = useMemo(() => {
     if (!data?.chartData) return { revenue: 0, orders: 0, expense: 0, netIncome: 0 };
@@ -343,14 +353,50 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
-      <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex flex-col">
+      {/* Header */}
+      <div className="flex flex-col gap-3">
+        {/* Title Row */}
+        <div className="flex flex-row items-center justify-between gap-2">
           <h2 className="text-xl md:text-3xl font-bold tracking-tight whitespace-nowrap">Dashboard Overview</h2>
-          <p className="text-muted-foreground text-[10px] md:text-sm mt-0.5">Advanced business intelligence and sales analytics.</p>
+          {/* Mobile buttons */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Button variant="outline" size="sm" onClick={fetchStats} className="h-9 px-3">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
+            >
+              <Filter className="mr-1.5 h-4 w-4" />
+              <span className="text-xs font-bold">Filter</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Desktop Controls */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Desktop Filter Row (below title) */}
+        <div className="hidden md:flex flex-wrap items-center gap-2">
+          {/* Showroom Dropdown */}
+          <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-lg border">
+            <div className="flex items-center gap-1 px-2 shrink-0">
+              <Store className="h-3 w-3 text-muted-foreground" />
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Showroom</span>
+            </div>
+            <select
+              value={selectedShowroom}
+              onChange={(e) => setSelectedShowroom(e.target.value)}
+              className="h-8 bg-transparent text-xs border-none outline-none cursor-pointer pr-2 font-medium"
+            >
+              <option value="all">All Showrooms</option>
+              <option value="online">🌐 Online / Central</option>
+              {showroomsList.map(s => (
+                <option key={s._id} value={s._id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Range */}
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
             <div className="flex items-center gap-1 px-2 shrink-0">
               <Filter className="h-3 w-3 text-muted-foreground" />
@@ -374,36 +420,50 @@ export default function AdminDashboard() {
               />
             </div>
           </div>
+
+          {/* Refresh */}
           <Button variant="outline" size="sm" onClick={fetchStats} className="h-10 px-4 font-bold">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
           </Button>
-        </div>
 
-        {/* Mobile controls toggle (visible on mobile only, in the top right corner) */}
-        <div className="flex items-center gap-2 md:hidden">
-          <Button variant="outline" size="sm" onClick={fetchStats} className="h-9 px-3">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
-          >
-            <Filter className="mr-1.5 h-4 w-4" />
-            <span className="text-xs font-bold">Filter</span>
-          </Button>
+          {/* Active filter badge */}
+          {selectedShowroom !== 'all' && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <Store className="h-2.5 w-2.5" />
+              {selectedShowroom === 'online'
+                ? '🌐 Online / Central'
+                : showroomsList.find(s => s._id === selectedShowroom)?.name || 'Showroom'}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Collapsible Mobile Filters Wrapper (Smooth transition like income-expense) */}
+      {/* Collapsible Mobile Filters Wrapper */}
       <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${
         showMobileFilters 
           ? 'grid-rows-[1fr] opacity-100 mt-2 visible' 
           : 'grid-rows-[0fr] opacity-0 invisible h-0'
       }`}>
         <div className="overflow-hidden w-full">
-          <div className="bg-muted/30 p-3 rounded-lg border flex flex-col gap-2">
+          <div className="bg-muted/30 p-3 rounded-lg border flex flex-col gap-3">
+            {/* Showroom filter */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1 text-xs font-bold text-muted-foreground border-b pb-1">
+                <Store className="h-3 w-3" />
+                <span>SHOWROOM FILTER</span>
+              </div>
+              <select
+                value={selectedShowroom}
+                onChange={(e) => setSelectedShowroom(e.target.value)}
+                className="h-9 w-full bg-background text-xs border rounded-md px-2 outline-none cursor-pointer font-medium"
+              >
+                <option value="all">All Showrooms</option>
+                <option value="online">🌐 Online / Central</option>
+                {showroomsList.map(s => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-center justify-between text-xs font-bold text-muted-foreground border-b pb-1">
               <span>DATE FILTER</span>
             </div>
@@ -460,11 +520,11 @@ export default function AdminDashboard() {
       <div className={`grid gap-2 sm:gap-4 grid-cols-3 ${mobileTab === 'cards' ? 'grid' : 'hidden md:grid'}`}>
         {/* Pending Orders Card */}
         <Link href="/admin/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-orange-500/5 border-orange-500/10 border-l-2 border-l-orange-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-orange-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   {stats?.pendingOrdersCount || 0}
                 </span>
               </div>
@@ -476,10 +536,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Pending Orders</CardTitle>
-                <Clock className="h-4 w-4 text-orange-600 shrink-0" />
+                <Clock className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
+                <div className="text-lg md:text-2xl font-extrabold text-primary">{stats?.pendingOrdersCount || 0}</div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">Requires attention</p>
               </CardContent>
             </div>
@@ -488,11 +548,11 @@ export default function AdminDashboard() {
 
         {/* Total Customers Card */}
         <Link href="/admin/users" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-blue-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   {stats?.totalUsers || 0}
                 </span>
               </div>
@@ -504,10 +564,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Total Customers</CardTitle>
-                <Users className="h-4 w-4 text-blue-600 shrink-0" />
+                <Users className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-blue-700">{stats?.totalUsers || 0}</div>
+                <div className="text-lg md:text-2xl font-extrabold text-primary">{stats?.totalUsers || 0}</div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">Across all time</p>
               </CardContent>
             </div>
@@ -516,11 +576,11 @@ export default function AdminDashboard() {
 
         {/* Cash Balance */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-emerald-500/5 border-emerald-500/10 border-l-2 border-l-emerald-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-emerald-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
                 </span>
               </div>
@@ -532,13 +592,15 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Cash Balance</CardTitle>
-                <Wallet className="h-4 w-4 text-emerald-600 shrink-0" />
+                <Wallet className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-emerald-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Physical cash on hand</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {selectedShowroom === 'all' ? 'Physical cash on hand' : selectedShowroom === 'online' ? 'Online/central cash flow' : 'Showroom net cash flow'}
+                </p>
               </CardContent>
             </div>
           </Card>
@@ -546,11 +608,11 @@ export default function AdminDashboard() {
 
         {/* Bank Balance */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-indigo-500/5 border-indigo-500/10 border-l-2 border-l-indigo-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-indigo-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
                 </span>
               </div>
@@ -562,13 +624,15 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Bank Balance</CardTitle>
-                <Landmark className="h-4 w-4 text-indigo-600 shrink-0" />
+                <Landmark className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-indigo-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Liquid bank accounts</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {selectedShowroom === 'all' ? 'Liquid bank accounts' : selectedShowroom === 'online' ? 'Online/central bank flow' : 'Showroom net bank flow'}
+                </p>
               </CardContent>
             </div>
           </Card>
@@ -576,11 +640,11 @@ export default function AdminDashboard() {
 
         {/* Account Receivable */}
         <Link href="/admin/ledger" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex flex-col justify-center items-center gap-0.5">
-                <span className="text-sm font-black text-blue-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
                 </span>
                 <div className="text-[9px] font-bold text-rose-600 leading-none">
@@ -595,10 +659,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Accounts Receivable</CardTitle>
-                <ArrowUpRight className="h-4 w-4 text-blue-600 shrink-0" />
+                <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-blue-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
                 </div>
                 <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-rose-600 truncate">
@@ -611,11 +675,11 @@ export default function AdminDashboard() {
 
         {/* Supplier Account Payable */}
         <Link href="/admin/supplier-bills" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-amber-500/5 border-amber-500/10 border-l-2 border-l-amber-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex flex-col justify-center items-center gap-0.5">
-                <span className="text-sm font-black text-amber-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
                 </span>
                 <div className="text-[9px] font-bold text-red-600 leading-none">
@@ -630,10 +694,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Accounts Payable</CardTitle>
-                <ArrowDownLeft className="h-4 w-4 text-amber-600 shrink-0" />
+                <ArrowDownLeft className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-amber-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
                 </div>
                 <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-600 truncate">
@@ -646,11 +710,11 @@ export default function AdminDashboard() {
 
         {/* Permanent Salary Payable */}
         <Link href="/admin/employees/salaries" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-purple-500/5 border-purple-500/10 border-l-2 border-l-purple-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-purple-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.permanentSalaryPayable || 0).toLocaleString()}
                 </span>
               </div>
@@ -662,10 +726,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Salary Payable</CardTitle>
-                <DollarSign className="h-4 w-4 text-purple-600 shrink-0" />
+                <DollarSign className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-purple-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.permanentSalaryPayable || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">Monthly staff salaries</p>
@@ -676,11 +740,11 @@ export default function AdminDashboard() {
 
         {/* Temporary Wages Payable */}
         <Link href="/admin/employees/tasks" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-rose-500/5 border-rose-500/10 border-l-2 border-l-rose-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-rose-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   ৳{Math.round(stats?.temporaryWagesPayable || 0).toLocaleString()}
                 </span>
               </div>
@@ -692,10 +756,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Wages Payable</CardTitle>
-                <Receipt className="h-4 w-4 text-rose-600 shrink-0" />
+                <Receipt className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-rose-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.temporaryWagesPayable || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">Completed tasks unpaid</p>
@@ -706,11 +770,11 @@ export default function AdminDashboard() {
 
         {/* Running Assigned Tasks */}
         <Link href="/admin/employees/tasks" className="block transition-transform hover:scale-[1.02] active:scale-95">
-          <Card className="bg-sky-500/5 border-sky-500/10 border-l-2 border-l-sky-500 relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
+          <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary relative overflow-hidden group h-full min-h-[85px] sm:min-h-0 shadow-sm hover:shadow transition-shadow">
             {/* Mobile Layout */}
             <div className="flex flex-col p-2.5 sm:hidden justify-between h-full gap-2 items-center text-center">
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-sm font-black text-sky-700 leading-none">
+                <span className="text-sm font-black text-primary leading-none">
                   {stats?.runningAssignedTasks || 0}
                 </span>
               </div>
@@ -722,10 +786,10 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                 <CardTitle className="text-sm font-semibold leading-tight">Running Tasks</CardTitle>
-                <Briefcase className="h-4 w-4 text-sky-600 shrink-0" />
+                <Briefcase className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="text-lg md:text-2xl font-extrabold text-sky-700">
+                <div className="text-lg md:text-2xl font-extrabold text-primary">
                   {stats?.runningAssignedTasks || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">Active pending tasks</p>

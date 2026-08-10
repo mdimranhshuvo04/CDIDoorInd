@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
               $match: {
                 paymentMethod: 'Credit',
                 paymentStatus: { $ne: 'Paid' },
-                status: { $ne: 'Cancelled' }
+                status: { $nin: ['Cancelled', 'Order Placed'] }
               }
             },
             {
@@ -213,10 +213,21 @@ export async function GET(req: NextRequest) {
       }
     ]);
 
+    const Bill = (await import('@/models/Bill')).default;
+    const dueBills = await Bill.find({ showroom: showroomId, documentType: 'bill', status: 'Due' }).lean() as any[];
+    const totalBillDue = dueBills.reduce((sum: number, b: any) => sum + (b.currentBillDue || 0), 0);
+    const todayDate = new Date();
+    const maturedBillDueRaw = dueBills.reduce((sum: number, b: any) => {
+      if (b.expectedReceivableDate && new Date(b.expectedReceivableDate) < todayDate) {
+        return sum + (b.currentBillDue || 0);
+      }
+      return sum;
+    }, 0);
+
     const cashReceivedFromOrders = orderSums[0]?.cashReceived[0]?.total || 0;
     const bankReceivedFromOrders = orderSums[0]?.bankReceived[0]?.total || 0;
-    const accountReceivable = orderSums[0]?.creditOrders[0]?.totalReceivable || 0;
-    const maturedReceivable = orderSums[0]?.creditOrders[0]?.maturedReceivable || 0;
+    const accountReceivable = (orderSums[0]?.creditOrders[0]?.totalReceivable || 0) + totalBillDue;
+    const maturedReceivable = (orderSums[0]?.creditOrders[0]?.maturedReceivable || 0) + maturedBillDueRaw;
 
     const expenseMap = new Map(expenseSums.map((e: any) => [e._id, e.total]));
     const cashPaidForExpenses = expenseMap.get('expense') || 0;
@@ -226,7 +237,10 @@ export async function GET(req: NextRequest) {
     const cashBalance = cashReceivedFromOrders + cashReceivedFromIncomes - cashPaidForExpenses;
     const bankBalance = bankReceivedFromOrders;
 
-    const supplierPayable = 0;
+    const LedgerAccount = (await import('@/models/LedgerAccount')).default;
+    const apAccount = await LedgerAccount.findOne({ code: 'AP' }).lean() as any;
+
+    const supplierPayable = apAccount ? apAccount.currentBalance : 0;
     const maturedPayable = 0;
 
     // ----------------------------------------------------

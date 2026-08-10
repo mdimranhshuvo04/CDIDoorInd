@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/pagination';
 import { getWhatsAppLink } from '@/lib/utils';
@@ -27,14 +27,31 @@ import {
   XCircle,
   Download,
   MoreHorizontal,
-  ChevronDown,
   Printer,
   FileText,
   Filter as FilterIcon,
   Copy,
   Search,
-  Share2
+  Share2,
+  Plus,
+  ChevronDown
 } from 'lucide-react';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -61,22 +78,20 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { printStickerInvoice } from '@/lib/sticker-generator';
+import ManualOrderDialog from '@/components/admin/ManualOrderDialog';
 
 
 const fraudCache: { [phone: string]: { success_ratio: number; total_parcel: number } | null } = {};
 const fraudPendingRequests: { [phone: string]: Promise<any> | null } = {};
 
 function FraudCheckBadge({ phone }: { phone?: string }) {
-  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchVersion, setFetchVersion] = useState(0);
+
+  const cachedData = phone ? fraudCache[phone] : undefined;
 
   useEffect(() => {
-    if (!phone) return;
-
-    if (fraudCache[phone] !== undefined) {
-      setData(fraudCache[phone]);
-      return;
-    }
+    if (!phone || cachedData !== undefined) return;
 
     const fetchFraud = async () => {
       setLoading(true);
@@ -103,26 +118,26 @@ function FraudCheckBadge({ phone }: { phone?: string }) {
       } catch (e) {
         fraudCache[phone] = null;
       } finally {
-        setData(fraudCache[phone]);
         setLoading(false);
+        setFetchVersion(v => v + 1);
         delete fraudPendingRequests[phone];
       }
     };
 
     fetchFraud();
-  }, [phone]);
+  }, [phone, cachedData]);
 
   if (loading) {
     return <span className="text-[10px] text-muted-foreground ml-1.5 animate-pulse">Checking...</span>;
   }
 
-  if (!data) return null;
+  if (!cachedData) return null;
 
-  const ratio = data.success_ratio;
+  const ratio = cachedData.success_ratio;
   const colorClass = ratio >= 80 ? 'text-green-600 font-extrabold' : ratio >= 60 ? 'text-yellow-600 font-extrabold' : 'text-red-600 font-extrabold';
 
   return (
-    <span className={`text-[10px] px-1 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 ${colorClass}`} title={`${data.total_parcel} total parcels`}>
+    <span className={`text-[10px] px-1 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 ${colorClass}`} title={`${cachedData.total_parcel} total parcels`}>
       {ratio}% Success
     </span>
   );
@@ -149,6 +164,7 @@ function OrdersContent() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchParams.get('search') || '');
+  const prevSearchRef = useRef(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'All');
   const [dateFilter, setDateFilter] = useState({
     from: searchParams.get('from') || '',
@@ -162,11 +178,17 @@ function OrdersContent() {
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [settings, setSettings] = useState<any>(null);
  
+  // Manual Order states
+  const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
+ 
   // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      setCurrentPage(1);
+      if (searchTerm !== prevSearchRef.current) {
+        setDebouncedSearchTerm(searchTerm);
+        setCurrentPage(1);
+        prevSearchRef.current = searchTerm;
+      }
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
@@ -273,28 +295,39 @@ function OrdersContent() {
   };
 
   useEffect(() => {
-    fetchOrders(currentPage);
+    // Use a small timeout to avoid calling setState (setLoading) synchronously 
+    // within the effect body, which triggers React's cascading render warning
+    const timer = setTimeout(() => {
+      fetchOrders(currentPage);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [currentPage, debouncedSearchTerm, statusFilter, dateFilter.from, dateFilter.to]);
 
+  // Synchronize state when search parameters change (to support browser back/forward navigation)
   useEffect(() => {
-    const pageFromParams = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    if (pageFromParams !== currentPage) {
-      setCurrentPage(pageFromParams);
-    }
-    const statusFromParams = searchParams.get('status') || 'All';
-    if (statusFromParams !== statusFilter) {
-      setStatusFilter(statusFromParams);
-    }
-    const searchFromParams = searchParams.get('search') || '';
-    if (searchFromParams !== searchTerm) {
-      setSearchTerm(searchFromParams);
-    }
-    const fromFromParams = searchParams.get('from') || '';
-    const toFromParams = searchParams.get('to') || '';
-    if (fromFromParams !== dateFilter.from || toFromParams !== dateFilter.to) {
-      setDateFilter({ from: fromFromParams, to: toFromParams });
-    }
-  }, [searchParams]);
+    const timer = setTimeout(() => {
+      const pageFromParams = Math.max(1, parseInt(searchParams.get('page') || '1'));
+      if (pageFromParams !== currentPage) {
+        setCurrentPage(pageFromParams);
+      }
+      const statusFromParams = searchParams.get('status') || 'All';
+      if (statusFromParams !== statusFilter) {
+        setStatusFilter(statusFromParams);
+      }
+      const searchFromParams = searchParams.get('search') || '';
+      if (searchFromParams !== searchTerm) {
+        setSearchTerm(searchFromParams);
+        setDebouncedSearchTerm(searchFromParams);
+        prevSearchRef.current = searchFromParams;
+      }
+      const fromFromParams = searchParams.get('from') || '';
+      const toFromParams = searchParams.get('to') || '';
+      if (fromFromParams !== dateFilter.from || toFromParams !== dateFilter.to) {
+        setDateFilter({ from: fromFromParams, to: toFromParams });
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchParams, currentPage, statusFilter, searchTerm, dateFilter.from, dateFilter.to]);
 
   const filteredOrders = orders;
 
@@ -600,9 +633,14 @@ function OrdersContent() {
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight whitespace-nowrap">Order Management</h2>
           <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
         </div>
-        <Button onClick={exportToCSV} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
-          <Download className="mr-2 h-4 w-4" /> Export
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsManualOrderOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
+            <Plus className="mr-2 h-4 w-4" /> Manual Order
+          </Button>
+          <Button onClick={exportToCSV} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
+            <Download className="mr-2 h-4 w-4" /> Export
+          </Button>
+        </div>
       </div>
 
       {/* Search and Date Range Row (1 Row) */}
@@ -950,12 +988,12 @@ function OrdersContent() {
                           {order.paymentStatus}
                         </Badge>
                         {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
-                          <div className="flex flex-col gap-0.5 mt-1 bg-red-500/10 dark:bg-red-500/20 p-1.5 rounded border border-red-500/20">
-                            <span className="font-extrabold text-red-600 dark:text-red-400 text-[10px] uppercase tracking-wider">
-                              Credit / Due
+                          <div className={`flex flex-col gap-0.5 mt-1 p-1.5 rounded border ${order.paymentStatus === 'Paid' ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 border-red-500/20'}`}>
+                            <span className={`font-extrabold text-[10px] uppercase tracking-wider ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {order.paymentStatus === 'Paid' ? 'Credit (Paid)' : 'Credit / Due'}
                             </span>
                             {order.expectedPaymentDate && (
-                              <span className="text-[9px] font-semibold text-red-700 dark:text-red-300">
+                              <span className={`text-[9px] font-semibold ${order.paymentStatus === 'Paid' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
                                 Due: {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
                               </span>
                             )}
@@ -1176,6 +1214,18 @@ function OrdersContent() {
                     >
                       {order.paymentStatus}
                     </Badge>
+                    {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
+                      <div className={`flex flex-row items-center gap-1 px-1.5 py-0.5 rounded border ${order.paymentStatus === 'Paid' ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 border-red-500/20'}`}>
+                        <span className={`font-extrabold text-[9px] uppercase tracking-wider ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {order.paymentStatus === 'Paid' ? 'Credit (Paid)' : 'Credit / Due'}
+                        </span>
+                        {order.expectedPaymentDate && (
+                          <span className={`text-[9px] font-semibold border-l pl-1 ml-0.5 ${order.paymentStatus === 'Paid' ? 'text-green-700 dark:text-green-300 border-green-500/30' : 'text-red-700 dark:text-red-300 border-red-500/30'}`}>
+                            Due: {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {order.paymentMethod === 'Manual' && order.manualPaymentDetails && (
                       <span className="text-[9px] text-muted-foreground font-mono bg-slate-50 dark:bg-zinc-900 px-1.5 py-0.5 rounded border">
                         {order.manualPaymentDetails.methodName}
@@ -1319,6 +1369,11 @@ function OrdersContent() {
         onUpdate={fetchOrders}
       />
 
+      <ManualOrderDialog
+        open={isManualOrderOpen}
+        onOpenChange={setIsManualOrderOpen}
+        onCreated={fetchOrders}
+      />
 
       {bulkActionLoading && (
         <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">

@@ -799,20 +799,22 @@ export default function OrderDetailsDialog({
                             <span className="font-bold">{order.manualPaymentDetails.senderNumber}</span>
                           </div>
                           <div className="col-span-2">
-                            <span className="text-muted-foreground block">TrxID:</span>
-                            <code className="font-bold text-primary bg-white px-1.5 py-0.5 rounded border">{order.manualPaymentDetails.transactionId}</code>
+                              <span className="text-muted-foreground block">TrxID:</span>
+                              <code className="font-bold text-primary bg-white px-1.5 py-0.5 rounded border">{order.manualPaymentDetails.transactionId}</code>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
-                       <div className="mt-3 p-3 bg-red-500/5 rounded-xl border border-red-500/20 space-y-2">
-                         <p className="text-[10px] font-black uppercase text-red-500 tracking-widest">Credit Order / Due</p>
+                       <div className={`mt-3 p-3 rounded-xl border space-y-2 ${order.paymentStatus === 'Paid' ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                         <p className={`text-[10px] font-black uppercase tracking-widest ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                           {order.paymentStatus === 'Paid' ? 'Credit Order (Paid)' : 'Credit Order / Due'}
+                         </p>
                          {order.expectedPaymentDate && (
                            <div className="text-[11px]">
                              <span className="text-muted-foreground block font-medium">Expected Payment Date:</span>
-                             <span className="font-bold text-red-600 dark:text-red-400">
+                             <span className={`font-bold ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                {new Date(order.expectedPaymentDate).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'long',

@@ -262,6 +262,38 @@ export async function PATCH(
 
       await dbSession.commitTransaction();
 
+      // Log Accounts Receivable for Credit orders when they are confirmed
+      const becameValidForAR = ['Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'].includes(updatedOrder?.status || '') && 
+                               !['Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'].includes(order.status || '');
+      
+      if (becameValidForAR && (updatedOrder?.paymentMethod === 'Credit' || updatedOrder?.isCreditOrder)) {
+        try {
+          const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+          const amount = (updatedOrder.totalAmount || 0) - (updatedOrder.couponDiscountAmount || 0) - (updatedOrder.walletAmountUsed || 0);
+          const shortId = updatedOrder._id.toString().slice(-8).toUpperCase();
+          const arReference = `AR-ORDER-${shortId}`;
+          
+          const LedgerTransaction = (await import('@/models/LedgerTransaction')).default;
+          const arExists = await LedgerTransaction.findOne({ reference: arReference });
+          
+          if (!arExists) {
+            await logLedgerTransaction(
+              'AR',
+              'debit',
+              amount,
+              `Credit Order Confirmed #${shortId}`,
+              arReference,
+              new Date(),
+              undefined,
+              updatedOrder.showroom ? updatedOrder.showroom.toString() : undefined
+            );
+            console.log(`[Ledger] Logged AR debit for Order #${shortId} successfully.`);
+          }
+        } catch (err) {
+          console.error('[Ledger] Error logging credit order to AR:', err);
+        }
+      }
+
       if (order.paymentStatus !== 'Paid' && updatedOrder?.paymentStatus === 'Paid') {
         try {
           const { logOrderPaymentToLedger } = await import('@/lib/ledgerHelper');

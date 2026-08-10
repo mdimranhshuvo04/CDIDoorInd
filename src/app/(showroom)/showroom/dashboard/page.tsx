@@ -451,23 +451,6 @@ export default function ShowroomDashboard() {
           </Card>
         </div>
 
-        {/* Supplier Account Payable */}
-        <div className="block cursor-default">
-          <Card className="bg-amber-500/5 border-amber-500/10 border-l-2 border-l-amber-500 relative overflow-hidden group h-full shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Payable</CardTitle>
-              <ArrowDownLeft className="h-3.5 w-3.5 md:h-4 md:w-4 text-amber-600 shrink-0" />
-            </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
-              <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-amber-700">
-                N/A
-              </div>
-              <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-red-600 truncate">
-                <span>Matured: N/A</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {/* Performance Trends Chart */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { ShoppingBag, Loader2, Search } from 'lucide-react';
+import { ShoppingBag, Loader2, Search, Check, X, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Pagination } from '@/components/ui/pagination';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ProductStockItem {
   _id: string;
@@ -36,6 +38,12 @@ function ShowroomStockContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
   const limit = 10;
+  
+  // Pending Transfers State
+  const [activeTab, setActiveTab] = useState('current');
+  const [pendingTransfers, setPendingTransfers] = useState<any[]>([]);
+  const [transfersLoading, setTransfersLoading] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchStock = async (page = currentPage) => {
     try {
@@ -58,9 +66,57 @@ function ShowroomStockContent() {
   };
 
   useEffect(() => {
-    fetchStock(1);
-    setCurrentPage(1);
+    const timer = setTimeout(() => {
+      fetchStock(1);
+      setCurrentPage(1);
+    }, search ? 500 : 0);
+
+    return () => clearTimeout(timer);
   }, [search]);
+
+  const fetchPendingTransfers = async () => {
+    try {
+      setTransfersLoading(true);
+      const response = await fetch(`/api/showroom/stock-transfers?limit=100`);
+      if (response.ok) {
+        const data = await response.json();
+        setPendingTransfers(data.transfers || []);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTransfersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPendingTransfers();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleTransferAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      setProcessingId(id);
+      const response = await fetch(`/api/showroom/stock-transfers/${id}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      if (response.ok) {
+        toast.success(`Transfer ${action}d successfully`);
+        fetchPendingTransfers();
+        fetchStock(currentPage);
+      } else {
+        toast.error(`Failed to ${action} transfer`);
+      }
+    } catch {
+      toast.error('Error processing transfer');
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -79,18 +135,33 @@ function ShowroomStockContent() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex items-center gap-2 max-w-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 text-sm"
-          />
-        </div>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="current" className="font-bold">Current Stock</TabsTrigger>
+          <TabsTrigger value="pending" className="font-bold">
+            Pending Approvals
+            {pendingTransfers.length > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                {pendingTransfers.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="current" className="space-y-4">
+          {/* Filter and Search Bar */}
+          <div className="flex items-center gap-2 max-w-sm">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or SKU..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 text-sm"
+              />
+            </div>
+          </div>
 
       {/* Main Stock List */}
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
@@ -124,12 +195,14 @@ function ShowroomStockContent() {
                 products.map((product) => (
                   <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0" key={product._id}>
                     <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
-                      <div className="h-12 w-12 overflow-hidden rounded-md border bg-muted">
+                      <div className="relative h-12 w-12 overflow-hidden rounded-md border bg-muted">
                         {product.images && product.images.length > 0 ? (
-                          <img
+                          <Image
                             src={product.images[0]}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
+                            alt={product.name || 'Product Image'}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
@@ -194,12 +267,13 @@ function ShowroomStockContent() {
                 <div key={product._id} className="py-3.5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Image */}
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-muted">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-muted">
                       {primaryImage ? (
-                        <img
+                        <Image
                           src={primaryImage}
                           alt={product.name}
-                          className="h-full w-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
@@ -258,6 +332,82 @@ function ShowroomStockContent() {
           />
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="pending" className="space-y-4">
+          <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden p-4">
+            {transfersLoading ? (
+              <div className="py-12 text-center">
+                <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : pendingTransfers.length === 0 ? (
+              <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
+                <ClipboardList className="h-10 w-10 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground text-sm font-medium">No pending stock transfers.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pendingTransfers.map((transfer) => (
+                  <div key={transfer._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg bg-muted/20">
+                    <div className="flex items-start sm:items-center gap-4">
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-muted hidden sm:block">
+                        {transfer.product?.images?.[0] ? (
+                          <Image
+                            src={transfer.product.images[0]}
+                            alt={transfer.product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <h4 className="font-bold text-sm sm:text-base text-foreground truncate">
+                          {transfer.product?.name || 'Unknown Product'}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>SKU: {transfer.product?.sku || 'N/A'}</span>
+                          <span>•</span>
+                          <span className="font-semibold text-primary">Incoming Qty: {transfer.quantity}</span>
+                        </div>
+                        {transfer.notes && (
+                          <p className="text-[10px] text-muted-foreground italic line-clamp-2">
+                            Note: {transfer.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 sm:shrink-0 pt-2 sm:pt-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleTransferAction(transfer._id, 'reject')}
+                        disabled={processingId === transfer._id}
+                      >
+                        <X className="mr-1.5 h-4 w-4" />
+                        Reject
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleTransferAction(transfer._id, 'approve')}
+                        disabled={processingId === transfer._id}
+                      >
+                        <Check className="mr-1.5 h-4 w-4" />
+                        Approve
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

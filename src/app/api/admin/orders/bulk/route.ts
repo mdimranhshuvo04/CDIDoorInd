@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest) {
       }
 
       const Product = (await import('@/models/Product')).default;
-      const becomesValid = ['Confirmed', 'Paid', 'Delivered'].includes(status || '');
+      const becomesValid = ['Confirmed', 'Paid', 'Ready for Delivery', 'Released for Delivery', 'Delivered'].includes(status || '');
 
       for (const id of ids) {
         const updateObj: any = {};
@@ -130,6 +130,38 @@ export async function PATCH(req: NextRequest) {
           }
         } catch (ledgerErr) {
           console.error('[Ledger] Error logging payments in bulk update:', ledgerErr);
+        }
+      }
+
+      if (becomesValid) {
+        try {
+          // Fetch the fully updated orders to log AR
+          const updatedOrdersForAR = await Order.find({ _id: { $in: ids }, $or: [{ paymentMethod: 'Credit' }, { isCreditOrder: true }], paymentStatus: { $ne: 'Paid' } }).session(dbSession);
+          const { logLedgerTransaction } = await import('@/lib/ledgerHelper');
+          const LedgerTransaction = (await import('@/models/LedgerTransaction')).default;
+          
+          for (const order of updatedOrdersForAR) {
+            const amount = (order.totalAmount || 0) - (order.couponDiscountAmount || 0) - (order.walletAmountUsed || 0);
+            const shortId = order._id.toString().slice(-8).toUpperCase();
+            const arReference = `AR-ORDER-${shortId}`;
+            
+            const arExists = await LedgerTransaction.findOne({ reference: arReference }).session(dbSession);
+            if (!arExists) {
+              await logLedgerTransaction(
+                'AR',
+                'debit',
+                amount,
+                `Credit Order Confirmed #${shortId}`,
+                arReference,
+                new Date(),
+                undefined,
+                order.showroom ? order.showroom.toString() : undefined,
+                dbSession
+              );
+            }
+          }
+        } catch (err) {
+          console.error('[Ledger] Error logging AR in bulk update:', err);
         }
       }
 
