@@ -7,6 +7,17 @@ export interface ISalaryDisbursement extends Document {
   period?: string;
   date: Date;
   remarks?: string;
+  breakdown?: {
+    baseSalary?: number;
+    proratedSalary?: number;
+    workingDays?: number;
+    presentDays?: number;
+    leaveDays?: number;
+    absentDays?: number;
+    deduction?: number;
+    bonus?: number;
+    netPayable?: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +29,18 @@ const SalaryDisbursementSchema: Schema<ISalaryDisbursement> = new Schema(
     type: { type: String, enum: ['monthly_salary', 'task_payment', 'bonus'], required: true },
     period: { type: String },
     date: { type: Date, default: Date.now },
-    remarks: { type: String }
+    remarks: { type: String },
+    breakdown: {
+      baseSalary: { type: Number },
+      proratedSalary: { type: Number },
+      workingDays: { type: Number },
+      presentDays: { type: Number },
+      leaveDays: { type: Number },
+      absentDays: { type: Number },
+      deduction: { type: Number },
+      bonus: { type: Number },
+      netPayable: { type: Number }
+    }
   },
   { timestamps: true }
 );

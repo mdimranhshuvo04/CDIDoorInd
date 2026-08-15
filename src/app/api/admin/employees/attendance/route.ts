@@ -24,6 +24,14 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
+    // Automatically ensure default Present for all permanent monthly staff on non-weekends
+    try {
+      const { autoFillMissingAttendance } = await import('@/lib/autoAttendance');
+      await autoFillMissingAttendance();
+    } catch (e) {
+      console.warn('Auto attendance fill error:', e);
+    }
+
     let query: any = {};
     if (['employee', 'showroom_manager', 'manager'].includes(userRole)) {
       if (!userId) {

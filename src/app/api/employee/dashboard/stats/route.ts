@@ -18,6 +18,14 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
+    // Auto-fill presence for monthly staff (excluding weekends & manual leaves/absents)
+    try {
+      const { autoFillMissingAttendance } = await import('@/lib/autoAttendance');
+      await autoFillMissingAttendance();
+    } catch (e) {
+      console.warn('Auto attendance fill error:', e);
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
@@ -46,6 +54,14 @@ export async function GET(req: NextRequest) {
     const recentTasks = await Task.find({ employee: userId, status: { $in: ['Pending', 'Completed'] } })
       .sort({ assignedDate: -1 }).limit(5).lean();
 
+    // Attendance (for monthly employees)
+    const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const presentDaysCount = await (await import('@/models/Attendance')).default.countDocuments({
+      employee: userId,
+      date: { $regex: `^${currentMonthPrefix}` },
+      status: { $in: ['Present', 'Late'] }
+    });
+
     return NextResponse.json({
       profile: {
         employeeType: profile?.employeeType || 'monthly',
@@ -55,6 +71,9 @@ export async function GET(req: NextRequest) {
       salary: {
         thisMonth: monthSalaryTotal,
         history: allSalaries,
+      },
+      attendance: {
+        presentThisMonth: presentDaysCount,
       },
       leaves: { pending: pendingLeaves, approved: approvedLeaves, recent: recentLeaves },
       tasks: { pending: pendingTasks, completed: completedTasks, recent: recentTasks },

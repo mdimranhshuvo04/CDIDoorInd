@@ -23,14 +23,12 @@ export async function autoFillMissingAttendance() {
     });
 
     const today = new Date();
-    // Scan last 15 days up to yesterday
-    const startDate = new Date();
-    startDate.setDate(today.getDate() - 15);
-
     const tz = 'Asia/Dhaka';
-    const startStr = startDate.toLocaleDateString('sv', { timeZone: tz });
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    const endStr = yesterday.toLocaleDateString('sv', { timeZone: tz });
+    
+    // Scan from start of current month (or up to 35 days ago)
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startStr = startOfMonth.toLocaleDateString('sv', { timeZone: tz });
+    const endStr = today.toLocaleDateString('sv', { timeZone: tz });
 
     // Fetch existing attendance logs in bulk for the date range
     const existingLogs = await Attendance.find({
@@ -49,12 +47,12 @@ export async function autoFillMissingAttendance() {
       const weekendDays = profile?.weekendDays || ['Friday'];
       const joined = profile?.joinedDate ? new Date(profile.joinedDate) : emp.createdAt;
 
-      // Start from joined date or 15 days ago, whichever is later
-      const start = new Date(Math.max(startDate.getTime(), joined.getTime()));
+      // Start from joined date or start of month, whichever is later
+      const start = new Date(Math.max(startOfMonth.getTime(), joined.getTime()));
       let current = new Date(start);
 
-      // Loop through dates up to yesterday
-      while (current.toLocaleDateString('sv', { timeZone: tz }) !== today.toLocaleDateString('sv', { timeZone: tz }) && current < today) {
+      // Loop through dates including today
+      while (current <= today) {
         const dateStr = current.toLocaleDateString('sv', { timeZone: tz });
         const dayName = current.toLocaleDateString('en-US', { weekday: 'long', timeZone: tz });
         const isWeekend = weekendDays.includes(dayName);
@@ -74,6 +72,7 @@ export async function autoFillMissingAttendance() {
               checkOut,
               autoFilled: true
             });
+            existingSet.add(key);
           }
         }
         current.setDate(current.getDate() + 1);
@@ -84,7 +83,6 @@ export async function autoFillMissingAttendance() {
       try {
         await Attendance.insertMany(recordsToInsert, { ordered: false });
       } catch (insertError: any) {
-        // If some duplicates bypass index check, ordered: false will still insert others
         console.warn('Some auto-filled records already existed:', insertError.message);
       }
     }

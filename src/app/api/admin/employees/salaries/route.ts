@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       const disbursementsToCreate = [];
 
       for (const item of body.disbursements) {
-        const { employeeId, amount, type, remarks, date, period } = item;
+        const { employeeId, amount, type, remarks, date, period, breakdown } = item;
         if (!employeeId || !amount || !type) {
           continue;
         }
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
           type,
           period: period || '',
           remarks: remarks || '',
+          breakdown: breakdown || undefined,
           date: date ? new Date(date) : new Date()
         });
       }
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { employeeId, amount, type, remarks, date, period } = body;
+    const { employeeId, amount, type, remarks, date, period, breakdown } = body;
 
     if (!employeeId || !amount || !type) {
       return NextResponse.json({ message: 'Missing required disbursement fields' }, { status: 400 });
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
       type,
       period: period || '',
       remarks: remarks || '',
+      breakdown: breakdown || undefined,
       date: date ? new Date(date) : new Date()
     });
 

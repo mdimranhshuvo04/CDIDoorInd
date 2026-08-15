@@ -86,7 +86,7 @@ export default function SalariesPage() {
     load();
   }, [fetchData]);
 
-  const handleIndividualDisburse = async (emp: any, amount: string, remarks: string, type: string) => {
+  const handleIndividualDisburse = async (emp: any, amount: string, remarks: string, type: string, breakdown?: any) => {
     if (!amount || Number(amount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
@@ -116,7 +116,8 @@ export default function SalariesPage() {
             amount: Number(amount),
             type: type,
             remarks: remarks,
-            period: type === 'monthly_salary' ? prevMonthPeriod : undefined
+            period: type === 'monthly_salary' ? prevMonthPeriod : undefined,
+            breakdown: breakdown || undefined
           })
         });
 
@@ -643,7 +644,22 @@ export default function SalariesPage() {
                                 </td>
                                 <td className="p-4 text-right">
                                   <Button
-                                    onClick={() => handleIndividualDisburse(emp, currentAmount, currentRemarks, currentType)}
+                                    onClick={() => handleIndividualDisburse(
+                                      emp,
+                                      currentAmount,
+                                      currentRemarks,
+                                      currentType,
+                                      currentType === 'monthly_salary' ? {
+                                        baseSalary: emp.baseSalary || 0,
+                                        proratedSalary: proratedBaseSalary,
+                                        workingDays: activeExpectedWorkingDays,
+                                        presentDays: presentCount,
+                                        leaveDays: leaveCount,
+                                        absentDays: totalAbsents,
+                                        deduction: deduction,
+                                        netPayable: payableSalary
+                                      } : undefined
+                                    )}
                                     size="sm"
                                     className="bg-primary text-primary-foreground font-bold h-8 flex items-center gap-1.5"
                                   >
@@ -836,7 +852,22 @@ export default function SalariesPage() {
                             {/* Action Bar */}
                             <div className="flex items-center justify-end pt-2 border-t border-zinc-100">
                               <Button
-                                onClick={() => handleIndividualDisburse(emp, currentAmount, currentRemarks, currentType)}
+                                onClick={() => handleIndividualDisburse(
+                                  emp,
+                                  currentAmount,
+                                  currentRemarks,
+                                  currentType,
+                                  currentType === 'monthly_salary' ? {
+                                    baseSalary: emp.baseSalary || 0,
+                                    proratedSalary: proratedBaseSalary,
+                                    workingDays: activeExpectedWorkingDays,
+                                    presentDays: presentCount,
+                                    leaveDays: leaveCount,
+                                    absentDays: totalAbsents,
+                                    deduction: deduction,
+                                    netPayable: payableSalary
+                                  } : undefined
+                                )}
                                 size="sm"
                                 className="bg-primary text-primary-foreground font-bold h-8 flex items-center gap-1.5 text-xs px-3"
                               >

@@ -105,7 +105,27 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
 }
 
 export function EmployeeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const [employeeType, setEmployeeType] = React.useState<'monthly' | 'task-based' | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/employee/dashboard/stats')
+      .then(res => res.ok ? res.json() : null)
+      .then(d => {
+        if (d?.profile?.employeeType) {
+          setEmployeeType(d.profile.employeeType);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredNavItems = navItems.filter((item) => {
+    // Hide tasks for permanent monthly employees
+    if (item.title === 'Tasks' && employeeType === 'monthly') return false;
+    // Hide leaves for contractual task-based employees
+    if (item.title === 'Leave' && employeeType === 'task-based') return false;
+    return true;
+  });
 
   return (
     <Sidebar {...props}>
@@ -115,9 +135,9 @@ export function EmployeeSidebar({ ...props }: React.ComponentProps<typeof Sideba
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} pathname={pathname} />
+        <NavMain items={filteredNavItems} pathname={pathname} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

@@ -410,21 +410,22 @@ export default function TasksPage() {
               <CardContent className="p-5 space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="assignEmp">Select Employee</Label>
-                  <Select
-                    onValueChange={(val: any) => setAssignEmployeeId(val || '')}
+                  <select
+                    id="assignEmp"
                     value={assignEmployeeId}
+                    onChange={(e) => setAssignEmployeeId(e.target.value)}
+                    required
+                    className="w-full h-9 rounded-lg border border-input bg-white px-3 py-1.5 text-sm shadow-xs outline-none focus:border-zinc-400 font-medium"
                   >
-                    <SelectTrigger id="assignEmp">
-                      <SelectValue placeholder="Choose task-based staff member" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.filter(e => e.employeeType === 'task-based' && e.status !== 'discontinued').map((emp) => (
-                        <SelectItem key={emp._id} value={emp._id}>
-                          {emp.name}
-                        </SelectItem>
+                    <option value="" disabled>Choose task-based staff member</option>
+                    {employees
+                      .filter(e => e.employeeType === 'task-based' && e.status !== 'discontinued')
+                      .map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.name} ({emp.email})
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="taskTitle">Task Title</Label>

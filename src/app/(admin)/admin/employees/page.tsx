@@ -381,18 +381,14 @@ export default function AdminEmployeesPage() {
                             {new Date(emp.joinedDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                           </td>
                           <td className="p-4">
-                            {emp.appointmentLetter ? (
-                              <a 
-                                href={`/appointment-letter/${emp._id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-xs"
-                              >
-                                <FileText className="h-3.5 w-3.5" /> View Letter
-                              </a>
-                            ) : (
-                              <span className="text-xs text-zinc-400 italic">Not Generated</span>
-                            )}
+                            <a 
+                              href={`/appointment-letter/${emp._id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-xs"
+                            >
+                              <FileText className="h-3.5 w-3.5" /> View Letter
+                            </a>
                           </td>
                           <td className="p-4 text-right">
                             <DropdownMenu>
@@ -503,18 +499,14 @@ export default function AdminEmployeesPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-zinc-500">Appointment Letter:</span>
-                    {emp.appointmentLetter ? (
-                      <a 
-                        href={`/appointment-letter/${emp._id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-[11px]"
-                      >
-                        <FileText className="h-3.5 w-3.5" /> View Letter
-                      </a>
-                    ) : (
-                      <span className="text-[11px] text-zinc-400 italic">Not Generated</span>
-                    )}
+                    <a 
+                      href={`/appointment-letter/${emp._id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-[11px]"
+                    >
+                      <FileText className="h-3.5 w-3.5" /> View Letter
+                    </a>
                   </div>
                 </div>
               </div>

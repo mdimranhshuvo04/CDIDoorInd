@@ -90,85 +90,111 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          title="এই মাসের বেতন"
-          value={fmt(data?.salary?.thisMonth || 0)}
-          sub={isMonthly ? `বেস: ${fmt(data?.profile?.baseSalary || 0)}` : 'কাজের ভিত্তিতে পেমেন্ট'}
-          icon={DollarSign}
-          color="bg-emerald-500"
-        />
-        <StatCard
-          title="পেন্ডিং লিভ"
-          value={`${data?.leaves?.pending || 0}`}
-          sub={`অনুমোদিত: ${data?.leaves?.approved || 0}টি`}
-          icon={CalendarOff}
-          color="bg-amber-500"
-        />
-        <StatCard
-          title="পেন্ডিং টাস্ক"
-          value={`${data?.tasks?.pending || 0}`}
-          sub={`সম্পন্ন: ${data?.tasks?.completed || 0}টি`}
-          icon={Clock}
-          color="bg-rose-500"
-        />
-        <StatCard
-          title="সম্পন্ন টাস্ক"
-          value={`${data?.tasks?.completed || 0}`}
-          sub="মোট সম্পন্ন"
-          icon={CheckSquare}
-          color="bg-blue-500"
-        />
-      </div>
+      {isMonthly ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <StatCard
+            title="এই মাসের বেতন"
+            value={fmt(data?.salary?.thisMonth || 0)}
+            sub={`বেস স্যালারি: ${fmt(data?.profile?.baseSalary || 0)}`}
+            icon={DollarSign}
+            color="bg-emerald-500"
+          />
+          <StatCard
+            title="এই মাসের উপস্থিতি"
+            value={`${data?.attendance?.presentThisMonth || 0} দিন`}
+            sub="চলতি মাসে মোট উপস্থিতি"
+            icon={CheckCircle2}
+            color="bg-blue-500"
+          />
+          <div className="col-span-2 md:col-span-1">
+            <StatCard
+              title="লিভ স্ট্যাটাস"
+              value={`${data?.leaves?.approved || 0}টি`}
+              sub={`পেন্ডিং রিকোয়েস্ট: ${data?.leaves?.pending || 0}টি`}
+              icon={CalendarOff}
+              color="bg-amber-500"
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <StatCard
+            title="এই মাসের পেমেন্ট"
+            value={fmt(data?.salary?.thisMonth || 0)}
+            sub="কাজের ভিত্তিতে অর্জিত"
+            icon={DollarSign}
+            color="bg-emerald-500"
+          />
+          <StatCard
+            title="পেন্ডিং টাস্ক"
+            value={`${data?.tasks?.pending || 0}`}
+            sub="চলমান কাজ"
+            icon={Clock}
+            color="bg-rose-500"
+          />
+          <div className="col-span-2 md:col-span-1">
+            <StatCard
+              title="সম্পন্ন টাস্ক"
+              value={`${data?.tasks?.completed || 0}`}
+              sub="মোট সম্পন্ন কাজ"
+              icon={CheckSquare}
+              color="bg-blue-500"
+            />
+          </div>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Tasks */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">সাম্প্রতিক টাস্ক</CardTitle>
-              <CardDescription>আপনার অ্যাসাইন করা টাস্কসমূহ</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/employee/tasks">সব দেখুন <ArrowRight className="h-3 w-3 ml-1" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {data?.tasks?.recent?.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">কোনো টাস্ক নেই</p>
-            ) : (
-              <div className="space-y-2">
-                {data?.tasks?.recent?.map((task: any) => (
-                  <div key={task._id} className="flex items-center justify-between py-2 border-b last:border-0">
-                    <div className="flex items-center gap-2">
-                      {task.status === 'Completed' ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-amber-500 shrink-0" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium line-clamp-1">{task.title}</p>
-                        {task.dueDate && (
-                          <p className="text-xs text-muted-foreground">Due: {format(new Date(task.dueDate), 'dd MMM')}</p>
-                        )}
-                      </div>
-                    </div>
-                    <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="text-xs">
-                      {task.status === 'Completed' ? 'সম্পন্ন' : 'পেন্ডিং'}
-                    </Badge>
-                  </div>
-                ))}
+      {/* Detail Sections */}
+      <div className={`grid grid-cols-1 ${!isMonthly ? 'md:grid-cols-2' : ''} gap-6`}>
+        {/* Recent Tasks (Only for Contractual / Task-based) */}
+        {!isMonthly && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base">সাম্প্রতিক টাস্ক</CardTitle>
+                <CardDescription>আপনার অ্যাসাইন করা টাস্কসমূহ</CardDescription>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/employee/tasks">সব দেখুন <ArrowRight className="h-3 w-3 ml-1" /></Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {data?.tasks?.recent?.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">কোনো টাস্ক নেই</p>
+              ) : (
+                <div className="space-y-2">
+                  {data?.tasks?.recent?.map((task: any) => (
+                    <div key={task._id} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <div className="flex items-center gap-2">
+                        {task.status === 'Completed' ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium line-clamp-1">{task.title}</p>
+                          {task.dueDate && (
+                            <p className="text-xs text-muted-foreground">Due: {format(new Date(task.dueDate), 'dd MMM')}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="text-xs">
+                        {task.status === 'Completed' ? 'সম্পন্ন' : 'পেন্ডিং'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Recent Leaves */}
+        {/* Recent Leaves (Shown for Monthly or anyone with leaves) */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base">লিভ রিকোয়েস্ট</CardTitle>
-              <CardDescription>আপনার সাম্প্রতিক লিভ সমূহ</CardDescription>
+              <CardDescription>আপনার সাম্প্রতিক ছুটির আবেদনসমূহ</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/employee/leaves">সব দেখুন <ArrowRight className="h-3 w-3 ml-1" /></Link>

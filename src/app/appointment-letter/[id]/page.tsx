@@ -116,7 +116,9 @@ export default function AppointmentLetterPage() {
           <div className="font-bold text-zinc-900">{employee.name}</div>
           {employee.phone && <div>Phone: {employee.phone}</div>}
           <div>Email: {employee.email}</div>
-          <div className="mt-1">Role: Showroom Staff / {employee.employeeType === 'monthly' ? 'Permanent Employee' : 'Contractual Employee'}</div>
+          <div className="mt-1">
+            Designation: {employee.role === 'showroom_manager' ? 'Showroom Manager' : employee.role === 'manager' ? 'General Manager' : 'Employee'} ({employee.employeeType === 'monthly' ? 'Permanent / Monthly' : 'Contractual'})
+          </div>
         </div>
 
         {/* Subject */}
@@ -130,24 +132,24 @@ export default function AppointmentLetterPage() {
           
           <p>
             With reference to your application and subsequent interview, we are pleased to offer you appointment as a 
-            <strong> Showroom Staff ({employee.employeeType === 'monthly' ? 'Monthly' : 'Contractual'})</strong> at CDI Door Industries, 
+            <strong> {employee.role === 'showroom_manager' ? 'Showroom Manager' : employee.role === 'manager' ? 'General Manager' : 'Staff Member'} ({employee.employeeType === 'monthly' ? 'Permanent' : 'Contractual'})</strong> at CDI Door Industries, 
             effective from <strong>{joinedDateFormatted}</strong> under the following terms and conditions:
           </p>
 
           <ol className="list-decimal list-inside pl-2 space-y-3">
             <li>
-              <strong>Scope of Work:</strong> You will be responsible for managing sales, orders, deliveries, and customer relationships at our showroom locations, or performing designated task assignments.
+              <strong>Scope of Work:</strong> You will be responsible for managing showroom operations, sales, customer relationships, or performing designated task assignments.
             </li>
             <li>
               <strong>Compensation & Remuneration:</strong> 
               {employee.employeeType === 'monthly' ? (
-                <span> You will be paid a base monthly salary of <strong>{employee.baseSalary?.toLocaleString()} Tk/Month</strong>, subject to statutory deductions. Payments are made on a monthly schedule.</span>
+                <span> You will be paid a base monthly salary of <strong>৳{Number(employee.baseSalary || 0).toLocaleString()} / Month</strong>, subject to company policies and attendance. Payments are disbursed on a monthly schedule.</span>
               ) : (
-                 <span> You will be compensated on a per-task basis as agreed upon for each assigned task. No fixed monthly salary will be paid, and earnings depend purely on successfully assigned and completed tasks.</span>
+                <span> You will be compensated on a per-task basis as agreed upon for each assigned task. No fixed monthly salary will be paid, and earnings depend purely on successfully assigned and completed tasks.</span>
               )}
             </li>
             <li>
-              <strong>Working Hours:</strong> Your general working hours and shift logs will be tracked via our check-in/out attendance logging system.
+              <strong>Working Hours & Attendance:</strong> Your general working hours and attendance will be maintained according to company operational schedule.
             </li>
             <li>
               <strong>Termination:</strong> Either party may terminate this employment agreement by giving a written notice of 15 days, or payment in lieu thereof.

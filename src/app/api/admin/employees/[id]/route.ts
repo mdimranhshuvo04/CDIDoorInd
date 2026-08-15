@@ -34,11 +34,22 @@ export async function GET(
       return NextResponse.json({ message: 'Employee not found' }, { status: 404 });
     }
 
-    const profile = await EmployeeProfile.findOne({ user: id }).lean();
+    const profile = await EmployeeProfile.findOne({ user: id }).lean() as any;
 
     return NextResponse.json({
       employee: {
         ...user.toObject(),
+        employeeType: profile?.employeeType || (user.role === 'showroom_manager' || user.role === 'manager' ? 'monthly' : 'monthly'),
+        baseSalary: profile?.baseSalary || 0,
+        weekendDays: profile?.weekendDays || ['Friday'],
+        allowedAbsents: profile?.allowedAbsents ?? 1,
+        absentDeductionRate: profile?.absentDeductionRate ?? 0,
+        basicSalary: profile?.basicSalary ?? 0,
+        allowance: profile?.allowance ?? 0,
+        deduction: profile?.deduction ?? 0,
+        appointmentLetter: profile?.appointmentLetter || '',
+        joinedDate: profile?.joinedDate || user.createdAt,
+        status: profile?.status || 'active',
         profile: profile || null,
       }
     });
