@@ -160,31 +160,24 @@ export function ProfileForm() {
 
   return (
     <Card className="max-w-2xl w-full">
-      <CardHeader>
-        <CardTitle>Personal Information</CardTitle>
-        <CardDescription>
-          Update your public profile and default shipping address.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-medium border-b pb-2">Basic Info</h3>
               <div className="flex flex-col md:flex-row gap-6">
                  <div className="w-full md:w-1/3">
                     <FormField
                       control={form.control}
                       name="image"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Profile Picture</FormLabel>
+                        <FormItem className="flex flex-col items-center justify-center">
+                          <FormLabel className="mb-2 self-start md:self-center">Profile Picture</FormLabel>
                           <FormControl>
                             <ImageUpload 
                                 value={field.value || ''} 
                                 onUpload={(url) => field.onChange(url)} 
-                                aspect="square"
+                                aspect="circle"
                             />
                           </FormControl>
                           <FormMessage />

@@ -84,16 +84,16 @@ export default function WholesalerOrdersPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 py-6 md:p-8">
+    <div className="flex-1 space-y-4 pt-3 pb-6 md:p-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">অর্ডার হিস্টোরি (Order History)</h1>
-          <p className="text-sm text-muted-foreground mt-1">আপনার করা সকল পাইকারি অর্ডারের তালিকা ও বিবরণ।</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Order History</h1>
         </div>
-        <p className="text-sm text-muted-foreground font-bold">{orders.length} total orders</p>
+        <p className="text-xs text-muted-foreground font-bold">{orders.length} total orders</p>
       </div>
 
-      <div className="rounded-xl border bg-background shadow-sm overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-xl border bg-background shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
@@ -101,14 +101,15 @@ export default function WholesalerOrdersPage() {
               <TableHead className="font-bold">Date</TableHead>
               <TableHead className="font-bold">Items</TableHead>
               <TableHead className="font-bold">Total</TableHead>
+              <TableHead className="font-bold">Payment</TableHead>
               <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-right font-bold w-[120px]">Action</TableHead>
+              <TableHead className="text-right font-bold w-[130px]">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-40 text-center">
+                <TableCell colSpan={7} className="h-40 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <Package className="h-8 w-8 text-muted-foreground opacity-20" />
                     <p className="text-muted-foreground">You haven&apos;t placed any orders yet.</p>
@@ -118,10 +119,29 @@ export default function WholesalerOrdersPage() {
             ) : (
               orders.map((order) => (
                 <TableRow key={order._id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-mono text-xs">#{order?._id?.slice(-8).toUpperCase() || 'N/A'}</TableCell>
+                  <TableCell className="font-mono text-xs font-bold text-primary">#{order?._id?.slice(-8).toUpperCase() || 'N/A'}</TableCell>
                   <TableCell className="text-xs">{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
-                  <TableCell className="text-xs">{Array.isArray(order?.items) ? order.items.length : 0} items</TableCell>
-                  <TableCell className="font-bold">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount) : '0'}</TableCell>
+                  <TableCell className="text-xs">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{Array.isArray(order?.items) ? order.items.length : 0} items</span>
+                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {order.items?.slice(0, 2).map((item: any, idx: number) => (
+                          <span key={idx} className="text-[10px] text-muted-foreground truncate">
+                            {item.quantity}× {item.name}
+                          </span>
+                        ))}
+                        {order.items?.length > 2 && (
+                          <span className="text-[10px] text-muted-foreground">+{order.items.length - 2} more</span>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-bold">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount).toLocaleString('en-BD') : '0'}</TableCell>
+                  <TableCell>
+                    <Badge variant={order.paymentStatus === 'Paid' ? 'default' : 'secondary'} className="text-[10px]">
+                      {order.paymentStatus || order.paymentMethod || 'Pending'}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant={getStatusColor(order.status) as any}>
@@ -169,29 +189,106 @@ export default function WholesalerOrdersPage() {
         </Table>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-10">
-        <Card className="bg-primary/5 border-none shadow-none">
-          <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
-            <Clock className="h-6 w-6 text-primary" />
-            <div className="text-2xl font-black">{orders.filter(o => o.status === 'Pending').length}</div>
-            <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Pending Orders</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-primary/5 border-none shadow-none">
-          <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
-            <Truck className="h-6 w-6 text-primary" />
-            <div className="text-2xl font-black">{orders.filter(o => o.status === 'Shipped').length}</div>
-            <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Shipped Orders</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-primary/5 border-none shadow-none">
-          <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
-            <CheckCircle2 className="h-6 w-6 text-primary" />
-            <div className="text-2xl font-black">{orders.filter(o => o.status === 'Delivered').length}</div>
-            <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Delivered Orders</div>
-          </CardContent>
-        </Card>
+      {/* Mobile Card View (Matches Admin Orders Pattern) */}
+      <div className="block md:hidden space-y-3">
+        {orders.length === 0 ? (
+          <div className="rounded-xl border bg-background p-8 text-center text-muted-foreground text-xs space-y-2">
+            <Package className="h-8 w-8 mx-auto opacity-20" />
+            <p>You haven&apos;t placed any orders yet.</p>
+          </div>
+        ) : (
+          orders.map((order) => (
+            <div
+              key={order._id}
+              className="rounded-xl border bg-background p-4 shadow-sm space-y-3"
+            >
+              {/* Header: Order ID, Date & Status Badge */}
+              <div className="flex items-center justify-between border-b pb-2.5">
+                <div className="flex flex-col">
+                  <span className="font-mono text-sm font-black text-primary">
+                    #{order._id.slice(-8).toUpperCase()}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                  </span>
+                </div>
+                <Badge variant={getStatusColor(order.status) as any} className="text-xs">
+                  {order.status}
+                </Badge>
+              </div>
+
+              {/* Order Items */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Items ({Array.isArray(order.items) ? order.items.length : 0})</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {order.items?.map((item: any, idx: number) => (
+                    <Badge key={idx} variant="outline" className="text-[10px] px-2 py-0.5 font-medium bg-muted/30">
+                      {item.quantity}× {item.name}
+                      {(item.color || item.size) && (
+                        <span className="text-muted-foreground ml-1">
+                          ({[item.color, item.size].filter(Boolean).join('/')})
+                        </span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Total & Payment Info */}
+              <div className="flex items-center justify-between pt-2 border-t text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">Payment:</span>
+                  <Badge variant={order.paymentStatus === 'Paid' ? 'default' : 'secondary'} className="text-[10px] py-0 px-1.5">
+                    {order.paymentStatus || 'Pending'}
+                  </Badge>
+                  {order.paymentMethod && (
+                    <span className="text-[10px] font-medium text-muted-foreground">({order.paymentMethod})</span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-muted-foreground mr-1">Total:</span>
+                  <span className="font-black text-sm text-foreground">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount).toLocaleString('en-BD') : '0'}</span>
+                </div>
+              </div>
+
+              {/* Tracking Link if available */}
+              {order.shippingDetails?.trackingUrl && (
+                <div className="pt-1">
+                  <a
+                    href={order.shippingDetails.trackingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/5 p-2 rounded-lg"
+                  >
+                    <Truck className="h-3.5 w-3.5" /> Track Courier Parcel
+                  </a>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-xs h-9"
+                  disabled={!settings}
+                  onClick={() => settings && generateInvoicePDF(order, settings)}
+                >
+                  <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  Invoice
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 text-xs h-9 text-white"
+                  onClick={() => router.push(`/wholesaler/orders/${order._id}`)}
+                >
+                  Details
+                  <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

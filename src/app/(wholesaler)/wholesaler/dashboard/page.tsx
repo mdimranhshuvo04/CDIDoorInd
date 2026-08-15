@@ -12,21 +12,39 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
-function StatCard({ title, value, sub, icon: Icon, color }: {
-  title: string; value: string; sub?: string; icon: any; color: string;
+function StatCard({ title, value, sub, icon: Icon, borderSideColor = "border-l-primary" }: {
+  title: string; value: string; sub?: string; icon: any; borderSideColor?: string;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="h-4 w-4 text-white" />
+    <Card className={`bg-primary/5 border-primary/10 border-l-2 ${borderSideColor} relative overflow-hidden group h-full shadow-sm hover:shadow transition-all`}>
+      {/* Mobile Layout */}
+      <div className="flex flex-col p-3 sm:hidden justify-between h-full min-h-[90px] gap-2 items-center text-center">
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <span className="text-base font-black text-primary leading-tight">
+            {value}
+          </span>
+          {sub && (
+            <span className="text-[9px] font-semibold text-muted-foreground mt-0.5 leading-none">
+              {sub}
+            </span>
+          )}
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
-      </CardContent>
+        <span className="text-[11px] font-bold text-foreground/80 leading-tight mt-auto">
+          {title}
+        </span>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden sm:block">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-2">
+          <CardTitle className="text-sm font-semibold leading-tight">{title}</CardTitle>
+          <Icon className="h-4 w-4 text-primary shrink-0" />
+        </CardHeader>
+        <CardContent className="p-5 pt-0">
+          <div className="text-xl md:text-2xl font-extrabold text-primary">{value}</div>
+          {sub && <p className="text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
+        </CardContent>
+      </div>
     </Card>
   );
 }
@@ -73,63 +91,66 @@ export default function WholesalerDashboard() {
   const fmt = (n: number) => `৳${n.toLocaleString('en-BD')}`;
 
   return (
-    <div className="flex-1 space-y-6 py-6 md:p-8">
+    <div className="flex-1 space-y-4 pt-3 pb-6 md:p-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <h2 className="text-2xl font-bold tracking-tight">স্বাগতম, {session?.user?.name}!</h2>
-          </div>
-          <p className="text-muted-foreground text-sm mt-1">
-            আপনার পাইকারি অ্যাকাউন্টের সামারি দেখুন।
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+          <h2 className="text-base sm:text-2xl font-bold tracking-tight truncate">
+            স্বাগতম, {session?.user?.name}!
+          </h2>
         </div>
-        <Button asChild className="self-start md:self-auto">
-          <Link href="/shop">
+        <Button asChild className="w-full md:w-auto text-white font-medium shadow-sm">
+          <Link href="/shop" className="justify-center">
             <ExternalLink className="h-4 w-4 mr-2" />
             পণ্য কিনুন (Wholesale Rate)
           </Link>
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard
-          title="মোট অর্ডার"
-          value={`${data?.stats?.totalOrders || 0}`}
-          sub="সব সময়ের মোট"
-          icon={ShoppingBag}
-          color="bg-blue-500"
-        />
-        <StatCard
-          title="পেন্ডিং অর্ডার"
-          value={`${data?.stats?.pendingOrders || 0}`}
-          sub="প্রসেসিংয়ে আছে"
-          icon={Clock}
-          color="bg-amber-500"
-        />
-        <StatCard
-          title="মোট ক্রয়"
-          value={fmt(data?.stats?.totalSpent || 0)}
-          sub="সব সময়ের মোট"
-          icon={DollarSign}
-          color="bg-primary"
-        />
-        <StatCard
-          title="এই মাসের ক্রয়"
-          value={fmt(data?.stats?.monthSpent || 0)}
-          sub="চলতি মাস"
-          icon={TrendingUp}
-          color="bg-emerald-500"
-        />
-        <StatCard
-          title="বাকি পরিশোধযোগ্য (Due)"
-          value={fmt(data?.stats?.totalDue || 0)}
-          sub="বাকিতে কেনা মোট বকেয়া"
-          icon={AlertTriangle}
-          color="bg-destructive"
-        />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+        <Link href="/wholesaler/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <StatCard
+            title="Total Orders"
+            value={`${data?.stats?.totalOrders || 0}`}
+            sub="All time"
+            icon={ShoppingBag}
+          />
+        </Link>
+        <Link href="/wholesaler/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
+          <StatCard
+            title="Pending Orders"
+            value={`${data?.stats?.pendingOrders || 0}`}
+            sub="Processing"
+            icon={Clock}
+          />
+        </Link>
+        <div className="transition-transform hover:scale-[1.02]">
+          <StatCard
+            title="Total Purchases"
+            value={fmt(data?.stats?.totalSpent || 0)}
+            sub="All time"
+            icon={DollarSign}
+          />
+        </div>
+        <div className="transition-transform hover:scale-[1.02]">
+          <StatCard
+            title="This Month"
+            value={fmt(data?.stats?.monthSpent || 0)}
+            sub="Current month"
+            icon={TrendingUp}
+          />
+        </div>
+        <div className="col-span-2 sm:col-span-1 md:col-span-1 transition-transform hover:scale-[1.02]">
+          <StatCard
+            title="Due Balance"
+            value={fmt(data?.stats?.totalDue || 0)}
+            sub="Pending payable"
+            icon={AlertTriangle}
+            borderSideColor="border-l-rose-500"
+          />
+        </div>
       </div>
 
       {/* Recent Orders */}

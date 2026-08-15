@@ -1,11 +1,11 @@
 "use client";
 
 import { useSession, signOut } from 'next-auth/react';
-import { User, LogOut, Package } from 'lucide-react';
+import { User, LogOut, Package, Menu } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuGroup,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -14,11 +14,20 @@ import { Badge } from '@/components/ui/badge';
 
 export default function WholesalerTopbar() {
   const { data: session } = useSession();
+  const { toggleSidebar } = useSidebar();
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3">
-        <SidebarTrigger className="md:hidden" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden h-9 w-9 text-muted-foreground hover:text-foreground"
+          onClick={toggleSidebar}
+          aria-label="Toggle Menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
         <div className="hidden md:flex items-center gap-2">
           <Package className="h-4 w-4 text-primary" />
           <span className="font-semibold text-sm">Wholesaler Panel</span>

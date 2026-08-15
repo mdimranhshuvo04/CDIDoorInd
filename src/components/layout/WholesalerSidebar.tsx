@@ -46,7 +46,10 @@ const navItems = [
   {
     title: "My Account",
     icon: User,
-    items: [{ title: "Profile", url: "/wholesaler/profile" }],
+    items: [
+      { title: "Profile", url: "/wholesaler/profile" },
+      { title: "Change Password", url: "/wholesaler/change-password" },
+    ],
   },
 ]
 
@@ -56,7 +59,6 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isParentActive = item.items.some(

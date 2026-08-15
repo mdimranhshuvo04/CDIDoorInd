@@ -7,7 +7,6 @@ import { Loader2 } from 'lucide-react';
 import { WholesalerSidebar } from '@/components/layout/WholesalerSidebar';
 import WholesalerTopbar from '@/components/layout/WholesalerTopbar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-
 export default function WholesalerLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
