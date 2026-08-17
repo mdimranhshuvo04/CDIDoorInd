@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import Expense from '@/models/Expense';
+import Showroom from '@/models/Showroom';
 
 export async function GET(req: NextRequest) {
   try {
