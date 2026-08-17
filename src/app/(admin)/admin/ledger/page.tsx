@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -49,24 +49,6 @@ function AccountsLedgerContent() {
   const { data: session, status } = useSession();
   const isSuperAdmin = (session?.user as any)?.role === 'super_admin';
 
-  useEffect(() => {
-    if (status === 'authenticated' && !isSuperAdmin) {
-      router.push('/admin/dashboard');
-    }
-  }, [status, isSuperAdmin, router]);
-
-  if (status === 'loading') {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (status === 'authenticated' && !isSuperAdmin) {
-    return null;
-  }
-
   const [accounts, setAccounts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +56,16 @@ function AccountsLedgerContent() {
   
   const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const [currentPage, setCurrentPage] = useState(initialPage);
-  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
+  const [dateFilter, setDateFilter] = useState(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      from: format(start, 'yyyy-MM-dd'),
+      to: format(end, 'yyyy-MM-dd')
+    };
+  });
+  const [filterByDate, setFilterByDate] = useState(true);
 
   // Editing Opening Balance state
   const [editingAccount, setEditingAccount] = useState<any>(null);
@@ -86,6 +77,19 @@ function AccountsLedgerContent() {
   
   const initialTab = (searchParams.get('tab') as 'journal' | 'transfer') || 'journal';
   const [activeTab, setActiveTab] = useState<'journal' | 'transfer'>(initialTab);
+
+  const [accountCode, setAccountCode] = useState<'CASH' | 'BANK'>('CASH');
+  const [fromAccountCode, setFromAccountCode] = useState<'CASH' | 'BANK'>('CASH');
+  const [toAccountCode, setToAccountCode] = useState<'CASH' | 'BANK'>('BANK');
+  const [journalType, setJournalType] = useState<'in' | 'out'>('out');
+  const [journalAmount, setJournalAmount] = useState<string>('');
+  const [transferAmount, setTransferAmount] = useState<string>('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [creatingTx, setCreatingTx] = useState(false);
+  const [editingTx, setEditingTx] = useState<any>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const isMounted = useRef(false);
 
   // Sync state to URL search params
   useEffect(() => {
@@ -103,8 +107,6 @@ function AccountsLedgerContent() {
     router.push(`/admin/ledger?${params.toString()}`);
   }, [currentPage, activeTab]);
 
-  const isMounted = useRef(false);
-
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
@@ -114,26 +116,15 @@ function AccountsLedgerContent() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('page');
     router.push(`/admin/ledger?${params.toString()}`);
-  }, [journalSearchTerm, dateFilter.from, dateFilter.to]);
-
-  const [accountCode, setAccountCode] = useState<'CASH' | 'BANK'>('CASH');
-  const [fromAccountCode, setFromAccountCode] = useState<'CASH' | 'BANK'>('CASH');
-  const [toAccountCode, setToAccountCode] = useState<'CASH' | 'BANK'>('BANK');
-  const [journalType, setJournalType] = useState<'in' | 'out'>('out');
-  const [journalAmount, setJournalAmount] = useState<string>('');
-  const [transferAmount, setTransferAmount] = useState<string>('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [creatingTx, setCreatingTx] = useState(false);
-  const [editingTx, setEditingTx] = useState<any>(null);
-  const titleRef = useRef<HTMLInputElement>(null);
+  }, [journalSearchTerm, filterByDate, dateFilter.from, dateFilter.to]);
 
   useEffect(() => {
-    fetchAccounts();
-    fetchTransactions();
-  }, []);
+    if (status === 'authenticated' && !isSuperAdmin) {
+      router.push('/admin/dashboard');
+    }
+  }, [status, isSuperAdmin, router]);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/ledger/accounts');
       if (!res.ok) throw new Error('Failed to fetch accounts');
@@ -142,9 +133,9 @@ function AccountsLedgerContent() {
     } catch (error) {
       toast.error('Failed to load accounts');
     }
-  };
+  }, []);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/admin/ledger/transactions');
@@ -156,7 +147,35 @@ function AccountsLedgerContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadData = async () => {
+      if (status === 'authenticated' && isSuperAdmin) {
+        await Promise.all([fetchAccounts(), fetchTransactions()]);
+      }
+    };
+    if (isMounted) {
+      loadData();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [status, isSuperAdmin, fetchAccounts, fetchTransactions]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex h-32 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (status === 'authenticated' && !isSuperAdmin) {
+    return null;
+  }
+
 
   const handleUpdateOpeningBalance = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,11 +362,15 @@ function AccountsLedgerContent() {
     const matchesSearch = name.includes(term) || desc.includes(term) || ref.includes(term);
 
     let matchesDate = true;
-    if (dateFilter.from) {
-      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
-    }
-    if (dateFilter.to) {
-      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    if (filterByDate) {
+      if (dateFilter.from) {
+        matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+      }
+      if (dateFilter.to) {
+        const nextDay = new Date(dateFilter.to + 'T00:00:00');
+        nextDay.setDate(nextDay.getDate() + 1);
+        matchesDate = matchesDate && new Date(tx.date) < nextDay;
+      }
     }
 
     return matchesSearch && matchesDate;
@@ -359,6 +382,8 @@ function AccountsLedgerContent() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const isFiltered = !!((filterByDate && (dateFilter.from || dateFilter.to)) || journalSearchTerm);
 
   return (
     <div className="space-y-6">
@@ -416,22 +441,6 @@ function AccountsLedgerContent() {
                 <span className="text-xs md:text-lg font-bold text-foreground mt-0.5">
                   ৳{Math.round(acc.currentBalance)}
                 </span>
-
-                {/* Opening Balance & Edit Button */}
-                <div className="mt-1 flex flex-col items-center gap-0.5 text-[8px] md:text-[10px] text-muted-foreground">
-                  <span className="truncate max-w-full">Op: ৳{Math.round(acc.openingBalance || 0)}</span>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={() => {
-                      setEditingAccount(acc);
-                      setNewOpeningBalance(acc.openingBalance || 0);
-                    }}
-                    className="h-4 px-1 text-[8px] md:text-[10px] hover:bg-muted text-primary mt-0.5"
-                  >
-                    <Edit2 className="h-2 w-2 mr-0.5" /> Edit
-                  </Button>
-                </div>
               </div>
             );
           })}
@@ -444,41 +453,67 @@ function AccountsLedgerContent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Transaction Journal</CardTitle>
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              <div className="relative w-full md:w-72">
+              <div className="relative w-full md:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search description or reference..."
-                  className="pl-8"
+                  className="pl-8 text-xs h-8"
                   value={journalSearchTerm}
                   onChange={(e) => setJournalSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm">
-                <Input
-                  type="date"
-                  className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
-                  value={dateFilter.from}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
-                />
-                <span className="text-muted-foreground text-xs">to</span>
-                <Input
-                  type="date"
-                  className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
-                  value={dateFilter.to}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
-                />
+
+              {/* Date Filter Checkbox & Date Inputs */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <label className="flex items-center gap-1 cursor-pointer font-bold text-foreground shrink-0 select-none">
+                  <input
+                    type="checkbox"
+                    checked={filterByDate}
+                    onChange={(e) => setFilterByDate(e.target.checked)}
+                    className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                  />
+                  Filter by Date
+                </label>
+
+                <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <Input
+                    type="date"
+                    aria-label="Start date"
+                    className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                    value={dateFilter.from}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                    disabled={!filterByDate}
+                  />
+                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                  <Input
+                    type="date"
+                    aria-label="End date"
+                    className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                    value={dateFilter.to}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                    disabled={!filterByDate}
+                  />
+                </div>
               </div>
-              {(dateFilter.from || dateFilter.to || journalSearchTerm) && (
+
+              {isFiltered && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setDateFilter({ from: '', to: '' });
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    setDateFilter({
+                      from: format(start, 'yyyy-MM-dd'),
+                      to: format(end, 'yyyy-MM-dd')
+                    });
+                    setFilterByDate(false);
                     setJournalSearchTerm('');
                   }}
-                  className="text-xs text-muted-foreground hover:text-primary"
+                  className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
                 >
-                  Clear All
+                  Clear
                 </Button>
               )}
             </div>

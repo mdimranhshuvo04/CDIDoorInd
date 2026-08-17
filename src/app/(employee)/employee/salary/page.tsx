@@ -110,9 +110,13 @@ export default function EmployeeSalaryPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Salary & Payment History</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            {isMonthly ? 'Salary & Payment History' : 'Earnings & Payout History'}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            আপনার বেতন ও পরিশোধিত পারিশ্রমিকের বিস্তারিত তথ্য ও হিসাব।
+            {isMonthly
+              ? 'আপনার বেতন ও পরিশোধিত পারিশ্রমিকের বিস্তারিত তথ্য ও হিসাব।'
+              : 'আপনার সম্পন্ন কাজের অর্জিত মজুরি ও পরিশোধিত পারিশ্রমিকের হিসাব বিবরণী।'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -131,7 +135,9 @@ export default function EmployeeSalaryPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">এই মাসের প্রাপ্তি</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              {isMonthly ? 'এই মাসের প্রাপ্তি' : 'চলতি মাসের প্রাপ্তি'}
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-primary shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
@@ -158,34 +164,40 @@ export default function EmployeeSalaryPage() {
         ) : (
           <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-blue-500 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">সম্পন্ন টাস্ক</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">কাজের মোট মজুরি</CardTitle>
               <Briefcase className="h-4 w-4 text-blue-500 shrink-0" />
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pt-0">
               <div className="text-lg sm:text-2xl font-black text-foreground">
-                {stats?.tasks?.completed || 0} টি
+                {fmt(stats?.tasks?.totalEarnings || 0)}
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">মোট কাজের সংখ্যা</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                সম্পন্ন: {(stats?.tasks?.completed || 0) + (stats?.tasks?.paid || 0)}টি কাজ
+              </p>
             </CardContent>
           </Card>
         )}
 
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-emerald-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">মোট প্রাপ্ত বেতন</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              {isMonthly ? 'মোট প্রাপ্ত বেতন' : 'মোট পরিশোধিত বিল'}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             <div className="text-lg sm:text-2xl font-black text-foreground">
               {fmt(totalEarnedAllTime)}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">সব সময় মিলিয়ে মোট</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">সব সময় মিলিয়ে প্রাপ্ত মোট</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-amber-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">মোট বোনাস</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              {isMonthly ? 'মোট বোনাস' : 'বোনাস / অতিরিক্ত'}
+            </CardTitle>
             <Gift className="h-4 w-4 text-amber-500 shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">

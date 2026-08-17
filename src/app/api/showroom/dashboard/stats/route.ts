@@ -20,28 +20,34 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const filterByDate = searchParams.get('filterByDate') !== 'false';
 
-    // Default range: Last 30 days
-    const defaultFrom = new Date();
-    defaultFrom.setDate(defaultFrom.getDate() - 30);
-    const defaultTo = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
 
-    let startDate = defaultFrom;
-    if (from) {
-      const parsedFrom = new Date(from);
-      if (!isNaN(parsedFrom.getTime())) {
-        startDate = parsedFrom;
+    if (filterByDate) {
+      // Default range: Last 30 days
+      const defaultFrom = new Date();
+      defaultFrom.setDate(defaultFrom.getDate() - 30);
+      const defaultTo = new Date();
+
+      startDate = defaultFrom;
+      if (from) {
+        const parsedFrom = new Date(from);
+        if (!isNaN(parsedFrom.getTime())) {
+          startDate = parsedFrom;
+        }
       }
-    }
 
-    let endDate = defaultTo;
-    if (to) {
-      const parsedTo = new Date(to);
-      if (!isNaN(parsedTo.getTime())) {
-        endDate = parsedTo;
+      endDate = defaultTo;
+      if (to) {
+        const parsedTo = new Date(to);
+        if (!isNaN(parsedTo.getTime())) {
+          endDate = parsedTo;
+        }
       }
+      endDate.setHours(23, 59, 59, 999);
     }
-    endDate.setHours(23, 59, 59, 999);
 
     await connectToDatabase();
 
@@ -65,9 +71,10 @@ export async function GET(req: NextRequest) {
     const todayOrderCount = todayOrders.length;
 
     // Date range orders for this showroom
+    const orderDateQuery = startDate && endDate ? { createdAt: { $gte: startDate, $lte: endDate } } : {};
     const rangeOrders = await Order.find({
       showroom: showroomId,
-      createdAt: { $gte: startDate, $lte: endDate },
+      ...orderDateQuery,
       deletedAt: null,
       status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] }
     }).lean() as any[];
@@ -87,10 +94,11 @@ export async function GET(req: NextRequest) {
     });
 
     // Date range expenses
+    const expenseDateQuery = startDate && endDate ? { date: { $gte: startDate, $lte: endDate } } : {};
     const rangeExpenses = await Expense.find({
       showroom: showroomId,
       status: 'Approved',
-      date: { $gte: startDate, $lte: endDate }
+      ...expenseDateQuery
     }).lean() as any[];
 
     const totalExpenses = rangeExpenses
@@ -246,14 +254,18 @@ export async function GET(req: NextRequest) {
     // ----------------------------------------------------
     // Chart Data aggregation
     // ----------------------------------------------------
+    const orderMatch: any = {
+      showroom: showroomId,
+      status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
+      deletedAt: null
+    };
+    if (startDate && endDate) {
+      orderMatch.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
     const ordersData = await Order.aggregate([
       {
-        $match: {
-          showroom: showroomId,
-          status: { $in: ['Paid', 'Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
-          createdAt: { $gte: startDate, $lte: endDate },
-          deletedAt: null
-        }
+        $match: orderMatch
       },
       {
         $group: {
@@ -264,13 +276,17 @@ export async function GET(req: NextRequest) {
       }
     ]);
 
+    const expenseMatch: any = {
+      showroom: showroomId,
+      status: 'Approved'
+    };
+    if (startDate && endDate) {
+      expenseMatch.date = { $gte: startDate, $lte: endDate };
+    }
+
     const expensesIncomesData = await Expense.aggregate([
       {
-        $match: {
-          showroom: showroomId,
-          date: { $gte: startDate, $lte: endDate },
-          status: 'Approved'
-        }
+        $match: expenseMatch
       },
       {
         $group: {
@@ -284,39 +300,58 @@ export async function GET(req: NextRequest) {
     ]);
 
     const mergedData: Record<string, any> = {};
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
-    for (let i = 0; i <= days; i++) {
-      const d = new Date(startDate);
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
-      if (dateStr <= endDate.toISOString().split('T')[0]) {
+
+    if (startDate && endDate) {
+      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+      for (let i = 0; i <= days; i++) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        if (dateStr <= endDate.toISOString().split('T')[0]) {
+          mergedData[dateStr] = {
+            date: dateStr,
+            revenue: 0,
+            orders: 0,
+            expense: 0,
+            income: 0,
+            showroomBreakdown: {} // Satisfy custom tooltip type structure if shared
+          };
+        }
+      }
+    }
+
+    ordersData.forEach((item: any) => {
+      const dateStr = item._id;
+      if (!mergedData[dateStr]) {
         mergedData[dateStr] = {
           date: dateStr,
           revenue: 0,
           orders: 0,
           expense: 0,
           income: 0,
-          showroomBreakdown: {} // Satisfy custom tooltip type structure if shared
+          showroomBreakdown: {}
         };
       }
-    }
-
-    ordersData.forEach((item: any) => {
-      const dateStr = item._id;
-      if (mergedData[dateStr]) {
-        mergedData[dateStr].revenue = item.revenue || 0;
-        mergedData[dateStr].orders = item.orders || 0;
-      }
+      mergedData[dateStr].revenue = item.revenue || 0;
+      mergedData[dateStr].orders = item.orders || 0;
     });
 
     expensesIncomesData.forEach((item: any) => {
       const dateStr = item._id.date;
-      if (mergedData[dateStr]) {
-        if (item._id.type === 'income') {
-          mergedData[dateStr].income = item.amount || 0;
-        } else {
-          mergedData[dateStr].expense = item.amount || 0;
-        }
+      if (!mergedData[dateStr]) {
+        mergedData[dateStr] = {
+          date: dateStr,
+          revenue: 0,
+          orders: 0,
+          expense: 0,
+          income: 0,
+          showroomBreakdown: {}
+        };
+      }
+      if (item._id.type === 'income') {
+        mergedData[dateStr].income = item.amount || 0;
+      } else {
+        mergedData[dateStr].expense = item.amount || 0;
       }
     });
 

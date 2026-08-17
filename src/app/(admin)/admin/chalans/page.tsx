@@ -60,6 +60,17 @@ function ClientChalansContent() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
+  const [dateFilter, setDateFilter] = useState(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      from: format(start, 'yyyy-MM-dd'),
+      to: format(end, 'yyyy-MM-dd')
+    };
+  });
+  const [filterByDate, setFilterByDate] = useState(true);
+
   const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const [currentPage, setCurrentPage] = useState(initialPage);
   
@@ -76,13 +87,13 @@ function ClientChalansContent() {
     router.push(`/admin/chalans?${params.toString()}`);
   }, [currentPage]);
 
-  // Reset page when search term changes
+  // Reset page when search term or dates change
   useEffect(() => {
     setCurrentPage(1);
     const params = new URLSearchParams(searchParams.toString());
     params.delete('page');
     router.push(`/admin/chalans?${params.toString()}`);
-  }, [searchTerm]);
+  }, [searchTerm, filterByDate, dateFilter.from, dateFilter.to]);
 
   // Chalan detail view state
   const [selectedChalan, setSelectedChalan] = useState<any>(null);
@@ -396,11 +407,23 @@ function ClientChalansContent() {
     }
   };
 
-  const filteredChalans = chalans.filter(b =>
-    b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.clientPhone.includes(searchTerm) ||
-    b.invoiceNo.includes(searchTerm)
-  );
+  const filteredChalans = chalans.filter(b => {
+    const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.clientPhone.includes(searchTerm) ||
+      b.invoiceNo.includes(searchTerm);
+
+    let matchesDate = true;
+    if (filterByDate) {
+      if (dateFilter.from) {
+        matchesDate = matchesDate && new Date(b.date) >= new Date(dateFilter.from + 'T00:00:00');
+      }
+      if (dateFilter.to) {
+        matchesDate = matchesDate && new Date(b.date) <= new Date(dateFilter.to + 'T23:59:59');
+      }
+    }
+
+    return matchesSearch && matchesDate;
+  });
 
   const ITEMS_PER_PAGE = 20;
   const totalPages = Math.ceil(filteredChalans.length / ITEMS_PER_PAGE);
@@ -408,6 +431,8 @@ function ClientChalansContent() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const isFiltered = !!((filterByDate && (dateFilter.from || dateFilter.to)) || searchTerm);
 
   return (
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
@@ -426,14 +451,68 @@ function ClientChalansContent() {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Challans List</CardTitle>
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by client or challan..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="relative w-full md:w-56">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by client or challan..."
+                  className="pl-8 text-xs h-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Date Filter Checkbox & Date Inputs */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <label className="flex items-center gap-1 cursor-pointer font-bold text-foreground shrink-0 select-none">
+                  <input
+                    type="checkbox"
+                    checked={filterByDate}
+                    onChange={(e) => setFilterByDate(e.target.checked)}
+                    className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                  />
+                  Filter by Date
+                </label>
+
+                <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <Input
+                    type="date"
+                    className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                    value={dateFilter.from}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                    disabled={!filterByDate}
+                  />
+                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                  <Input
+                    type="date"
+                    className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                    value={dateFilter.to}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                    disabled={!filterByDate}
+                  />
+                </div>
+              </div>
+
+              {isFiltered && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    setDateFilter({
+                      from: format(start, 'yyyy-MM-dd'),
+                      to: format(end, 'yyyy-MM-dd')
+                    });
+                    setFilterByDate(false);
+                    setSearchTerm('');
+                  }}
+                  className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
+                >
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>

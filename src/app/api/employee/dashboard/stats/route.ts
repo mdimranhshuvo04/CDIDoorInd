@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const userRole = (session?.user as any)?.role;
     const userId = (session?.user as any)?.id;
 
-    if (!session || userRole !== 'employee') {
+    if (!session || (userRole !== 'employee' && userRole !== 'showroom_manager')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -51,7 +51,16 @@ export async function GET(req: NextRequest) {
     // Tasks
     const pendingTasks = await Task.countDocuments({ employee: userId, status: 'Pending' });
     const completedTasks = await Task.countDocuments({ employee: userId, status: 'Completed' });
-    const recentTasks = await Task.find({ employee: userId, status: { $in: ['Pending', 'Completed'] } })
+    const paidTasks = await Task.countDocuments({ employee: userId, status: 'Paid' });
+    const allEmployeeTasks = await Task.find({ employee: userId }).lean();
+    const totalTaskEarnings = allEmployeeTasks
+      .filter((t: any) => t.status === 'Completed' || t.status === 'Paid')
+      .reduce((sum: number, t: any) => sum + (t.payout || 0), 0);
+    const pendingTaskPayout = allEmployeeTasks
+      .filter((t: any) => t.status === 'Completed')
+      .reduce((sum: number, t: any) => sum + (t.payout || 0), 0);
+
+    const recentTasks = await Task.find({ employee: userId, status: { $in: ['Pending', 'Completed', 'Paid'] } })
       .sort({ assignedDate: -1 }).limit(5).lean();
 
     // Attendance (for monthly employees)
@@ -76,7 +85,14 @@ export async function GET(req: NextRequest) {
         presentThisMonth: presentDaysCount,
       },
       leaves: { pending: pendingLeaves, approved: approvedLeaves, recent: recentLeaves },
-      tasks: { pending: pendingTasks, completed: completedTasks, recent: recentTasks },
+      tasks: {
+        pending: pendingTasks,
+        completed: completedTasks,
+        paid: paidTasks,
+        totalEarnings: totalTaskEarnings,
+        pendingPayout: pendingTaskPayout,
+        recent: recentTasks
+      },
     });
   } catch (error: any) {
     console.error('Employee Dashboard Stats Error:', error);

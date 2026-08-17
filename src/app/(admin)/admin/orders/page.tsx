@@ -30,6 +30,7 @@ import {
   Printer,
   FileText,
   Filter as FilterIcon,
+  SlidersHorizontal,
   Copy,
   Search,
   Share2,
@@ -159,16 +160,41 @@ function OrdersContent() {
     ready: 0,
     released: 0,
     delivered: 0,
-    cancelled: 0
+    cancelled: 0,
+    credit: 0,
+    due: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchParams.get('search') || '');
   const prevSearchRef = useRef(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'All');
-  const [dateFilter, setDateFilter] = useState({
-    from: searchParams.get('from') || '',
-    to: searchParams.get('to') || '',
+  const [dateFilter, setDateFilter] = useState(() => {
+    const fromParam = searchParams.get('from');
+    const toParam = searchParams.get('to');
+    if (fromParam || toParam) {
+      return { from: fromParam || '', to: toParam || '' };
+    }
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      from: format(start, 'yyyy-MM-dd'),
+      to: format(end, 'yyyy-MM-dd')
+    };
+  });
+  const [filterByDate, setFilterByDate] = useState(() => {
+    if (searchParams.get('from') || searchParams.get('to')) {
+      return true;
+    }
+    if (searchParams.get('filterByDate') === 'true') {
+      return true;
+    }
+    if (searchParams.get('filterByDate') === 'false') {
+      return false;
+    }
+    // If no filter or query parameters are present at all (initial fresh navigation), default to true
+    return Array.from(searchParams.keys()).length === 0;
   });
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -180,6 +206,7 @@ function OrdersContent() {
  
   // Manual Order states
   const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
  
   // Debounce search term
   useEffect(() => {
@@ -205,11 +232,15 @@ function OrdersContent() {
     if (debouncedSearchTerm) {
       params.set('search', debouncedSearchTerm);
     }
-    if (dateFilter.from) {
-      params.set('from', dateFilter.from);
-    }
-    if (dateFilter.to) {
-      params.set('to', dateFilter.to);
+    if (filterByDate) {
+      if (dateFilter.from) {
+        params.set('from', dateFilter.from);
+      }
+      if (dateFilter.to) {
+        params.set('to', dateFilter.to);
+      }
+    } else {
+      params.set('filterByDate', 'false');
     }
 
     const currentQuery = searchParams.toString();
@@ -217,7 +248,7 @@ function OrdersContent() {
     if (currentQuery !== newQuery) {
       router.push(`/admin/orders?${newQuery}`);
     }
-  }, [currentPage, statusFilter, debouncedSearchTerm, dateFilter.from, dateFilter.to]);
+  }, [currentPage, statusFilter, debouncedSearchTerm, filterByDate, dateFilter.from, dateFilter.to]);
 
   const handleCopyLink = async (orderId: string) => {
     try {
@@ -267,8 +298,8 @@ function OrdersContent() {
         limit: '20',
         search: debouncedSearchTerm,
         status: statusFilter,
-        from: dateFilter.from,
-        to: dateFilter.to
+        from: filterByDate ? dateFilter.from : '',
+        to: filterByDate ? dateFilter.to : ''
       });
       const res = await fetch(`/api/orders?${queryParams.toString()}`);
       if (!res.ok) {
@@ -301,7 +332,7 @@ function OrdersContent() {
       fetchOrders(currentPage);
     }, 0);
     return () => clearTimeout(timer);
-  }, [currentPage, debouncedSearchTerm, statusFilter, dateFilter.from, dateFilter.to]);
+  }, [currentPage, debouncedSearchTerm, statusFilter, filterByDate, dateFilter.from, dateFilter.to]);
 
   // Synchronize state when search parameters change (to support browser back/forward navigation)
   useEffect(() => {
@@ -628,23 +659,44 @@ function OrdersContent() {
 
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-shrink-0">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight whitespace-nowrap">Order Management</h2>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Order Management</h2>
           <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setIsManualOrderOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
-            <Plus className="mr-2 h-4 w-4" /> Manual Order
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {/* Mobile Filter Toggle Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className={`h-9 px-3 md:hidden ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
+          >
+            <SlidersHorizontal className="mr-1.5 h-4 w-4" />
+            Filters
+            {(statusFilter !== 'All' || dateFilter.from || dateFilter.to || searchTerm) && (
+              <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+            )}
           </Button>
-          <Button onClick={exportToCSV} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
-            <Download className="mr-2 h-4 w-4" /> Export
+
+          <Button 
+            onClick={() => setIsManualOrderOpen(true)} 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
+          >
+            <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Manual Order
+          </Button>
+          <Button 
+            onClick={exportToCSV} 
+            variant="outline"
+            className="font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
+          >
+            <Download className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Export
           </Button>
         </div>
       </div>
 
-      {/* Search and Date Range Row (1 Row) */}
-      <div className="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
+      {/* Desktop Search & Date Filter Bar */}
+      <div className="hidden md:flex items-center gap-2 w-full">
         <div className="relative w-full md:w-80 shrink-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -655,16 +707,97 @@ function OrdersContent() {
           />
         </div>
 
-        <div className="block md:hidden w-full sm:w-auto">
+        {/* Date Filter Checkbox & Date Inputs */}
+        <div className="flex items-center gap-1.5 text-xs">
+          <label className="flex items-center gap-1 cursor-pointer font-bold text-foreground shrink-0 select-none">
+            <input
+              type="checkbox"
+              checked={filterByDate}
+              onChange={(e) => setFilterByDate(e.target.checked)}
+              className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+            />
+            Filter by Date
+          </label>
+
+          <div className={`flex items-center gap-1 bg-muted/50 p-1 rounded-md border w-auto h-10 transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
+            <Input
+              type="date"
+              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0 text-xs font-medium"
+              value={dateFilter.from}
+              onChange={(e) => {
+                setDateFilter(prev => ({ ...prev, from: e.target.value }));
+                setCurrentPage(1);
+              }}
+              disabled={!filterByDate}
+            />
+            <span className="text-muted-foreground text-xs">to</span>
+            <Input
+              type="date"
+              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0 text-xs font-medium"
+              value={dateFilter.to}
+              onChange={(e) => {
+                setDateFilter(prev => ({ ...prev, to: e.target.value }));
+                setCurrentPage(1);
+              }}
+              disabled={!filterByDate}
+            />
+          </div>
+        </div>
+
+        {((filterByDate && (dateFilter.from || dateFilter.to)) || statusFilter !== 'All' || searchTerm) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const now = new Date();
+              const start = new Date(now.getFullYear(), now.getMonth(), 1);
+              const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+              setDateFilter({
+                from: format(start, 'yyyy-MM-dd'),
+                to: format(end, 'yyyy-MM-dd')
+              });
+              setFilterByDate(false);
+              setStatusFilter('All');
+              setSearchTerm('');
+              setDebouncedSearchTerm('');
+              prevSearchRef.current = '';
+              setCurrentPage(1);
+            }}
+            className="text-xs text-muted-foreground hover:text-primary shrink-0"
+          >
+            Clear All
+          </Button>
+        )}
+      </div>
+
+      {/* Collapsible Mobile Filter Controls */}
+      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${
+        showMobileFilters 
+          ? 'grid-rows-[1fr] opacity-100 visible' 
+          : 'grid-rows-[0fr] opacity-0 invisible h-0 overflow-hidden'
+      }`}>
+        <div className="overflow-hidden flex flex-col gap-2.5 p-3 rounded-xl border bg-muted/30">
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search name, phone, email or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full h-9 text-xs"
+            />
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 w-full">
-                <FilterIcon className="mr-2 h-4 w-4" />
-                {statusFilter === 'All' ? 'All Status' : statusFilter}
-                <ChevronDown className="ml-2 h-3 w-3 opacity-50" />
+              <Button variant="outline" className="h-9 w-full justify-between text-xs">
+                <span className="flex items-center">
+                  <FilterIcon className="mr-2 h-3.5 w-3.5" />
+                  {statusFilter === 'All' ? 'All Statuses' : statusFilter}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -676,7 +809,9 @@ function OrdersContent() {
                   { label: 'Ready', value: 'Ready for Delivery', count: statusCounts.ready },
                   { label: 'Released', value: 'Released for Delivery', count: statusCounts.released },
                   { label: 'Delivered', value: 'Delivered', count: statusCounts.delivered },
-                  { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled }
+                  { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled },
+                  { label: 'Credit', value: 'Credit', count: statusCounts.credit },
+                  { label: 'Due', value: 'Due', count: statusCounts.due }
                 ].map((status) => (
                   <DropdownMenuItem
                     key={status.value}
@@ -697,49 +832,72 @@ function OrdersContent() {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
 
-        <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border w-full md:w-auto h-10">
-          <Input
-            type="date"
-            className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
-            value={dateFilter.from}
-            onChange={(e) => {
-              setDateFilter(prev => ({ ...prev, from: e.target.value }));
-              setCurrentPage(1);
-            }}
-          />
-          <span className="text-muted-foreground text-xs">to</span>
-          <Input
-            type="date"
-            className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
-            value={dateFilter.to}
-            onChange={(e) => {
-              setDateFilter(prev => ({ ...prev, to: e.target.value }));
-              setCurrentPage(1);
-            }}
-          />
-        </div>
+          {/* Mobile Date Filter */}
+          <div className="flex flex-col gap-1.5 text-xs bg-background p-2 rounded-md border">
+            <label className="flex items-center gap-1.5 cursor-pointer font-bold text-foreground select-none">
+              <input
+                type="checkbox"
+                checked={filterByDate}
+                onChange={(e) => setFilterByDate(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+              />
+              Filter by Date
+            </label>
+            <div className={`flex items-center gap-1 transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
+              <Input
+                type="date"
+                className="h-7 w-full border border-input rounded bg-transparent focus-visible:ring-0 p-1 text-xs"
+                value={dateFilter.from}
+                onChange={(e) => {
+                  setDateFilter(prev => ({ ...prev, from: e.target.value }));
+                  setCurrentPage(1);
+                }}
+                disabled={!filterByDate}
+              />
+              <span className="text-muted-foreground text-[10px]">to</span>
+              <Input
+                type="date"
+                className="h-7 w-full border border-input rounded bg-transparent focus-visible:ring-0 p-1 text-xs"
+                value={dateFilter.to}
+                onChange={(e) => {
+                  setDateFilter(prev => ({ ...prev, to: e.target.value }));
+                  setCurrentPage(1);
+                }}
+                disabled={!filterByDate}
+              />
+            </div>
+          </div>
 
-        {(statusFilter !== 'All' || dateFilter.from || dateFilter.to || searchTerm) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setStatusFilter('All');
-              setDateFilter({ from: '', to: '' });
-              setSearchTerm('');
-              setCurrentPage(1);
-            }}
-            className="text-xs text-muted-foreground hover:text-primary shrink-0"
-          >
-            Clear All
-          </Button>
-        )}
+          {((filterByDate && (dateFilter.from || dateFilter.to)) || statusFilter !== 'All' || searchTerm) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                setDateFilter({
+                  from: format(start, 'yyyy-MM-dd'),
+                  to: format(end, 'yyyy-MM-dd')
+                });
+                setFilterByDate(false);
+                setStatusFilter('All');
+                setSearchTerm('');
+                setDebouncedSearchTerm('');
+                prevSearchRef.current = '';
+                setCurrentPage(1);
+              }}
+              className="text-xs text-muted-foreground hover:text-primary h-8"
+            >
+              Clear All Filters
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Status Tabs Row (Desktop only - Full Width Grid) */}
-      <div className="hidden md:grid md:grid-cols-8 gap-2 pb-2 border-b">
+      <div className="hidden md:grid md:grid-cols-5 lg:grid-cols-10 gap-2 pb-2 border-b">
         {[
           { label: 'All', value: 'All', count: statusCounts.all },
           { label: 'Placed', value: 'Order Placed', count: statusCounts.placed },
@@ -748,7 +906,9 @@ function OrdersContent() {
           { label: 'Ready', value: 'Ready for Delivery', count: statusCounts.ready },
           { label: 'Released', value: 'Released for Delivery', count: statusCounts.released },
           { label: 'Delivered', value: 'Delivered', count: statusCounts.delivered },
-          { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled }
+          { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled },
+          { label: 'Credit', value: 'Credit', count: statusCounts.credit },
+          { label: 'Due', value: 'Due', count: statusCounts.due }
         ].map((status) => {
           const isActive = statusFilter === status.value;
           return (

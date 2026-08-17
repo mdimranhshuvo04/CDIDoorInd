@@ -45,7 +45,6 @@ const navItems = [
     icon: Store,
     items: [
       { title: "Orders", url: "/showroom/orders" },
-      { title: "Sales Entry", url: "/showroom/sales" },
       { title: "Client Bills", url: "/showroom/bills" },
     ],
   },
@@ -66,7 +65,6 @@ const navItems = [
       { title: "Attendance & Dashboard", url: "/employee/dashboard" },
       { title: "Salary History", url: "/employee/salary" },
       { title: "My Leaves", url: "/employee/leaves" },
-      { title: "My Tasks", url: "/employee/tasks" },
     ],
   },
 ]

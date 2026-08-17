@@ -90,7 +90,7 @@ export default function ShowroomDashboard() {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("revenue");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Date filter state
+  const [filterByDate, setFilterByDate] = useState(true);
   const [dateRange, setDateRange] = useState({
     from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
     to: format(new Date(), 'yyyy-MM-dd'),
@@ -125,10 +125,14 @@ export default function ShowroomDashboard() {
 
     try {
       setLoading(true);
-      const query = new URLSearchParams({
-        from: debouncedDateRange.from,
-        to: debouncedDateRange.to,
-      }).toString();
+      const queryParams: any = {
+        filterByDate: filterByDate ? 'true' : 'false'
+      };
+      if (filterByDate) {
+        queryParams.from = debouncedDateRange.from;
+        queryParams.to = debouncedDateRange.to;
+      }
+      const query = new URLSearchParams(queryParams).toString();
 
       const response = await fetch(`/api/showroom/dashboard/stats?${query}`, {
         signal: controller.signal,
@@ -166,7 +170,7 @@ export default function ShowroomDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [debouncedDateRange]);
+  }, [debouncedDateRange, filterByDate]);
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -176,7 +180,7 @@ export default function ShowroomDashboard() {
     return () => {
       window.removeEventListener('refresh-dashboard', handleRefresh);
     };
-  }, [debouncedDateRange]);
+  }, [debouncedDateRange, filterByDate]);
 
   const handleDateChange = (key: 'from' | 'to', value: string) => {
     const newDate = parseISO(value);
@@ -220,6 +224,13 @@ export default function ShowroomDashboard() {
   const processedChartData = useMemo(() => {
     if (!data?.chartData) return [];
 
+    if (!filterByDate) {
+      return data.chartData.map((item: any) => ({
+        ...item,
+        netIncome: item.revenue - (item.expense || 0)
+      }));
+    }
+
     const start = parseISO(dateRange.from);
     const end = parseISO(dateRange.to);
     const result = [];
@@ -245,7 +256,7 @@ export default function ShowroomDashboard() {
       }
     }
     return result;
-  }, [data, dateRange]);
+  }, [data, filterByDate, dateRange]);
 
   if (loading && !data) {
     return (
@@ -290,22 +301,29 @@ export default function ShowroomDashboard() {
         {/* Desktop Controls */}
         <div className="hidden md:flex items-center gap-2">
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-            <div className="flex items-center gap-1 px-2 shrink-0">
-              <Filter className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Range</span>
-            </div>
+            <label className="flex items-center gap-1.5 px-2 cursor-pointer select-none text-xs font-semibold text-foreground shrink-0">
+              <input
+                type="checkbox"
+                checked={filterByDate}
+                onChange={(e) => setFilterByDate(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
+              />
+              <span>Filter by Date</span>
+            </label>
             <div className="flex items-center gap-1">
               <Input
                 type="date"
-                className="h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
+                disabled={!filterByDate}
+                className={`h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1 ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                 value={dateRange.from}
                 onChange={(e) => handleDateChange('from', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
               />
-              <span className="text-muted-foreground text-[10px] shrink-0">to</span>
+              <span className={`text-muted-foreground text-[10px] shrink-0 ${!filterByDate ? 'opacity-40' : ''}`}>to</span>
               <Input
                 type="date"
-                className="h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1"
+                disabled={!filterByDate}
+                className={`h-8 w-32 border-none bg-transparent focus-visible:ring-0 cursor-pointer text-xs p-1 ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                 value={dateRange.to}
                 onChange={(e) => handleDateChange('to', e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
@@ -343,14 +361,23 @@ export default function ShowroomDashboard() {
         <div className="overflow-hidden w-full">
           <div className="bg-muted/30 p-3 rounded-lg border flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-bold text-muted-foreground border-b pb-1">
-              <span>DATE FILTER</span>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-semibold text-foreground">
+                <input
+                  type="checkbox"
+                  checked={filterByDate}
+                  onChange={(e) => setFilterByDate(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
+                />
+                <span>Filter by Date</span>
+              </label>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <span className="text-[10px] text-muted-foreground font-semibold">From</span>
                 <Input
                   type="date"
-                  className="h-9 w-full bg-background text-xs"
+                  disabled={!filterByDate}
+                  className={`h-9 w-full bg-background text-xs ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                   value={dateRange.from}
                   onChange={(e) => handleDateChange('from', e.target.value)}
                   max={format(new Date(), 'yyyy-MM-dd')}
@@ -360,7 +387,8 @@ export default function ShowroomDashboard() {
                 <span className="text-[10px] text-muted-foreground font-semibold">To</span>
                 <Input
                   type="date"
-                  className="h-9 w-full bg-background text-xs"
+                  disabled={!filterByDate}
+                  className={`h-9 w-full bg-background text-xs ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                   value={dateRange.to}
                   onChange={(e) => handleDateChange('to', e.target.value)}
                   max={format(new Date(), 'yyyy-MM-dd')}

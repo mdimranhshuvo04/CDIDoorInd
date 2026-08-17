@@ -41,12 +41,14 @@ import {
   MoreHorizontal,
   Edit,
   SlidersHorizontal,
-  Share2
+  Share2,
+  Copy
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
+import { getWhatsAppLink } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +56,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Pagination } from '@/components/ui/pagination';
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    width="1em"
+    height="1em"
+    {...props}
+  >
+    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.132-1.347a9.937 9.937 0 004.877 1.28h.005c5.505 0 9.989-4.478 9.99-9.985A9.992 9.992 0 0012.012 2zm5.836 14.199c-.32.899-1.576 1.706-2.185 1.761-.559.05-1.286.074-2.074-.176a9.839 9.839 0 01-4.705-3.023 9.388 9.388 0 01-1.926-3.412 5.097 5.097 0 01-.137-2.138c.112-.601.442-1.01.691-1.272.249-.262.502-.328.67-.328.167 0 .335.006.475.014.148.009.347-.058.544.417.202.489.691 1.684.75 1.805.059.12.098.262.019.41-.079.158-.12.262-.24.399-.118.136-.251.306-.358.411-.118.114-.242.238-.104.475.138.238.614 1.01.32.957.382.341.703.56.963.666.26.106.41.088.56-.079.15-.167.643-.75.814-.999.171-.249.34-.208.573-.122.233.086 1.48.697 1.737.825.257.128.428.192.488.295.06.103.06.596-.26 1.495z"/>
+  </svg>
+);
 
 interface BillItemInput {
   name: string;
@@ -721,7 +735,37 @@ function ClientBillsContent() {
                       <TableCell>{format(new Date(bill.date), 'dd MMM yyyy')}</TableCell>
                       <TableCell>
                         <div className="font-medium">{bill.clientName}</div>
-                        <div className="text-xs text-muted-foreground">{bill.clientPhone}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                          <span>{bill.clientPhone}</span>
+                          {bill.clientPhone && (
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={getWhatsAppLink(bill.clientPhone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded"
+                                title="Chat on WhatsApp"
+                              >
+                                <WhatsAppIcon className="h-3.5 w-3.5" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(bill.clientPhone);
+                                    toast.success('Phone number copied!');
+                                  } catch (err) {
+                                    toast.error('Failed to copy phone number.');
+                                  }
+                                }}
+                                className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded"
+                                title="Copy Phone Number"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right font-semibold">৳{bill.gTotal}</TableCell>
                       <TableCell className="text-right text-green-600">৳{bill.cashIn}</TableCell>
@@ -835,9 +879,39 @@ function ClientBillsContent() {
                       <span className="text-muted-foreground">Client:</span>
                       <span className="font-semibold text-foreground">{bill.clientName}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Phone:</span>
-                      <span className="text-foreground">{bill.clientPhone}</span>
+                      <div className="flex items-center gap-1.5 font-medium text-foreground">
+                        <span>{bill.clientPhone}</span>
+                        {bill.clientPhone && (
+                          <div className="flex items-center gap-1">
+                            <a
+                              href={getWhatsAppLink(bill.clientPhone)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded"
+                              title="Chat on WhatsApp"
+                            >
+                              <WhatsAppIcon className="h-3.5 w-3.5" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(bill.clientPhone);
+                                  toast.success('Phone number copied!');
+                                } catch (err) {
+                                  toast.error('Failed to copy phone number.');
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded"
+                              title="Copy Phone Number"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Date:</span>
@@ -1319,7 +1393,37 @@ function ClientBillsContent() {
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="h-4 w-4 text-primary shrink-0" />
-                      <span>{selectedBill.clientPhone}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>{selectedBill.clientPhone}</span>
+                        {selectedBill.clientPhone && (
+                          <div className="flex items-center gap-1">
+                            <a
+                              href={getWhatsAppLink(selectedBill.clientPhone)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded"
+                              title="Chat on WhatsApp"
+                            >
+                              <WhatsAppIcon className="h-4 w-4" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(selectedBill.clientPhone);
+                                  toast.success('Phone number copied!');
+                                } catch (err) {
+                                  toast.error('Failed to copy phone number.');
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded"
+                              title="Copy Phone Number"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />

@@ -20,7 +20,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -118,16 +117,27 @@ export function EmployeeSidebar({ ...props }: React.ComponentProps<typeof Sideba
           setEmployeeType(d.profile.employeeType);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
-  const filteredNavItems = navItems.filter((item) => {
-    // Hide tasks for permanent monthly employees
-    if (item.title === 'Tasks' && employeeType === 'monthly') return false;
-    // Hide leaves for contractual task-based employees
-    if (item.title === 'Leave' && employeeType === 'task-based') return false;
-    return true;
-  });
+  const filteredNavItems = navItems
+    .filter((item) => {
+      // Hide tasks for permanent monthly employees
+      if (item.title === 'Tasks' && employeeType === 'monthly') return false;
+      // Hide leaves for contractual task-based employees
+      if (item.title === 'Leave' && employeeType === 'task-based') return false;
+      return true;
+    })
+    .map((item) => {
+      if (item.title === 'Salary' && employeeType === 'task-based') {
+        return {
+          ...item,
+          title: 'Payments',
+          items: [{ title: 'Payout History', url: '/employee/salary' }],
+        };
+      }
+      return item;
+    });
 
   return (
     <Sidebar {...props}>

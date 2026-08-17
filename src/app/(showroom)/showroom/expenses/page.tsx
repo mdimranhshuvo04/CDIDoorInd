@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { Plus, Trash, Edit, Search, Loader2, Info, Clock, CheckCircle2, XCircle, ArrowDownCircle, ArrowUpCircle, Wallet, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -57,10 +57,11 @@ function ShowroomExpensesContent() {
       to: format(lastDay, 'yyyy-MM-dd'),
     };
   });
+  const [filterByDate, setFilterByDate] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const fetchTransactions = async () => {
-    setLoading(true);
+  const fetchTransactions = useCallback(async (showLoader = false) => {
+    if (showLoader) setLoading(true);
     try {
       const res = await fetch('/api/admin/expenses-incomes');
       if (!res.ok) throw new Error('Failed to fetch transactions');
@@ -71,10 +72,26 @@ function ShowroomExpensesContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchTransactions();
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/admin/expenses-incomes');
+        if (!res.ok) throw new Error('Failed to fetch transactions');
+        const data = await res.json();
+        if (isMounted) setTransactions(data);
+      } catch (error: any) {
+        if (isMounted) toast.error(error.message || 'Failed to fetch transactions');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -109,11 +126,15 @@ function ShowroomExpensesContent() {
     const matchesSearch = title.includes(term) || category.includes(term);
 
     let matchesDate = true;
-    if (dateFilter.from) {
-      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
-    }
-    if (dateFilter.to) {
-      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    if (filterByDate) {
+      if (dateFilter.from) {
+        matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+      }
+      if (dateFilter.to) {
+        const nextDay = new Date(dateFilter.to + 'T00:00:00');
+        nextDay.setDate(nextDay.getDate() + 1);
+        matchesDate = matchesDate && new Date(tx.date) < nextDay;
+      }
     }
 
     let matchesType = true;
@@ -139,7 +160,7 @@ function ShowroomExpensesContent() {
 
   const fmt = (n: number) => `৳${n.toLocaleString('en-BD')}`;
 
-  const isFiltered = !!(dateFilter.from || dateFilter.to || searchTerm || statusFilter !== 'all' || typeFilter !== 'all');
+  const isFiltered = !!((filterByDate && (dateFilter.from || dateFilter.to)) || searchTerm || statusFilter !== 'all' || typeFilter !== 'all');
 
   const statusBadge = (status: string) => {
     switch (status) {
@@ -266,8 +287,8 @@ function ShowroomExpensesContent() {
       {/* Table Section */}
       <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
         <CardHeader className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 px-0 md:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0 w-full lg:w-auto">
-            <CardTitle className="text-base">লেনদেনের ইতিহাস (Transactions)</CardTitle>
+          <div className="flex items-center justify-between gap-4 px-4 md:px-0 w-full lg:w-auto">
+            <CardTitle className="text-base font-semibold">Transactions</CardTitle>
             {/* Mobile Filter Toggle Button */}
             <div className="block lg:hidden">
               <Button
@@ -328,32 +349,44 @@ function ShowroomExpensesContent() {
 
               <div className="flex flex-col sm:flex-row sm:items-center lg:justify-start gap-2 w-full lg:w-auto">
                 <div className="flex flex-1 lg:flex-initial items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm w-full lg:w-auto">
+                  <label className="flex items-center gap-1.5 px-2 cursor-pointer select-none text-xs font-semibold text-foreground shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={filterByDate}
+                      onChange={(e) => setFilterByDate(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
+                    />
+                    <span>Filter by Date</span>
+                  </label>
                   <Input
                     type="date"
-                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
+                    disabled={!filterByDate}
+                    className={`h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1 ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                     value={dateFilter.from}
                     onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
                   />
-                  <span className="text-muted-foreground text-xs shrink-0">to</span>
+                  <span className={`text-muted-foreground text-xs shrink-0 ${!filterByDate ? 'opacity-40' : ''}`}>to</span>
                   <Input
                     type="date"
-                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
+                    disabled={!filterByDate}
+                    className={`h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1 ${!filterByDate ? 'opacity-40 cursor-not-allowed' : ''}`}
                     value={dateFilter.to}
                     onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
                   />
                 </div>
 
-                {(dateFilter.from || dateFilter.to || searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && (
+                {((filterByDate && (dateFilter.from || dateFilter.to)) || searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
+                      setFilterByDate(false);
                       setDateFilter({ from: '', to: '' });
                       setSearchTerm('');
                       setTypeFilter('all');
                       setStatusFilter('all');
                     }}
-                    className="text-xs text-muted-foreground hover:text-primary shrink-0 lg:w-auto"
+                    className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
                   >
                     Clear
                   </Button>

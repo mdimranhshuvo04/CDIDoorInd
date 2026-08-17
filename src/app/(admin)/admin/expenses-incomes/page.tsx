@@ -59,7 +59,7 @@ function ExpensesIncomesContent() {
   const initialType = (searchParams.get('type') as 'all' | 'expense' | 'income') || 'all';
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>(initialType);
   const [statusFilter, setStatusFilter] = useState<'all' | 'Approved' | 'Pending' | 'Rejected'>('all');
-  const defaultDates = useMemo(() => {
+  const [dateFilter, setDateFilter] = useState(() => {
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -67,15 +67,14 @@ function ExpensesIncomesContent() {
       from: format(firstDay, 'yyyy-MM-dd'),
       to: format(lastDay, 'yyyy-MM-dd'),
     };
-  }, []);
-
-  const [dateFilter, setDateFilter] = useState(defaultDates);
+  });
+  const [filterByDate, setFilterByDate] = useState(true);
 
   const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const prevFilters = useRef({ searchTerm, typeFilter, statusFilter, from: dateFilter.from, to: dateFilter.to });
+  const prevFilters = useRef({ searchTerm, typeFilter, statusFilter, filterByDate, from: dateFilter.from, to: dateFilter.to });
 
   // Sync state changes and handle page reset when filters change
   useEffect(() => {
@@ -83,6 +82,7 @@ function ExpensesIncomesContent() {
       prevFilters.current.searchTerm !== searchTerm ||
       prevFilters.current.typeFilter !== typeFilter ||
       prevFilters.current.statusFilter !== statusFilter ||
+      prevFilters.current.filterByDate !== filterByDate ||
       prevFilters.current.from !== dateFilter.from ||
       prevFilters.current.to !== dateFilter.to;
 
@@ -90,7 +90,7 @@ function ExpensesIncomesContent() {
     if (filtersChanged) {
       targetPage = 1;
       setCurrentPage(1);
-      prevFilters.current = { searchTerm, typeFilter, statusFilter, from: dateFilter.from, to: dateFilter.to };
+      prevFilters.current = { searchTerm, typeFilter, statusFilter, filterByDate, from: dateFilter.from, to: dateFilter.to };
     }
 
     const params = new URLSearchParams(searchParams.toString());
@@ -184,11 +184,13 @@ function ExpensesIncomesContent() {
     const matchesSearch = title.includes(term) || showroomName.includes(term);
 
     let matchesDate = true;
-    if (dateFilter.from) {
-      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
-    }
-    if (dateFilter.to) {
-      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    if (filterByDate) {
+      if (dateFilter.from) {
+        matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+      }
+      if (dateFilter.to) {
+        matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+      }
     }
 
     let matchesType = true;
@@ -218,11 +220,13 @@ function ExpensesIncomesContent() {
     const matchesSearch = title.includes(term) || showroomName.includes(term);
 
     let matchesDate = true;
-    if (dateFilter.from) {
-      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
-    }
-    if (dateFilter.to) {
-      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    if (filterByDate) {
+      if (dateFilter.from) {
+        matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+      }
+      if (dateFilter.to) {
+        matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+      }
     }
 
     return matchesSearch && matchesDate;
@@ -244,8 +248,7 @@ function ExpensesIncomesContent() {
   const pendingAmount = pendingTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
   const isFiltered = !!(
-    dateFilter.from !== defaultDates.from ||
-    dateFilter.to !== defaultDates.to ||
+    (filterByDate && (dateFilter.from || dateFilter.to)) ||
     searchTerm ||
     statusFilter !== 'all' ||
     typeFilter !== 'all'
@@ -397,34 +400,55 @@ function ExpensesIncomesContent() {
                 </Select>
               </div>
 
-              <div className="flex items-center justify-between lg:justify-start gap-2 w-full lg:w-auto">
-                <div className="flex flex-1 lg:flex-initial items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm w-full lg:w-auto">
-                  <Input
-                    type="date"
-                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
-                    value={dateFilter.from}
-                    onChange={(e) => setDateFilter((prev: any) => ({ ...prev, from: e.target.value }))}
-                  />
-                  <span className="text-muted-foreground text-xs shrink-0">to</span>
-                  <Input
-                    type="date"
-                    className="h-8 flex-1 lg:w-32 border-none bg-transparent focus-visible:ring-0 p-1"
-                    value={dateFilter.to}
-                    onChange={(e) => setDateFilter((prev: any) => ({ ...prev, to: e.target.value }))}
-                  />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <label className="flex items-center gap-1 cursor-pointer font-bold text-foreground shrink-0 select-none">
+                    <input
+                      type="checkbox"
+                      checked={filterByDate}
+                      onChange={(e) => setFilterByDate(e.target.checked)}
+                      className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                    />
+                    Filter by Date
+                  </label>
+
+                  <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
+                    <Input
+                      type="date"
+                      className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                      value={dateFilter.from}
+                      onChange={(e) => setDateFilter((prev: any) => ({ ...prev, from: e.target.value }))}
+                      disabled={!filterByDate}
+                    />
+                    <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                    <Input
+                      type="date"
+                      className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
+                      value={dateFilter.to}
+                      onChange={(e) => setDateFilter((prev: any) => ({ ...prev, to: e.target.value }))}
+                      disabled={!filterByDate}
+                    />
+                  </div>
                 </div>
 
-                {(dateFilter.from !== defaultDates.from || dateFilter.to !== defaultDates.to || searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && (
+                {isFiltered && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setDateFilter(defaultDates);
+                      const now = new Date();
+                      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                      setDateFilter({
+                        from: format(firstDay, 'yyyy-MM-dd'),
+                        to: format(lastDay, 'yyyy-MM-dd'),
+                      });
+                      setFilterByDate(false);
                       setSearchTerm('');
                       setTypeFilter('all');
                       setStatusFilter('all');
                     }}
-                    className="text-xs text-muted-foreground hover:text-primary shrink-0 lg:w-auto"
+                    className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
                   >
                     Clear
                   </Button>

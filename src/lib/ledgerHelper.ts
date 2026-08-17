@@ -29,6 +29,42 @@ export async function seedLedgerAccounts() {
   }
 }
 
+/**
+ * Syncs any confirmed/delivered unpaid Credit Orders to Accounts Receivable in the Ledger
+ */
+export async function syncCreditOrdersToLedgerAR() {
+  try {
+    const Order = (await import('@/models/Order')).default;
+    const creditOrders = await Order.find({
+      $or: [{ paymentMethod: 'Credit' }, { isCreditOrder: true }],
+      status: { $in: ['Confirmed', 'Ready for Delivery', 'Released for Delivery', 'Delivered'] },
+      paymentStatus: { $ne: 'Paid' },
+      deletedAt: null
+    }).lean() as any[];
+
+    for (const order of creditOrders) {
+      const amount = (order.totalAmount || 0) - (order.couponDiscountAmount || 0) - (order.walletAmountUsed || 0);
+      const shortId = order._id.toString().slice(-8).toUpperCase();
+      const arReference = `AR-ORDER-${shortId}`;
+      const arExists = await LedgerTransaction.findOne({ reference: arReference });
+      if (!arExists && amount > 0) {
+        await logLedgerTransaction(
+          'AR',
+          'debit',
+          amount,
+          `Credit Order Confirmed #${shortId}`,
+          arReference,
+          order.createdAt ? new Date(order.createdAt) : new Date(),
+          undefined,
+          order.showroom ? order.showroom.toString() : undefined
+        );
+      }
+    }
+  } catch (err) {
+    console.error('[Ledger] Error syncing credit orders to AR:', err);
+  }
+}
+
 export async function logLedgerTransaction(
   accountCode: 'CASH' | 'BANK' | 'AR' | 'AP',
   type: 'debit' | 'credit',

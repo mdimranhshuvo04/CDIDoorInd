@@ -493,6 +493,12 @@ export default function SalariesPage() {
 
                             let payableSalary = 0;
                             let isNewJoiner = false;
+                            let proratedBaseSalary = emp.baseSalary || 0;
+                            let activeExpectedWorkingDays = 0;
+                            let presentCount = 0;
+                            let leaveCount = 0;
+                            let totalAbsents = 0;
+                            let deduction = 0;
 
                             if (joinedDate <= prevMonthEnd) {
                               let activeStartDate = new Date(prevMonthStart);
@@ -503,12 +509,10 @@ export default function SalariesPage() {
 
                               const activeDays = Math.ceil((prevMonthEnd.getTime() - activeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-                              let proratedBaseSalary = emp.baseSalary || 0;
                               if (isNewJoiner) {
                                 proratedBaseSalary = Math.round(((emp.baseSalary || 0) / totalDaysInPrevMonth) * activeDays);
                               }
 
-                              let activeExpectedWorkingDays = 0;
                               const weekendDaysList = emp.weekendDays || ['Friday'];
 
                               const tempDate = new Date(activeStartDate);
@@ -526,17 +530,18 @@ export default function SalariesPage() {
                                 return empId === emp._id && attDate >= activeStartDate && attDate <= prevMonthEnd;
                               });
 
-                              const presentCount = activePeriodLogs.filter(l => l.status === 'Present' || l.status === 'Late').length;
-                              const leaveCount = activePeriodLogs.filter(l => l.status === 'Leave').length;
+                              presentCount = activePeriodLogs.filter(l => l.status === 'Present' || l.status === 'Late').length;
+                              leaveCount = activePeriodLogs.filter(l => l.status === 'Leave').length;
                               const absentCount = activePeriodLogs.filter(l => l.status === 'Absent').length;
 
                               const missingDaysCount = Math.max(0, activeExpectedWorkingDays - presentCount - leaveCount - absentCount);
-                              const totalAbsents = absentCount;
+                              presentCount += missingDaysCount;
+                              totalAbsents = absentCount;
 
                               const allowedAbsents = emp.allowedAbsents ?? 1;
                               const absentDeductionRate = emp.absentDeductionRate || 0;
                               const netAbsents = Math.max(0, totalAbsents - allowedAbsents);
-                              const deduction = netAbsents * absentDeductionRate;
+                              deduction = netAbsents * absentDeductionRate;
 
                               const prevMonthStartStr = prevMonthStart.toLocaleDateString('sv').split('T')[0];
                               const prevMonthEndStr = prevMonthEnd.toLocaleDateString('sv').split('T')[0];
@@ -689,6 +694,12 @@ export default function SalariesPage() {
 
                         let payableSalary = 0;
                         let isNewJoiner = false;
+                        let proratedBaseSalary = emp.baseSalary || 0;
+                        let activeExpectedWorkingDays = 0;
+                        let presentCount = 0;
+                        let leaveCount = 0;
+                        let totalAbsents = 0;
+                        let deduction = 0;
 
                         if (joinedDate <= prevMonthEnd) {
                           let activeStartDate = new Date(prevMonthStart);
@@ -699,12 +710,10 @@ export default function SalariesPage() {
 
                           const activeDays = Math.ceil((prevMonthEnd.getTime() - activeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-                          let proratedBaseSalary = emp.baseSalary || 0;
                           if (isNewJoiner) {
                             proratedBaseSalary = Math.round(((emp.baseSalary || 0) / totalDaysInPrevMonth) * activeDays);
                           }
 
-                          let activeExpectedWorkingDays = 0;
                           const weekendDaysList = emp.weekendDays || ['Friday'];
 
                           const tempDate = new Date(activeStartDate);
@@ -722,17 +731,18 @@ export default function SalariesPage() {
                             return empId === emp._id && attDate >= activeStartDate && attDate <= prevMonthEnd;
                           });
 
-                          const presentCount = activePeriodLogs.filter(l => l.status === 'Present' || l.status === 'Late').length;
-                          const leaveCount = activePeriodLogs.filter(l => l.status === 'Leave').length;
+                          presentCount = activePeriodLogs.filter(l => l.status === 'Present' || l.status === 'Late').length;
+                          leaveCount = activePeriodLogs.filter(l => l.status === 'Leave').length;
                           const absentCount = activePeriodLogs.filter(l => l.status === 'Absent').length;
 
                           const missingDaysCount = Math.max(0, activeExpectedWorkingDays - presentCount - leaveCount - absentCount);
-                          const totalAbsents = absentCount;
+                          presentCount += missingDaysCount;
+                          totalAbsents = absentCount;
 
                           const allowedAbsents = emp.allowedAbsents ?? 1;
                           const absentDeductionRate = emp.absentDeductionRate || 0;
                           const netAbsents = Math.max(0, totalAbsents - allowedAbsents);
-                          const deduction = netAbsents * absentDeductionRate;
+                          deduction = netAbsents * absentDeductionRate;
 
                           const prevMonthStartStr = prevMonthStart.toLocaleDateString('sv').split('T')[0];
                           const prevMonthEndStr = prevMonthEnd.toLocaleDateString('sv').split('T')[0];

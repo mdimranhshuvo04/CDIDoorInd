@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   CalendarOff,
@@ -10,8 +10,10 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +43,9 @@ import { toast } from 'sonner';
 export default function EmployeeLeavesPage() {
   const { data: session } = useSession();
   const [leaves, setLeaves] = useState<any[]>([]);
+  const [employeeType, setEmployeeType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,29 +54,101 @@ export default function EmployeeLeavesPage() {
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
 
-  const fetchLeaves = async () => {
+  const fetchLeaves = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/admin/employees/leaves');
-      if (res.ok) {
-        const data = await res.json();
+      const [leavesRes, statsRes] = await Promise.all([
+        fetch('/api/admin/employees/leaves'),
+        fetch('/api/employee/dashboard/stats')
+      ]);
+
+      if (!statsRes.ok) {
+        throw new Error('Failed to load employee classification');
+      }
+
+      const statsData = await statsRes.json();
+      const type = statsData.profile?.employeeType;
+      if (!type) {
+        throw new Error('Invalid employee classification received');
+      }
+      setEmployeeType(type);
+
+      if (leavesRes.ok) {
+        const data = await leavesRes.json();
         setLeaves(data.leaves || []);
       }
-    } catch (error) {
-      console.error('Failed to fetch leaves:', error);
-      toast.error('Failed to load leave records');
+    } catch (err: any) {
+      console.error('Failed to fetch leaves:', err);
+      const errMsg = err?.message || 'Failed to load leave records';
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      fetchLeaves();
+    let isMounted = true;
+
+    async function loadData() {
+      if (!session?.user) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const [leavesRes, statsRes] = await Promise.all([
+          fetch('/api/admin/employees/leaves'),
+          fetch('/api/employee/dashboard/stats')
+        ]);
+
+        if (!statsRes.ok) {
+          throw new Error('Failed to load employee classification');
+        }
+
+        const statsData = await statsRes.json();
+        const type = statsData.profile?.employeeType;
+        if (!type) {
+          throw new Error('Invalid employee classification received');
+        }
+
+        if (isMounted) {
+          setEmployeeType(type);
+        }
+
+        if (leavesRes.ok) {
+          const data = await leavesRes.json();
+          if (isMounted) {
+            setLeaves(data.leaves || []);
+          }
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch leaves:', err);
+        const errMsg = err?.message || 'Failed to load leave records';
+        if (isMounted) {
+          setError(errMsg);
+          toast.error(errMsg);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [session]);
 
   const handleSubmitLeave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (employeeType !== 'monthly') {
+      toast.error('Only monthly employees are eligible for leave requests');
+      return;
+    }
+
     if (!startDate || !endDate || !reason.trim()) {
       toast.error('Please fill in all required fields');
       return;
@@ -145,6 +221,50 @@ export default function EmployeeLeavesPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex h-[75vh] flex-col items-center justify-center space-y-4 text-center px-4">
+        <AlertTriangle className="h-8 w-8 text-destructive" />
+        <p className="text-muted-foreground max-w-sm">{error}</p>
+        <Button onClick={fetchLeaves} variant="outline" size="sm">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  if (employeeType !== 'monthly') {
+    return (
+      <div className="flex-1 space-y-6 py-6 md:p-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Leave Management</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            ছুটি সংক্রান্ত তথ্যাবলী।
+          </p>
+        </div>
+
+        <Card className="border border-amber-200 bg-amber-500/5">
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600">
+              <CalendarOff className="h-6 w-6" />
+            </div>
+            <div className="max-w-md mx-auto space-y-2">
+              <h3 className="text-lg font-bold text-foreground">ছুটির আবেদন প্রযোজ্য নয়</h3>
+              <p className="text-sm text-muted-foreground">
+                ছুটির আবেদন সুবিধাটি শুধুমাত্র নিয়মিত মাসিক (Monthly) কর্মীদের জন্য প্রযোজ্য। আপনার বর্তমান কর্মী শ্রেণিবিভাগে কোনো ছুটির আবেদন অনুমোদিত নয়।
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button asChild className="text-white">
+                <Link href="/employee/tasks">আমার কাজের তালিকা দেখুন</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
   const approvedCount = leaves.filter(l => l.status === 'Approved').length;
 
@@ -160,10 +280,8 @@ export default function EmployeeLeavesPage() {
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="font-bold flex items-center gap-2 self-start md:self-auto text-white">
-              <Plus className="h-4 w-4" /> Apply for Leave
-            </Button>
+          <DialogTrigger render={<Button className="font-bold flex items-center gap-2 self-start md:self-auto text-white" />}>
+            <Plus className="h-4 w-4" /> Apply for Leave
           </DialogTrigger>
           <DialogContent className="sm:max-w-[480px]">
             <form onSubmit={handleSubmitLeave}>

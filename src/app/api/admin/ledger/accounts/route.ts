@@ -14,6 +14,11 @@ export async function GET() {
     await connectToDatabase();
     await seedLedgerAccounts();
 
+    await recalculateLedgerBalance('AR');
+    await recalculateLedgerBalance('AP');
+    await recalculateLedgerBalance('CASH');
+    await recalculateLedgerBalance('BANK');
+
     const accounts = await LedgerAccount.find().sort({ code: 1 });
     return NextResponse.json(accounts);
   } catch (error: any) {

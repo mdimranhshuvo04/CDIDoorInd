@@ -33,8 +33,6 @@ These demo accounts are seeded into the database for testing and verification pu
   - **Email:** `empperm2@example.com`
   - **Role:** `employee`
   - **Phone:** `01744444444`
-  - **Type:** Monthly (Base Salary: `৳28,000`)
-
 ---
 
 ## 3. Contractual Employees (চুক্তিভিত্তিক কর্মী - Task-based)
@@ -49,7 +47,7 @@ These demo accounts are seeded into the database for testing and verification pu
   - **Email:** `empcont2@example.com`
   - **Role:** `employee`
   - **Phone:** `01766666666`
-  - **Type:** Task-based (Task Rate: `৳600`)
+
 
 ---
 
