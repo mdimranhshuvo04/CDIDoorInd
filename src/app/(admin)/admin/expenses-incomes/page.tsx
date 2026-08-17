@@ -121,9 +121,9 @@ function ExpensesIncomesContent() {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/expenses-incomes');
-      if (!res.ok) throw new Error('Failed to fetch transactions');
       const data = await res.json();
-      setTransactions(data);
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch transactions');
+      setTransactions(Array.isArray(data) ? data : []);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch transactions');
     } finally {

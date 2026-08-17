@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import Expense from '@/models/Expense';
 import Showroom from '@/models/Showroom';
+import User from '@/models/User';
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,7 +50,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (userRole === 'manager' || userRole === 'showroom_manager') {
-      const Showroom = (await import('@/models/Showroom')).default;
       const userId = (session.user as any).id || (session.user as any)._id;
       const managedShowroom = await Showroom.findOne({ manager: userId });
       if (managedShowroom) {
@@ -61,9 +61,9 @@ export async function GET(req: NextRequest) {
 
     const expenses = await Expense.find(query).populate('showroom', 'name').sort({ date: -1 });
     return NextResponse.json(expenses);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching transactions:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: error?.message || 'Internal Server Error' }, { status: 500 });
   }
 }
 
