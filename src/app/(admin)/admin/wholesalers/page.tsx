@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -276,6 +277,10 @@ export default function AdminWholesalersPage() {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  if (loading) {
+    return <AdminTableSkeleton rowCount={6} columnCount={5} titleWidth="w-56" showStats={true} />;
+  }
+
   return (
     <div className="space-y-6 px-0 py-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 md:px-0">
@@ -293,12 +298,7 @@ export default function AdminWholesalersPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <div className="px-4 md:px-0">
+      <div className="px-4 md:px-0">
           <Card className="border border-zinc-200">
             <div className="p-5 border-b border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-50/50">
               <div className="relative w-full md:w-72">
@@ -463,7 +463,6 @@ export default function AdminWholesalersPage() {
           </CardContent>
         </Card>
         </div>
-      )}
 
       {/* Add Wholesaler Modal */}
       {showAddModal && (

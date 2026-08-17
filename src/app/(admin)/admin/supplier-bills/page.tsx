@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Plus, Trash2, Search, FileText, CalendarDays, Eye, DollarSign, MoreHorizontal, Edit, Download, Printer, Users, Loader2, SlidersHorizontal } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
 import { Button } from '@/components/ui/button';
@@ -493,11 +495,20 @@ function SupplierBillsContent() {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                      Loading bills...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-36 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-4 w-20 rounded ml-auto" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-4 w-20 rounded ml-auto" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-4 w-20 rounded ml-auto" /></TableCell>
+                      <TableCell className="text-center"><Skeleton className="h-5 w-16 rounded-full mx-auto" /></TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-8 w-8 rounded-md ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : filteredBills.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
@@ -597,7 +608,23 @@ function SupplierBillsContent() {
           {/* Mobile View */}
           <div className="block md:hidden space-y-2 p-1">
             {loading ? (
-              <div className="p-6 text-center text-muted-foreground text-xs">Loading bills...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-3 border rounded-lg bg-background shadow-sm space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-28 rounded" />
+                        <Skeleton className="h-3 w-36 rounded" />
+                      </div>
+                      <Skeleton className="h-4 w-16 rounded" />
+                    </div>
+                    <div className="flex justify-between pt-1 border-t">
+                      <Skeleton className="h-3 w-20 rounded" />
+                      <Skeleton className="h-3 w-20 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : filteredBills.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground text-xs">No bills found.</div>
             ) : (
@@ -950,7 +977,7 @@ function SupplierBillsContent() {
 
 export default function SupplierBillsPage() {
   return (
-    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<AdminTableSkeleton rowCount={6} columnCount={6} titleWidth="w-52" />}>
       <SupplierBillsContent />
     </Suspense>
   );

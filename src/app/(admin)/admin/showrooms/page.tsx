@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash, Loader2, MoreVertical } from 'lucide-react';
+import { AdminCardGridSkeleton } from '@/components/admin/AdminSkeletons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,11 +190,7 @@ export default function ShowroomsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AdminCardGridSkeleton titleWidth="w-40" itemCount={6} aspectRatio="h-28 md:h-44" />;
   }
 
   return (

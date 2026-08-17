@@ -19,6 +19,7 @@ import {
   User as UserIcon,
   MessageSquare
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -182,14 +183,34 @@ export default function TestimonialsPage() {
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-                <TableCell colSpan={5} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading testimonials...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 4 }).map((_, i) => (
+                <TableRow key={i} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-28 rounded" />
+                      <Skeleton className="h-3 w-20 rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 max-w-[400px]">
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-full rounded" />
+                      <Skeleton className="h-3 w-3/4 rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-4 w-20 rounded" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-right">
+                    <div className="flex justify-end gap-1">
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : testimonials.length === 0 ? (
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={5} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">

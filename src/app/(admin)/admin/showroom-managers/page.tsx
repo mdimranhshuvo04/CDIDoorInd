@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 import {
   Table,
   TableBody,
@@ -188,6 +189,10 @@ export default function ShowroomManagersPage() {
     setEditingManager(null);
   };
 
+  if (loading) {
+    return <AdminTableSkeleton rowCount={6} columnCount={5} titleWidth="w-56" />;
+  }
+
   return (
     <div className="px-0 py-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 px-4 md:px-0">
@@ -203,11 +208,7 @@ export default function ShowroomManagersPage() {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-yellow-500" />
-        </div>
-      ) : managers.length === 0 ? (
+      {managers.length === 0 ? (
         <div className="px-4 md:px-0">
           <Card className="border-dashed border-2 py-10">
             <CardContent className="flex flex-col items-center justify-center text-center space-y-3">

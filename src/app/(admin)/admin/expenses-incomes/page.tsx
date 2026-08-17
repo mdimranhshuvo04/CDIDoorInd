@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Plus, Trash, Edit, Search, MoreHorizontal, Loader2, Check, X, ArrowDownCircle, ArrowUpCircle, Wallet, Clock, SlidersHorizontal } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -459,9 +461,22 @@ function ExpensesIncomesContent() {
         </CardHeader>
         <CardContent className="px-0 md:px-6">
           {loading ? (
-            <div className="flex h-32 items-center justify-center text-muted-foreground">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2"></span>
-              Loading transactions...
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 border rounded-xl">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-36 rounded" />
+                    <Skeleton className="h-3 w-24 rounded" />
+                  </div>
+                  <Skeleton className="h-5 w-20 rounded-md" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-20 rounded" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
@@ -707,7 +722,7 @@ function ExpensesIncomesContent() {
 
 export default function ExpensesIncomesPage() {
   return (
-    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<AdminTableSkeleton rowCount={7} columnCount={6} titleWidth="w-56" showStats={true} />}>
       <ExpensesIncomesContent />
     </Suspense>
   );

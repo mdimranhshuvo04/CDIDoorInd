@@ -37,6 +37,7 @@ import {
   Plus,
   ChevronDown
 } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 
 import {
   Dialog,
@@ -650,11 +651,7 @@ function OrdersContent() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[300px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AdminTableSkeleton rowCount={7} columnCount={6} titleWidth="w-56" showStats={true} />;
   }
 
   return (
@@ -1549,11 +1546,7 @@ function OrdersContent() {
 
 export default function OrdersPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-[300px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    }>
+    <Suspense fallback={<AdminTableSkeleton rowCount={7} columnCount={6} titleWidth="w-56" showStats={true} />}>
       <OrdersContent />
     </Suspense>
   );

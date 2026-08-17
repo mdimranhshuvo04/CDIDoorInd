@@ -31,6 +31,8 @@ import {
   Trash2,
   Search
 } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -153,11 +155,7 @@ function UsersContent() {
   }, [searchParams]);
 
   if (status === 'loading') {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AdminTableSkeleton rowCount={7} columnCount={5} titleWidth="w-48" />;
   }
 
   if (status === 'authenticated' && !isSuperAdmin) {
@@ -321,14 +319,24 @@ function UsersContent() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground font-medium">Loading user data...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
+                  <TableCell>
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-32 rounded" />
+                      <Skeleton className="h-3 w-40 rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-14 rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-8 w-8 rounded-md ml-auto" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-48 text-center">
@@ -460,11 +468,22 @@ function UsersContent() {
       {/* Mobile Card List View */}
       <div className="block md:hidden space-y-3">
         {loading ? (
-          <div className="flex h-32 items-center justify-center bg-white rounded-2xl border border-slate-100 p-6">
-            <div className="flex flex-col items-center justify-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-muted-foreground font-medium text-xs">Loading users...</p>
-            </div>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white border border-slate-150 rounded-2xl shadow-sm p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton className="h-4 w-32 rounded" />
+                    <Skeleton className="h-3 w-40 rounded" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-xs bg-white rounded-2xl border border-slate-100">
@@ -795,11 +814,7 @@ function UsersContent() {
 
 export default function UsersPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-[300px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    }>
+    <Suspense fallback={<AdminTableSkeleton rowCount={7} columnCount={5} titleWidth="w-48" />}>
       <UsersContent />
     </Suspense>
   );

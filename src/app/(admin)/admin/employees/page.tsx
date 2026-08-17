@@ -17,6 +17,7 @@ import {
 import Swal from 'sweetalert2';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -303,8 +304,22 @@ export default function AdminEmployeesPage() {
       <EmployeeTabs />
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 border rounded-2xl bg-card">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-3 w-40 rounded" />
+                </div>
+              </div>
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-4 w-24 rounded" />
+              <Skeleton className="h-4 w-24 rounded" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          ))}
         </div>
       ) : employees.length === 0 ? (
         <div className="text-center py-16 text-zinc-400">

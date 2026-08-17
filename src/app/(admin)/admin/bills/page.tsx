@@ -44,6 +44,8 @@ import {
   Share2,
   Copy
 } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
@@ -692,8 +694,22 @@ function ClientBillsContent() {
       {/* Bill List Table */}
       <div className="rounded-md md:border md:bg-background overflow-hidden">
         {loading ? (
-          <div className="flex h-32 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-3 p-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 border rounded-xl">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-3 w-24 rounded" />
+                </div>
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-4 w-20 rounded" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredBills.length === 0 ? (
           <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
@@ -1561,7 +1577,7 @@ function ClientBillsContent() {
 
 export default function ClientBillsPage() {
   return (
-    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<AdminTableSkeleton rowCount={7} columnCount={6} titleWidth="w-48" showStats={true} />}>
       <ClientBillsContent />
     </Suspense>
   );

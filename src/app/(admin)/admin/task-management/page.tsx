@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 
 export default function AdminTaskManagementPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -186,6 +187,10 @@ export default function AdminTaskManagementPage() {
 
   const taskEmps = employees.filter(e => e.employeeType === 'task-based');
 
+  if (loading) {
+    return <AdminTableSkeleton rowCount={6} columnCount={5} titleWidth="w-56" />;
+  }
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -212,12 +217,7 @@ export default function AdminTaskManagementPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <Card className="border border-zinc-200">
+      <Card className="border border-zinc-200">
           <CardHeader className="bg-zinc-50/50 border-b border-zinc-200 p-5">
             <CardTitle className="text-lg font-black text-zinc-900">Task Assignments Directory</CardTitle>
             <CardDescription className="text-sm text-zinc-500">Overview of all current, completed, and paid contractual task assignments.</CardDescription>
@@ -313,7 +313,6 @@ export default function AdminTaskManagementPage() {
             )}
           </CardContent>
         </Card>
-      )}
 
       {/* Assign Task Modal */}
       {showAssignModal && (

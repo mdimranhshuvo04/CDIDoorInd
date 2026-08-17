@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Plus, Trash2, Edit, Search, User, Eye, CreditCard, DollarSign, Loader2, Phone, Copy } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -305,11 +307,21 @@ function SuppliersContent() {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                      Loading suppliers...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-36 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40 rounded" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-4 w-20 rounded ml-auto" /></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : filteredSuppliers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
@@ -351,7 +363,20 @@ function SuppliersContent() {
           {/* Mobile View */}
           <div className="block md:hidden space-y-3 p-2">
             {loading ? (
-              <div className="p-6 text-center text-muted-foreground text-xs">Loading suppliers...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-3 border rounded-lg bg-background shadow-sm space-y-2.5">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-28 rounded" />
+                        <Skeleton className="h-3 w-20 rounded" />
+                      </div>
+                      <Skeleton className="h-4 w-16 rounded" />
+                    </div>
+                    <Skeleton className="h-3 w-40 rounded" />
+                  </div>
+                ))}
+              </div>
             ) : filteredSuppliers.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground text-xs">No suppliers found.</div>
             ) : (
@@ -689,7 +714,7 @@ function SuppliersContent() {
 
 export default function SuppliersPage() {
   return (
-    <Suspense fallback={<div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<AdminTableSkeleton rowCount={6} columnCount={5} titleWidth="w-52" />}>
       <SuppliersContent />
     </Suspense>
   );

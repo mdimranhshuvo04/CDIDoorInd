@@ -13,6 +13,8 @@ import {
     Newspaper,
     DatabaseZap
 } from 'lucide-react';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -150,14 +152,32 @@ function BlogsContent() {
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
             {loading ? (
-              <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-                <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span>Loading blogs...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i} className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-10 w-16 rounded" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-4 w-48 rounded" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-4 w-12 rounded" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4">
+                    <Skeleton className="h-4 w-24 rounded" />
+                  </TableCell>
+                  <TableCell className="block md:table-cell py-1.5 md:py-4 text-right">
+                    <div className="flex justify-end gap-1">
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : filteredBlogs.length === 0 ? (
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
@@ -254,12 +274,7 @@ function BlogsContent() {
 }
 export default function BlogsPage() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col gap-4 pt-6">
-        <div className="h-8 w-32 bg-muted animate-pulse rounded" />
-        <div className="h-64 bg-muted animate-pulse rounded" />
-      </div>
-    }>
+    <Suspense fallback={<AdminTableSkeleton rowCount={6} columnCount={6} titleWidth="w-48" />}>
       <BlogsContent />
     </Suspense>
   );

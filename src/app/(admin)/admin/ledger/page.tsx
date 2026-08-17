@@ -38,6 +38,8 @@ import {
   Trash2,
   MoreHorizontal
 } from 'lucide-react';
+import { AdminLedgerSkeleton } from '@/components/admin/AdminSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
@@ -165,11 +167,7 @@ function AccountsLedgerContent() {
   }, [status, isSuperAdmin, fetchAccounts, fetchTransactions]);
 
   if (status === 'loading') {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AdminLedgerSkeleton />;
   }
 
   if (status === 'authenticated' && !isSuperAdmin) {
@@ -521,8 +519,16 @@ function AccountsLedgerContent() {
         </CardHeader>
         <CardContent className="px-0 md:px-6">
           {loading ? (
-            <div className="flex h-32 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 border rounded-xl">
+                  <Skeleton className="h-4 w-24 rounded" />
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-4 w-40 rounded" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-24 rounded" />
+                </div>
+              ))}
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
