@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Button } from '@/components/ui/button';
 import { 
   Loader2, 
@@ -109,11 +110,7 @@ export default function ReviewsModerationPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[300px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <AdminTableSkeleton rowCount={6} columnCount={6} titleWidth="w-48" />;
   }
 
   return (

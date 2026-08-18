@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageUpload } from '@/components/ui/image-upload';
+import { AdminSystemDesignSkeleton } from '@/components/admin/AdminSkeletons';
 
 const TEMPLATE_OPTIONS = ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'];
 const THEME_OPTIONS = ['default', 'emerald', 'black', 'caffeine', 'claude', 'elegant', 'marvel', 'material', 'midnight', 'nature', 'perplexity', 'slack', 'summer', 'sunset', 'valorant', 'supabase', 'amber', 'catppuccin', 'clay', 'cyberpunk', 'darkmatter', 'ocean', 'quantum', 't3', 'tangerine', 'vintage', 'green', 'red', 'rose', 'orange', 'blue', 'yellow', 'violet'];
@@ -142,11 +143,7 @@ export default function SuperConfigPage() {
     });
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
-    </div>
-  );
+  if (loading) return <AdminSystemDesignSkeleton />;
 
   const ui = settings?.uiTemplates || {};
 

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import Link from "next/link"
@@ -93,6 +93,10 @@ const data = {
         {
           title: "All Orders",
           url: "/admin/orders",
+        },
+        {
+          title: "Abandoned Carts",
+          url: "/admin/abandoned-carts",
         },
         {
           title: "Offers / Quotations",

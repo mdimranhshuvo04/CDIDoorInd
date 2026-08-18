@@ -337,3 +337,157 @@ export function AdminTaskBoardSkeleton() {
     </div>
   );
 }
+
+ */
+export function AdminFormSkeleton({ titleWidth = 'w-48' }: { titleWidth?: string }) {
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto animate-pulse">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className={`h-8 ${titleWidth} rounded-lg`} />
+          <Skeleton className="h-4 w-60 rounded" />
+        </div>
+        <Skeleton className="h-10 w-28 rounded-xl" />
+      </div>
+
+      {/* Form Body */}
+      <div className="p-6 rounded-2xl border border-border/60 bg-card space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20 rounded" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24 rounded" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28 rounded" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16 rounded" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20 rounded" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20 rounded" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32 rounded" />
+          <Skeleton className="h-36 w-full rounded-2xl border-2 border-dashed" />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-border/40">
+          <Skeleton className="h-10 w-24 rounded-xl" />
+          <Skeleton className="h-10 w-36 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton for Settings & Marketing pages
+ */
+export function AdminSettingsSkeleton({ title = "Settings" }: { title?: string }) {
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto animate-pulse">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48 rounded-lg" />
+          <Skeleton className="h-4 w-64 rounded" />
+        </div>
+        <Skeleton className="h-10 w-32 rounded-xl" />
+      </div>
+
+      {/* Tabs bar */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        <Skeleton className="h-10 w-28 rounded-xl" />
+        <Skeleton className="h-10 w-32 rounded-xl" />
+        <Skeleton className="h-10 w-28 rounded-xl" />
+        <Skeleton className="h-10 w-36 rounded-xl" />
+        <Skeleton className="h-10 w-24 rounded-xl" />
+      </div>
+
+      {/* Settings Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="p-6 rounded-2xl border border-border/60 bg-card space-y-4">
+            <div className="space-y-1.5 pb-2 border-b border-border/40">
+              <Skeleton className="h-5 w-36 rounded" />
+              <Skeleton className="h-3.5 w-56 rounded" />
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton for System Design page
+ */
+export function AdminSystemDesignSkeleton() {
+  return (
+    <div className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-pulse">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/50 pb-8">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-48 rounded" />
+          <Skeleton className="h-9 w-64 rounded-lg" />
+          <Skeleton className="h-4 w-96 rounded" />
+        </div>
+        <Skeleton className="h-11 w-36 rounded-xl" />
+      </div>
+
+      {/* Presets */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-44 rounded" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl border border-border/50" />
+          ))}
+        </div>
+      </div>
+
+      {/* Config Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="p-5 rounded-2xl border border-border/60 bg-card space-y-3">
+            <div className="space-y-1.5">
+              <Skeleton className="h-5 w-32 rounded" />
+              <Skeleton className="h-3 w-44 rounded" />
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <Skeleton className="h-10 w-12 rounded-lg" />
+              <Skeleton className="h-10 flex-1 rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
