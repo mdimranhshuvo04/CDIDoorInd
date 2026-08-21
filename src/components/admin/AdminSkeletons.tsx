@@ -337,8 +337,6 @@ export function AdminTaskBoardSkeleton() {
     </div>
   );
 }
-
- */
 export function AdminFormSkeleton({ titleWidth = 'w-48' }: { titleWidth?: string }) {
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto animate-pulse">

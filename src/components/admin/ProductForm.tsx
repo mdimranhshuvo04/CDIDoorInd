@@ -396,7 +396,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <div className="min-h-[300px] border rounded-md overflow-hidden bg-background prose-sm max-w-none">
+                      <div className="prose-sm max-w-none">
                         <NovelEditor
                           initialValue={(() => {
                             try {
@@ -422,8 +422,11 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
                 <Label>Gallery Images</Label>
+                <p className="text-xs text-muted-foreground">
+                  If the product has variants, there is no need to add images here. Use the Variation Manager below.
+                </p>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {form.watch('images').map((url, index) => (
@@ -490,10 +493,10 @@ export function ProductForm({ initialData }: ProductFormProps) {
           </Card>
 
           <Card className="border-primary/20 shadow-sm overflow-hidden">
-            <div className="bg-primary/5 px-6 py-4 border-b border-primary/10 flex items-center justify-between">
+            <div className="bg-primary/5 px-4 sm:px-6 py-4 border-b border-primary/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
               <div>
-                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                  <PlusCircle className="h-5 w-5" />
+                <h3 className="text-lg font-bold text-primary flex items-center gap-2 whitespace-nowrap">
+                  <PlusCircle className="h-5 w-5 shrink-0" />
                   Variation Manager
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">Manage images and sizes for each color variant.</p>
@@ -502,7 +505,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="bg-background hover:bg-primary hover:text-white transition-all border-primary/20"
+                className="w-full sm:w-auto bg-background hover:bg-primary hover:text-white transition-all border-primary/20 shrink-0"
                 onClick={() => appendVariant({ color: '', images: [], sizes: [{ size: '', price: form.getValues('price') || '', stock: '', sku: '' }] })}
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Color Variant
