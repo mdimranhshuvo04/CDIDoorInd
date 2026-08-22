@@ -14,12 +14,12 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  MoreHorizontal, 
-  Loader2, 
-  User as UserIcon, 
-  Eye, 
-  ShieldAlert, 
+import {
+  MoreHorizontal,
+  Loader2,
+  User as UserIcon,
+  Eye,
+  ShieldAlert,
   Calendar,
   Phone,
   MapPin,
@@ -231,7 +231,7 @@ function UsersContent() {
       setIsAssigning(false);
     }
   };
- 
+
   const handleDeleteUser = async (userId: string, userName: string) => {
     const result = await Swal.fire({
       title: 'Delete User?',
@@ -270,7 +270,7 @@ function UsersContent() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-0 py-4 md:p-8 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 px-4 py-4 md:p-8 w-full max-w-full overflow-x-hidden animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900">Users Management</h1>
@@ -278,7 +278,7 @@ function UsersContent() {
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {(isSuperAdmin || (session?.user as any)?.role === 'admin') && (
-            <Button 
+            <Button
               onClick={() => setIsAssignAdminOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-4 sm:px-6 h-10 sm:h-11 shadow-lg shadow-blue-200 border-none transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
             >
@@ -291,7 +291,7 @@ function UsersContent() {
           </div>
         </div>
       </div>
-      
+
       {/* Search Filter Input */}
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -349,9 +349,9 @@ function UsersContent() {
                   <TableCell>
                     {user.image && user.image !== '' ? (
                       <div className="relative h-10 w-10 rounded-full overflow-hidden border">
-                        <Image 
-                          src={user.image} 
-                          alt={user.name} 
+                        <Image
+                          src={user.image}
+                          alt={user.name}
                           width={40}
                           height={40}
                           className="h-full w-full object-cover"
@@ -364,7 +364,7 @@ function UsersContent() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <button 
+                    <button
                       onClick={() => openUserDetails(user)}
                       className="font-semibold text-slate-900 hover:text-primary transition-colors text-left"
                     >
@@ -379,7 +379,7 @@ function UsersContent() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge 
+                    <Badge
                       variant={user.role === 'admin' || user.role === 'manager' ? 'default' : 'outline'}
                       className={`
                         capitalize px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wider
@@ -411,14 +411,14 @@ function UsersContent() {
                             <Eye className="mr-2 h-4 w-4" /> View Details
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
-                        
+
                         <DropdownMenuSeparator />
-                        
+
                         <DropdownMenuGroup>
                           <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
-                          
+
                           {user.role !== 'admin' && (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleUpdateRole(user._id, 'admin')}
                               className="cursor-pointer text-blue-600 font-bold"
                             >
@@ -427,7 +427,7 @@ function UsersContent() {
                           )}
 
                           {user.role !== 'manager' && (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleUpdateRole(user._id, 'manager')}
                               className="cursor-pointer text-primary font-bold"
                             >
@@ -436,7 +436,7 @@ function UsersContent() {
                           )}
 
                           {user.role !== 'user' && (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleUpdateRole(user._id, 'user')}
                               className="cursor-pointer text-slate-600 font-bold"
                             >
@@ -448,7 +448,7 @@ function UsersContent() {
                           <DropdownMenuItem className="text-destructive cursor-pointer font-medium">
                             <ShieldAlert className="mr-2 h-4 w-4" /> Suspend User
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDeleteUser(user._id, user.name)}
                             className="text-destructive cursor-pointer font-bold bg-red-50 hover:bg-red-100 mt-1"
                           >
@@ -496,9 +496,9 @@ function UsersContent() {
                 <div className="flex items-center gap-3">
                   {user.image && user.image !== '' ? (
                     <div className="relative h-10 w-10 rounded-full overflow-hidden border">
-                      <Image 
-                        src={user.image} 
-                        alt={user.name} 
+                      <Image
+                        src={user.image}
+                        alt={user.name}
                         width={40}
                         height={40}
                         className="h-full w-full object-cover"
@@ -510,7 +510,7 @@ function UsersContent() {
                     </div>
                   )}
                   <div>
-                    <button 
+                    <button
                       onClick={() => openUserDetails(user)}
                       className="font-bold text-sm text-slate-900 hover:underline text-left block"
                     >
@@ -521,7 +521,7 @@ function UsersContent() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Badge 
+                  <Badge
                     variant={user.role === 'admin' || user.role === 'manager' ? 'default' : 'outline'}
                     className={`
                       capitalize px-2 py-0.5 rounded-full font-bold text-[9px] tracking-wider
@@ -531,7 +531,7 @@ function UsersContent() {
                   >
                     {user.role}
                   </Badge>
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
@@ -545,14 +545,14 @@ function UsersContent() {
                           <Eye className="mr-2 h-4 w-4" /> View Details
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
-                      
+
                       <DropdownMenuSeparator />
-                      
+
                       <DropdownMenuGroup>
                         <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
-                        
+
                         {user.role !== 'admin' && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleUpdateRole(user._id, 'admin')}
                             className="cursor-pointer text-blue-600 font-bold"
                           >
@@ -561,7 +561,7 @@ function UsersContent() {
                         )}
 
                         {user.role !== 'manager' && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleUpdateRole(user._id, 'manager')}
                             className="cursor-pointer text-primary font-bold"
                           >
@@ -570,7 +570,7 @@ function UsersContent() {
                         )}
 
                         {user.role !== 'user' && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleUpdateRole(user._id, 'user')}
                             className="cursor-pointer text-slate-600 font-bold"
                           >
@@ -582,7 +582,7 @@ function UsersContent() {
                         <DropdownMenuItem className="text-destructive cursor-pointer font-medium">
                           <ShieldAlert className="mr-2 h-4 w-4" /> Suspend User
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteUser(user._id, user.name)}
                           className="text-destructive cursor-pointer font-bold bg-red-50 hover:bg-red-100 mt-1"
                         >
@@ -614,20 +614,20 @@ function UsersContent() {
           ))
         )}
       </div>
-        {totalPages > 1 && (
-          <div className="py-6 border-t bg-white px-6">
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages} 
-              onPageChange={(page) => {
-                setCurrentPage(page);
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('page', page.toString());
-                router.push(`?${params.toString()}`);
-              }}
-            />
-          </div>
-        )}
+      {totalPages > 1 && (
+        <div className="py-6 border-t bg-white px-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              const params = new URLSearchParams(searchParams.toString());
+              params.set('page', page.toString());
+              router.push(`?${params.toString()}`);
+            }}
+          />
+        </div>
+      )}
 
       {/* User Details Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
@@ -645,9 +645,9 @@ function UsersContent() {
               <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-slate-50 rounded-3xl border border-slate-100">
                 <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-xl flex-shrink-0 bg-primary/10 flex items-center justify-center">
                   {selectedUser.image ? (
-                    <Image 
-                      src={selectedUser.image} 
-                      alt={selectedUser.name} 
+                    <Image
+                      src={selectedUser.image}
+                      alt={selectedUser.name}
                       width={96}
                       height={96}
                       className="h-full w-full object-cover"
@@ -688,7 +688,7 @@ function UsersContent() {
                       <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Shipping Address</p>
                         <p className="text-sm font-bold text-slate-700 leading-snug">
-                          {selectedUser.addresses && selectedUser.addresses.length > 0 
+                          {selectedUser.addresses && selectedUser.addresses.length > 0
                             ? `${selectedUser.addresses[0].street || ''}, ${selectedUser.addresses[0].city || ''}, ${selectedUser.addresses[0].state || ''}`
                             : 'No address saved yet'}
                         </p>
@@ -712,7 +712,7 @@ function UsersContent() {
                       <span className="text-[10px] font-bold uppercase text-primary/60">Total Spent</span>
                     </div>
                   </div>
-                  
+
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-2">
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-bold text-slate-400">LAST VISIT</span>
@@ -747,7 +747,7 @@ function UsersContent() {
           <div className="bg-blue-600 p-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/20 rounded-full -ml-12 -mb-12 blur-xl" />
-            
+
             <DialogHeader className="relative z-10">
               <div className="h-12 w-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm border border-white/30">
                 <ShieldCheck className="h-6 w-6 text-white" />
@@ -777,9 +777,9 @@ function UsersContent() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex gap-3 pt-2">
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsAssignAdminOpen(false)}
@@ -787,8 +787,8 @@ function UsersContent() {
               >
                 CANCEL
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isAssigning}
                 className="flex-[2] h-14 rounded-2xl font-black bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 border-none group"
               >

@@ -4,8 +4,6 @@ import mongoose from 'mongoose';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import Expense from '@/models/Expense';
-import Showroom from '@/models/Showroom';
-import LedgerTransaction from '@/models/LedgerTransaction';
 
 export async function PUT(
   req: NextRequest,

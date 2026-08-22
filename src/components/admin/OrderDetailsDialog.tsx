@@ -280,14 +280,14 @@ export default function OrderDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full sm:max-w-[700px] max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center justify-between pr-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pr-6">
             <DialogTitle className="text-xl font-bold">
               {isEditing ? 'Edit Order Details' : 'Order Details'}
             </DialogTitle>
             {order && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
                   className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1 px-2.5 py-1"
@@ -317,7 +317,7 @@ export default function OrderDetailsDialog({
               </div>
             )}
           </div>
-          <DialogDescription>
+          <DialogDescription className="break-all">
             {order ? `Order ID: #${String(order._id ?? '').toUpperCase()}` : 'Loading order details...'}
           </DialogDescription>
         </DialogHeader>
