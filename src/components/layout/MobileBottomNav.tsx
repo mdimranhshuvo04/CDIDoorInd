@@ -117,7 +117,7 @@ export function MobileBottomNav() {
       </div>
 
       <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
-        <DialogContent className="max-w-md w-full bg-background border shadow-lg rounded-xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md bg-background border shadow-lg rounded-xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Add Transaction</DialogTitle>
           </DialogHeader>
