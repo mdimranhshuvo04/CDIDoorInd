@@ -1,4 +1,4 @@
-﻿import { format, isValid } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 function generateBarcodeHtml(value: string): string {
   const CODE39_MAP: Record<string, string> = {
@@ -352,19 +352,26 @@ export async function printStickerInvoice(orderOrOrders: any | any[], settings: 
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     
-    printWindow.onload = () => {
+    let hasPrinted = false;
+    const triggerPrint = () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
       printWindow.focus();
+      printWindow.onafterprint = () => {
+        try {
+          printWindow.close();
+        } catch (e) {}
+      };
       printWindow.print();
-      printWindow.close();
     };
+
+    printWindow.onload = triggerPrint;
     
     setTimeout(() => {
-      if (printWindow.document.readyState === 'complete') {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
+      if (!hasPrinted) {
+        triggerPrint();
       }
-    }, 1000);
+    }, 500);
   }
 }
 

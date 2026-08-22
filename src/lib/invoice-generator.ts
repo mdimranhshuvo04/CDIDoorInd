@@ -1,4 +1,4 @@
-﻿import { format, isValid } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 export async function generateInvoicePDF(orderOrOrders: any | any[], settings: any, mode: 'download' | 'print' = 'download') {
   const orders = Array.isArray(orderOrOrders) ? orderOrOrders : [orderOrOrders];
@@ -327,23 +327,27 @@ export async function generateInvoicePDF(orderOrOrders: any | any[], settings: a
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     
-    // Allow fonts and stylesheets to load
-    printWindow.onload = () => {
+    let hasPrinted = false;
+    const triggerPrint = () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
       printWindow.focus();
-      printWindow.print();
       if (mode === 'print') {
-        printWindow.close();
+        printWindow.onafterprint = () => {
+          try {
+            printWindow.close();
+          } catch (e) {}
+        };
       }
+      printWindow.print();
     };
-    // Fallback if onload doesn't fire immediately
+
+    printWindow.onload = triggerPrint;
+    
     setTimeout(() => {
-      if (printWindow.document.readyState === 'complete') {
-        printWindow.focus();
-        printWindow.print();
-        if (mode === 'print') {
-          printWindow.close();
-        }
+      if (!hasPrinted) {
+        triggerPrint();
       }
-    }, 1000);
+    }, 500);
   }
 }
