@@ -188,12 +188,12 @@ export default function PublicOrderPage(props: { params: Promise<{ id: string }>
             </h2>
             <p className="text-xs text-muted-foreground">Download this invoice copy for your records</p>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end font-sans">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto font-sans">
             {order.paymentStatus !== 'Paid' && settings?.paymentConfig?.activeMethod === 'sslcommerz' && (
               <Button 
                 onClick={handlePayNow}
                 disabled={paying}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 font-bold h-10"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
               >
                 {paying ? (
                   <>
@@ -211,14 +211,14 @@ export default function PublicOrderPage(props: { params: Promise<{ id: string }>
                 onClick={() => {
                   window.location.href = `/pay?amount=${order.totalAmount}&name=${encodeURIComponent(order.shippingAddress.fullName)}&email=${encodeURIComponent(order.shippingAddress.email || '')}&mobile=${encodeURIComponent(order.shippingAddress.phone)}&notes=${encodeURIComponent(`Order #${order.shortId}`)}`;
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 font-bold h-10"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
               >
                 <Landmark className="w-4 h-4" /> Pay Now (Manual)
               </Button>
             )}
             <Button 
               onClick={() => generateInvoicePDF(order, settings, 'download')}
-              className="bg-primary hover:bg-primary/95 text-primary-foreground flex items-center gap-1.5 font-bold h-10"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
             >
               <Download className="w-4 h-4" /> Download PDF
             </Button>
@@ -300,30 +300,30 @@ export default function PublicOrderPage(props: { params: Promise<{ id: string }>
             </div>
 
             {/* Service / Items Table */}
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full text-left border-collapse text-sm">
+            <div className="border rounded-xl overflow-x-auto w-full scrollbar-none">
+              <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[500px] sm:min-w-0">
                 <thead>
-                  <tr className="border-b bg-muted/50 text-muted-foreground font-semibold text-xs">
-                    <th className="p-3.5">Item Details</th>
-                    <th className="p-3.5 text-right">Unit Price</th>
-                    <th className="p-3.5 text-center">Qty</th>
-                    <th className="p-3.5 text-right">Total</th>
+                  <tr className="border-b bg-muted/50 text-muted-foreground font-semibold text-[10px] sm:text-xs">
+                    <th className="p-2.5 sm:p-3.5">Item Details</th>
+                    <th className="p-2.5 sm:p-3.5 text-right">Unit Price</th>
+                    <th className="p-2.5 sm:p-3.5 text-center">Qty</th>
+                    <th className="p-2.5 sm:p-3.5 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {order.items.map((item, idx) => (
                     <tr key={idx} className="hover:bg-muted/10 transition-colors">
-                      <td className="p-3.5">
+                      <td className="p-2.5 sm:p-3.5 whitespace-normal break-words max-w-[200px] sm:max-w-none">
                         <div className="font-medium text-foreground">{item.name}</div>
                         {(item.color || item.size) && (
-                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                          <div className="text-[10px] text-muted-foreground mt-0.5">
                             {item.color && `Color: ${item.color}`} {item.size && ` | Size: ${item.size}`}
                           </div>
                         )}
                       </td>
-                      <td className="p-3.5 text-right">৳{item.price.toLocaleString('en-BD')}</td>
-                      <td className="p-3.5 text-center font-semibold text-muted-foreground">{item.quantity}</td>
-                      <td className="p-3.5 text-right font-bold">৳{(item.price * item.quantity).toLocaleString('en-BD')}</td>
+                      <td className="p-2.5 sm:p-3.5 text-right">৳{item.price.toLocaleString('en-BD')}</td>
+                      <td className="p-2.5 sm:p-3.5 text-center font-semibold text-muted-foreground">{item.quantity}</td>
+                      <td className="p-2.5 sm:p-3.5 text-right font-bold">৳{(item.price * item.quantity).toLocaleString('en-BD')}</td>
                     </tr>
                   ))}
                 </tbody>

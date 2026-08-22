@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import FastMarquee from 'react-fast-marquee';
@@ -33,7 +33,7 @@ export function Marquee({ marqueeText: initialText }: { marqueeText?: string }) 
   if (!marqueeText) return null;
 
   return (
-    <div className="bg-primary text-black dark:text-neutral-950 py-2 overflow-hidden flex items-center font-semibold">
+    <div className="bg-primary text-white py-2 overflow-hidden flex items-center font-semibold">
       <FastMarquee
         gradient={false}
         speed={50}
@@ -42,13 +42,13 @@ export function Marquee({ marqueeText: initialText }: { marqueeText?: string }) 
         <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center">
           {marqueeText}
         </span>
-        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-black/25 pl-10">
+        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-white/25 pl-10">
           {marqueeText}
         </span>
-        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-black/25 pl-10">
+        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-white/25 pl-10">
           {marqueeText}
         </span>
-        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-black/25 pl-10">
+        <span className="mx-10 font-medium uppercase tracking-wider text-xs sm:text-sm flex items-center border-l border-white/25 pl-10">
           {marqueeText}
         </span>
       </FastMarquee>

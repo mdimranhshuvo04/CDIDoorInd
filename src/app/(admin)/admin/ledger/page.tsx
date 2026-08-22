@@ -446,8 +446,8 @@ function AccountsLedgerContent() {
       </Card>
 
       {/* Transactions Journal */}
-      <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
-        <CardHeader className="px-0 md:px-6 pb-4">
+      <Card className="border-0 md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
+        <CardHeader className="px-4 md:px-6 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Transaction Journal</CardTitle>
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -517,7 +517,7 @@ function AccountsLedgerContent() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-0 md:px-6">
+        <CardContent className="px-4 md:px-6">
           {loading ? (
             <div className="space-y-3 p-4">
               {Array.from({ length: 6 }).map((_, i) => (

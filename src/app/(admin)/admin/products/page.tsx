@@ -442,27 +442,27 @@ function ProductsContent() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 px-2 md:px-0">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 px-2 md:px-0 w-full">
         {/* Search */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full md:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search products..."
-            className="pl-8 h-9 text-sm"
+            className="pl-8 h-9 text-sm w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         {/* Showroom Filter Dropdown */}
-        <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-lg border h-9">
+        <div className="flex items-center justify-between md:justify-start gap-1.5 bg-muted/50 p-1 rounded-lg border h-9 w-full md:w-auto">
           <div className="flex items-center gap-1 px-2 shrink-0">
             <Store className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground hidden sm:block">Stock View</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Stock View</span>
           </div>
           <select
             value={selectedShowroom}
             onChange={(e) => setSelectedShowroom(e.target.value)}
-            className="h-7 bg-transparent text-xs border-none outline-none cursor-pointer pr-2 font-medium"
+            className="h-7 bg-transparent text-xs border-none outline-none cursor-pointer pr-2 font-medium flex-1 md:flex-none"
           >
             <option value="all">Total (All)</option>
             <option value="central">🏢 Central Only</option>

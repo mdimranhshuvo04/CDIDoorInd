@@ -189,12 +189,12 @@ export default function PublicBillPage(props: { params: Promise<{ invoiceNo: str
             <h2 className="text-lg font-bold text-foreground">Invoice #{bill.invoiceNo}</h2>
             <p className="text-xs text-muted-foreground">Download or print this copy for your records</p>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end font-sans">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto font-sans">
             {bill.status === 'Due' && settings?.paymentConfig?.activeMethod === 'sslcommerz' && (
               <Button 
                 onClick={handlePayNow}
                 disabled={paying}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 font-bold h-10"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
               >
                 {paying ? (
                   <>
@@ -212,14 +212,14 @@ export default function PublicBillPage(props: { params: Promise<{ invoiceNo: str
                 onClick={() => {
                   window.location.href = `/pay?amount=${bill.currentBillDue}&name=${encodeURIComponent(bill.clientName)}&email=${encodeURIComponent(bill.clientEmail || '')}&mobile=${encodeURIComponent(bill.clientPhone)}&notes=${encodeURIComponent(`Bill #${bill.invoiceNo}`)}`;
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 font-bold h-10"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
               >
                 <Landmark className="w-4 h-4" /> Pay Now (Manual)
               </Button>
             )}
             <Button 
               onClick={() => generateBillPDF(bill, settings, 'download')}
-              className="bg-primary hover:bg-primary/95 text-primary-foreground flex items-center gap-1.5 font-bold h-10"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-1.5 font-bold h-10 w-full sm:w-auto text-xs sm:text-sm"
             >
               <Download className="w-4 h-4" /> Download PDF
             </Button>
@@ -301,23 +301,23 @@ export default function PublicBillPage(props: { params: Promise<{ invoiceNo: str
             </div>
 
             {/* Service / Items Table */}
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full text-left border-collapse text-sm">
+            <div className="border rounded-xl overflow-x-auto w-full scrollbar-none">
+              <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[500px] sm:min-w-0">
                 <thead>
-                  <tr className="border-b bg-muted/50 text-muted-foreground font-semibold text-xs">
-                    <th className="p-3.5">Details</th>
-                    <th className="p-3.5 text-right">Unit Price</th>
-                    <th className="p-3.5 text-center">Qty</th>
-                    <th className="p-3.5 text-right">Total</th>
+                  <tr className="border-b bg-muted/50 text-muted-foreground font-semibold text-[10px] sm:text-xs">
+                    <th className="p-2.5 sm:p-3.5">Details</th>
+                    <th className="p-2.5 sm:p-3.5 text-right">Unit Price</th>
+                    <th className="p-2.5 sm:p-3.5 text-center">Qty</th>
+                    <th className="p-2.5 sm:p-3.5 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {bill.items.map((item, idx) => (
                     <tr key={idx} className="hover:bg-muted/10 transition-colors">
-                      <td className="p-3.5 font-medium text-foreground">{item.name}</td>
-                      <td className="p-3.5 text-right">৳{item.price.toLocaleString('en-BD')}</td>
-                      <td className="p-3.5 text-center font-semibold text-muted-foreground">{item.quantity}</td>
-                      <td className="p-3.5 text-right font-bold">৳{(item.price * item.quantity).toLocaleString('en-BD')}</td>
+                      <td className="p-2.5 sm:p-3.5 font-medium text-foreground whitespace-normal break-words max-w-[200px] sm:max-w-none">{item.name}</td>
+                      <td className="p-2.5 sm:p-3.5 text-right">৳{item.price.toLocaleString('en-BD')}</td>
+                      <td className="p-2.5 sm:p-3.5 text-center font-semibold text-muted-foreground">{item.quantity}</td>
+                      <td className="p-2.5 sm:p-3.5 text-right font-bold">৳{(item.price * item.quantity).toLocaleString('en-BD')}</td>
                     </tr>
                   ))}
                 </tbody>
