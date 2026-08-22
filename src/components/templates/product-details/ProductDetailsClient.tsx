@@ -448,9 +448,9 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-full overflow-x-hidden">
       {/* Gallery Section */}
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0 w-full overflow-hidden">
         <div className="relative group/zoom">
           <div
             className="relative aspect-square overflow-hidden rounded-xl border bg-white cursor-crosshair"
@@ -537,7 +537,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       </div>
 
       {/* Product Info Section */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 min-w-0 w-full">
         <div className="space-y-2">
 
           <div className="flex items-center justify-between gap-4">
