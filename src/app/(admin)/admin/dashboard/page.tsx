@@ -436,11 +436,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Collapsible Mobile Filters Wrapper */}
-      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${
-        showMobileFilters 
-          ? 'grid-rows-[1fr] opacity-100 mt-2 visible' 
+      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${showMobileFilters
+          ? 'grid-rows-[1fr] opacity-100 mt-2 visible'
           : 'grid-rows-[0fr] opacity-0 invisible h-0'
-      }`}>
+        }`}>
         <div className="overflow-hidden w-full">
           <div className="bg-muted/30 p-3 rounded-lg border flex flex-col gap-3">
             {/* Showroom filter */}
@@ -494,23 +493,21 @@ export default function AdminDashboard() {
       <div className="flex md:hidden border border-muted/50 bg-muted/20 rounded-lg p-0.5 mt-2 gap-1">
         <button
           onClick={() => setMobileTab('cards')}
-          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${
-            mobileTab === 'cards'
+          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${mobileTab === 'cards'
               ? 'bg-primary text-white shadow'
               : 'text-muted-foreground hover:bg-muted/50'
-          }`}
+            }`}
         >
           Overview Cards
         </button>
         <button
           onClick={() => setMobileTab('charts')}
-          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${
-            mobileTab === 'charts'
+          className={`flex-1 py-2 text-center text-xs font-extrabold rounded-md transition-all ${mobileTab === 'charts'
               ? 'bg-primary text-white shadow'
               : 'text-muted-foreground hover:bg-muted/50'
-          }`}
+            }`}
         >
-          Detailed Trends & Reports
+          Trends & Reports
         </button>
       </div>
 
@@ -798,342 +795,342 @@ export default function AdminDashboard() {
 
       <div className={mobileTab === 'charts' ? 'space-y-6 block' : 'space-y-6 hidden md:block'}>
         <div className="grid gap-4 grid-cols-1">
-        {/* Interactive Chart */}
-        <Card className="col-span-full">
-          <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-            <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
-              <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
+          {/* Interactive Chart */}
+          <Card className="col-span-full">
+            <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
+              <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
+                <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
 
-            </div>
-            <div className="flex w-full border-t sm:border-t-0 sm:w-auto sm:ml-auto">
-              {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
-                <button
-                  key={key}
-                  data-active={activeChart === key}
-                  className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-primary data-[active=true]:text-white sm:border-l sm:border-r-0 transition-colors group"
-                  onClick={() => setActiveChart(key as any)}
-                >
-                  <span className="text-[9px] sm:text-xs text-muted-foreground group-data-[active=true]:text-white/80 whitespace-nowrap">
-                    {chartConfig[key].label}
-                  </span>
-                  <span className="text-xs sm:text-base md:text-2xl leading-none font-bold">
-                    {key === 'orders' ? total[key].toLocaleString() : `৳${total[key].toLocaleString()}`}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="px-1 pt-4 sm:px-6 sm:pt-6">
-            <ChartContainer
-              config={chartConfig}
-              className="aspect-auto h-[250px] md:h-[350px] w-full"
-            >
-              <AreaChart data={processedChartData} margin={{ left: 12, right: 12, top: 20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-revenue)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-revenue)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-orders)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-orders)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-expense)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-expense)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillNetIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-netIncome)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-netIncome)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={12}
-                  minTickGap={32}
-                  tickFormatter={(value) => format(parseISO(value), 'dd MMM')}
-                />
-                <Tooltip
-                  cursor={{ strokeDasharray: '3 3', opacity: 0.5 }}
-                  content={<CustomTooltip activeChart={activeChart} />}
-                  isAnimationActive={false}
-                />
-                {/* Reference Line for Average */}
-                <ReferenceLine
-                  y={total[activeChart] / (processedChartData?.length || 1)}
-                  label={{
-                    value: 'Avg',
-                    position: 'insideRight',
-                    fill: activeChart === "revenue" ? 'var(--primary)' :
-                      activeChart === "orders" ? '#fb923c' :
-                        activeChart === "expense" ? '#ef4444' : '#22c55e',
-                    fontSize: 10
-                  }}
-                  stroke={
-                    activeChart === "revenue" ? "var(--primary)" :
-                      activeChart === "orders" ? "#fb923c" :
-                        activeChart === "expense" ? "#ef4444" : "#22c55e"
-                  }
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.5}
-                />
-                <Area
-                  dataKey="revenue"
-                  type="natural"
-                  fill="url(#fillRevenue)"
-                  stroke="var(--color-revenue)"
-                  strokeWidth={2}
-                  hide={activeChart !== "revenue"}
-                />
-                <Area
-                  dataKey="orders"
-                  type="natural"
-                  fill="url(#fillOrders)"
-                  stroke="var(--color-orders)"
-                  strokeWidth={2}
-                  hide={activeChart !== "orders"}
-                />
-                <Area
-                  dataKey="expense"
-                  type="natural"
-                  fill="url(#fillExpense)"
-                  stroke="var(--color-expense)"
-                  strokeWidth={2}
-                  hide={activeChart !== "expense"}
-                />
-                <Area
-                  dataKey="netIncome"
-                  type="natural"
-                  fill="url(#fillNetIncome)"
-                  stroke="var(--color-netIncome)"
-                  strokeWidth={2}
-                  hide={activeChart !== "netIncome"}
-                />
-              </AreaChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-        {/* Customer Insights & New vs Returning (NEW/UPDATED) */}
-        <div className="space-y-4">
-          <Card className="bg-muted/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                Customer Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-around py-2 border-b">
-                <div className="text-center">
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">New</p>
-                  <p className="text-xl font-black">{stats?.newUsersCount}</p>
-                </div>
-                <div className="h-8 w-px bg-border"></div>
-                <div className="text-center">
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">Returning</p>
-                  <p className="text-xl font-black">{stats?.returningUsersCount}</p>
-                </div>
               </div>
-
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Top Spenders</p>
-                {topCustomers && topCustomers.length > 0 ? (
-                  topCustomers.map((customer: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between text-xs">
-                      <span className="font-medium truncate max-w-[120px]">{customer.name}</span>
-                      <span className="font-bold text-primary">৳{Math.round(customer.totalSpend || 0).toLocaleString()}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-[10px] text-muted-foreground italic py-2 text-center">No customers yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-primary text-white shadow-lg">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs opacity-70">Loyalty Members</p>
-                  <p className="text-xl font-bold">{stats?.activeSubscribers}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs opacity-70">Pending Orders</p>
-                  <p className="text-xl font-bold">{stats?.pendingOrdersCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-bold flex items-center gap-2 text-orange-600">
-                <Receipt className="h-4 w-4" />
-                Wholesaler Dues (বকেয়া তালিকা)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                {data?.wholesalersDueList?.map((w: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between group text-xs">
-                    <div className="space-y-0.5">
-                      <p className="font-semibold group-hover:text-primary transition-colors">{w.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{w.phone || w.email}</p>
-                    </div>
-                    <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200 bg-red-50 font-bold">
-                      ৳{Math.round(w.due).toLocaleString()}
-                    </Badge>
-                  </div>
+              <div className="flex w-full border-t sm:border-t-0 sm:w-auto sm:ml-auto">
+                {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
+                  <button
+                    key={key}
+                    data-active={activeChart === key}
+                    className="flex flex-1 min-w-0 flex-col items-center justify-center gap-1 border-r last:border-r-0 px-1 py-2.5 sm:px-6 sm:py-4 md:px-8 md:py-6 text-center sm:text-left sm:items-start data-[active=true]:bg-primary data-[active=true]:text-white sm:border-l sm:border-r-0 transition-colors group"
+                    onClick={() => setActiveChart(key as any)}
+                  >
+                    <span className="text-[9px] sm:text-xs text-muted-foreground group-data-[active=true]:text-white/80 whitespace-nowrap">
+                      {chartConfig[key].label}
+                    </span>
+                    <span className="text-xs sm:text-base md:text-2xl leading-none font-bold">
+                      {key === 'orders' ? total[key].toLocaleString() : `৳${total[key].toLocaleString()}`}
+                    </span>
+                  </button>
                 ))}
-                {(!data?.wholesalersDueList || data.wholesalersDueList.length === 0) && (
-                  <p className="text-center py-4 text-xs text-muted-foreground italic">No outstanding wholesaler dues!</p>
-                )}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-destructive/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
-                Low Stock Alerts
-              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                {lowStockProducts?.map((product: any) => (
-                  <div key={product._id} className="flex items-center justify-between group">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-semibold group-hover:text-primary transition-colors">{product.name}</p>
-                      <p className="text-[10px] text-muted-foreground">Unit Price: ৳{product.price}</p>
-                    </div>
-                    <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
-                      {product.stock} Left
-                    </Badge>
-                  </div>
-                ))}
-                {(lowStockProducts?.length ?? 0) === 0 && (
-                  <p className="text-center py-4 text-xs text-muted-foreground italic">Inventory levels are healthy!</p>
-                )}
-              </div>
+            <CardContent className="px-1 pt-4 sm:px-6 sm:pt-6">
+              <ChartContainer
+                config={chartConfig}
+                className="aspect-auto h-[250px] md:h-[350px] w-full"
+              >
+                <AreaChart data={processedChartData} margin={{ left: 12, right: 12, top: 20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-revenue)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-revenue)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-orders)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-orders)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-expense)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-expense)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillNetIncome" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-netIncome)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-netIncome)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    minTickGap={32}
+                    tickFormatter={(value) => format(parseISO(value), 'dd MMM')}
+                  />
+                  <Tooltip
+                    cursor={{ strokeDasharray: '3 3', opacity: 0.5 }}
+                    content={<CustomTooltip activeChart={activeChart} />}
+                    isAnimationActive={false}
+                  />
+                  {/* Reference Line for Average */}
+                  <ReferenceLine
+                    y={total[activeChart] / (processedChartData?.length || 1)}
+                    label={{
+                      value: 'Avg',
+                      position: 'insideRight',
+                      fill: activeChart === "revenue" ? 'var(--primary)' :
+                        activeChart === "orders" ? '#fb923c' :
+                          activeChart === "expense" ? '#ef4444' : '#22c55e',
+                      fontSize: 10
+                    }}
+                    stroke={
+                      activeChart === "revenue" ? "var(--primary)" :
+                        activeChart === "orders" ? "#fb923c" :
+                          activeChart === "expense" ? "#ef4444" : "#22c55e"
+                    }
+                    strokeDasharray="3 3"
+                    strokeOpacity={0.5}
+                  />
+                  <Area
+                    dataKey="revenue"
+                    type="natural"
+                    fill="url(#fillRevenue)"
+                    stroke="var(--color-revenue)"
+                    strokeWidth={2}
+                    hide={activeChart !== "revenue"}
+                  />
+                  <Area
+                    dataKey="orders"
+                    type="natural"
+                    fill="url(#fillOrders)"
+                    stroke="var(--color-orders)"
+                    strokeWidth={2}
+                    hide={activeChart !== "orders"}
+                  />
+                  <Area
+                    dataKey="expense"
+                    type="natural"
+                    fill="url(#fillExpense)"
+                    stroke="var(--color-expense)"
+                    strokeWidth={2}
+                    hide={activeChart !== "expense"}
+                  />
+                  <Area
+                    dataKey="netIncome"
+                    type="natural"
+                    fill="url(#fillNetIncome)"
+                    stroke="var(--color-netIncome)"
+                    strokeWidth={2}
+                    hide={activeChart !== "netIncome"}
+                  />
+                </AreaChart>
+              </ChartContainer>
             </CardContent>
           </Card>
         </div>
 
-        {/* Top Selling Products (NEW) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-              Top Products
-            </CardTitle>
-            <CardDescription>Best performers by revenue</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {topSellingProducts?.map((product: any, i: number) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-bold text-xs">
-                  {i + 1}
+        <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
+          {/* Customer Insights & New vs Returning (NEW/UPDATED) */}
+          <div className="space-y-4">
+            <Card className="bg-muted/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Customer Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-around py-2 border-b">
+                  <div className="text-center">
+                    <p className="text-[10px] uppercase text-muted-foreground font-bold">New</p>
+                    <p className="text-xl font-black">{stats?.newUsersCount}</p>
+                  </div>
+                  <div className="h-8 w-px bg-border"></div>
+                  <div className="text-center">
+                    <p className="text-[10px] uppercase text-muted-foreground font-bold">Returning</p>
+                    <p className="text-xl font-black">{stats?.returningUsersCount}</p>
+                  </div>
                 </div>
-                <div className="flex-1 space-y-0.5">
-                  <p className="text-sm font-bold leading-none truncate max-w-[150px]">{product._id}</p>
-                  <p className="text-xs text-muted-foreground">{product.quantity} units sold</p>
-                </div>
-                <div className="text-sm font-black">৳{Math.round(product.revenue).toLocaleString()}</div>
-              </div>
-            ))}
-            {(!topSellingProducts || topSellingProducts.length === 0) && (
-              <div className="text-center py-10 text-muted-foreground text-sm">No sales data available</div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Recent Transactions */}
-        <Card className="shadow-md">
-          <CardHeader className="border-b bg-muted/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm sm:text-xl whitespace-nowrap">Recent Transactions</CardTitle>
-                <CardDescription className="text-[10px] sm:text-xs">Latest orders across the shop</CardDescription>
-              </div>
-              <Button variant="outline" size="sm" asChild className="h-8 text-xs px-2.5 sm:px-3 sm:h-9">
-                <Link href="/admin/orders">All Orders</Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 max-h-[400px] overflow-y-auto">
-            <div className="divide-y">
-              {recentOrders?.map((order: any) => (
-                <div key={order._id} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
-                      <ShoppingBag className="h-4 w-4" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-bold leading-none">Order #{order.slug}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{order.user?.name || 'Guest Customer'}</span>
-                        <span>•</span>
-                        <span>{order?.createdAt ? format(parseISO(order.createdAt), 'dd MMM, p') : '—'}</span>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Top Spenders</p>
+                  {topCustomers && topCustomers.length > 0 ? (
+                    topCustomers.map((customer: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="font-medium truncate max-w-[120px]">{customer.name}</span>
+                        <span className="font-bold text-primary">৳{Math.round(customer.totalSpend || 0).toLocaleString()}</span>
                       </div>
+                    ))
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground italic py-2 text-center">No customers yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-primary text-white shadow-lg">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs opacity-70">Loyalty Members</p>
+                    <p className="text-xl font-bold">{stats?.activeSubscribers}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs opacity-70">Pending Orders</p>
+                    <p className="text-xl font-bold">{stats?.pendingOrdersCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-orange-500/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-orange-600">
+                  <Receipt className="h-4 w-4" />
+                  Wholesaler Dues (বকেয়া তালিকা)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {data?.wholesalersDueList?.map((w: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between group text-xs">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold group-hover:text-primary transition-colors">{w.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{w.phone || w.email}</p>
+                      </div>
+                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200 bg-red-50 font-bold">
+                        ৳{Math.round(w.due).toLocaleString()}
+                      </Badge>
                     </div>
+                  ))}
+                  {(!data?.wholesalersDueList || data.wholesalersDueList.length === 0) && (
+                    <p className="text-center py-4 text-xs text-muted-foreground italic">No outstanding wholesaler dues!</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-destructive/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  Low Stock Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {lowStockProducts?.map((product: any) => (
+                    <div key={product._id} className="flex items-center justify-between group">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-semibold group-hover:text-primary transition-colors">{product.name}</p>
+                        <p className="text-[10px] text-muted-foreground">Unit Price: ৳{product.price}</p>
+                      </div>
+                      <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
+                        {product.stock} Left
+                      </Badge>
+                    </div>
+                  ))}
+                  {(lowStockProducts?.length ?? 0) === 0 && (
+                    <p className="text-center py-4 text-xs text-muted-foreground italic">Inventory levels are healthy!</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Selling Products (NEW) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                Top Products
+              </CardTitle>
+              <CardDescription>Best performers by revenue</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {topSellingProducts?.map((product: any, i: number) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-bold text-xs">
+                    {i + 1}
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="text-sm font-black text-primary">৳{(order?.totalAmount || 0).toLocaleString()}</div>
-                    <Badge
-                      variant={order.status === 'Delivered' ? 'default' : 'secondary'}
-                      className={`text-[10px] uppercase font-bold tracking-tighter ${order.status === 'Delivered' ? 'bg-emerald-500' : ''}`}
-                    >
-                      {order.status}
-                    </Badge>
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-sm font-bold leading-none truncate max-w-[150px]">{product._id}</p>
+                    <p className="text-xs text-muted-foreground">{product.quantity} units sold</p>
                   </div>
+                  <div className="text-sm font-black">৳{Math.round(product.revenue).toLocaleString()}</div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+              {(!topSellingProducts || topSellingProducts.length === 0) && (
+                <div className="text-center py-10 text-muted-foreground text-sm">No sales data available</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Transactions */}
+          <Card className="shadow-md">
+            <CardHeader className="border-b bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm sm:text-xl whitespace-nowrap">Recent Transactions</CardTitle>
+                  <CardDescription className="text-[10px] sm:text-xs">Latest orders across the shop</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" asChild className="h-8 text-xs px-2.5 sm:px-3 sm:h-9">
+                  <Link href="/admin/orders">All Orders</Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 max-h-[400px] overflow-y-auto">
+              <div className="divide-y">
+                {recentOrders?.map((order: any) => (
+                  <div key={order._id} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-full ${order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                        <ShoppingBag className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-bold leading-none">Order #{order.slug}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{order.user?.name || 'Guest Customer'}</span>
+                          <span>•</span>
+                          <span>{order?.createdAt ? format(parseISO(order.createdAt), 'dd MMM, p') : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="text-sm font-black text-primary">৳{(order?.totalAmount || 0).toLocaleString()}</div>
+                      <Badge
+                        variant={order.status === 'Delivered' ? 'default' : 'secondary'}
+                        className={`text-[10px] uppercase font-bold tracking-tighter ${order.status === 'Delivered' ? 'bg-emerald-500' : ''}`}
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
 
