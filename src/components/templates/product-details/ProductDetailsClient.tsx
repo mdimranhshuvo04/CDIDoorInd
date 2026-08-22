@@ -543,31 +543,31 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight">{product.name}</h1>
           </div>
-          <div className="flex items-center gap-4 py-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-xs sm:text-sm">
             <div className="flex items-center gap-1">
               <RatingStars rating={product.ratings || 0} />
-              <span className="text-sm font-bold ml-1">{(product.ratings || 0).toFixed(1)}</span>
+              <span className="font-bold ml-1 text-xs sm:text-sm">{(product.ratings || 0).toFixed(1)}</span>
             </div>
-            <Separator orientation="vertical" className="h-4" />
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Separator orientation="vertical" className="h-4 hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-muted-foreground text-xs sm:text-sm">
               <span className="font-bold text-foreground">{product.numReviews || 0}</span>
               <span>Reviews</span>
             </div>
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-4 hidden sm:block" />
             <button
               onClick={() => setIsShareOpen(true)}
-              className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer text-xs sm:text-sm"
               title="Share product"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Share</span>
             </button>
             {isAdmin && (
               <>
-                <Separator orientation="vertical" className="h-4" />
+                <Separator orientation="vertical" className="h-4 hidden sm:block" />
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="outline-none transition-colors hover:text-primary flex items-center gap-1 text-sm font-bold text-muted-foreground cursor-pointer">
-                    <MoreVertical className="h-4 w-4" />
+                  <DropdownMenuTrigger className="outline-none transition-colors hover:text-primary flex items-center gap-1 font-bold text-muted-foreground cursor-pointer text-xs sm:text-sm">
+                    <MoreVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     <span>Options</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -590,13 +590,13 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
             )}
             {eligibility?.eligible && (
               <>
-                <Separator orientation="vertical" className="h-4" />
+                <Separator orientation="vertical" className="h-4 hidden sm:block" />
                 <button
                   onClick={() => {
                     setActiveTab('reviews');
                     setShouldScrollToReviewForm(true);
                   }}
-                  className="text-sm font-bold text-primary hover:underline cursor-pointer"
+                  className="font-bold text-primary hover:underline cursor-pointer text-xs sm:text-sm"
                 >
                   Write a review
                 </button>
@@ -878,22 +878,22 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       {/* Tabs Section for Description & Reviews */}
       <div className="col-span-full mt-16">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto overflow-x-auto scrollbar-none flex-nowrap">
             <TabsTrigger
               value="description"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 sm:px-6 py-2.5 sm:py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground text-xs sm:text-sm whitespace-nowrap"
             >
               Description
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 sm:px-6 py-2.5 sm:py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground text-xs sm:text-sm whitespace-nowrap"
             >
               Reviews
             </TabsTrigger>
             <TabsTrigger
               value="terms"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 sm:px-6 py-2.5 sm:py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground text-xs sm:text-sm whitespace-nowrap"
             >
               Terms & Conditions
             </TabsTrigger>

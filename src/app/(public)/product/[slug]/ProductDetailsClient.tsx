@@ -531,16 +531,16 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       {/* Tabs Section for Description & Reviews */}
       <div className="col-span-full mt-16">
         <Tabs defaultValue="description" className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto overflow-x-auto scrollbar-none flex-nowrap">
             <TabsTrigger
               value="description"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 sm:px-6 py-2.5 sm:py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground text-xs sm:text-sm whitespace-nowrap"
             >
               Description
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 sm:px-6 py-2.5 sm:py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground text-xs sm:text-sm whitespace-nowrap"
             >
               Reviews
             </TabsTrigger>

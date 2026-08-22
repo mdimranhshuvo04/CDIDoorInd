@@ -63,7 +63,7 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     height="1em"
     {...props}
   >
-    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.132-1.347a9.937 9.937 0 004.877 1.28h.005c5.505 0 9.989-4.478 9.99-9.985A9.992 9.992 0 0012.012 2zm5.836 14.199c-.32.899-1.576 1.706-2.185 1.761-.559.05-1.286.074-2.074-.176a9.839 9.839 0 01-4.705-3.023 9.388 9.388 0 01-1.926-3.412 5.097 5.097 0 01-.137-2.138c.112-.601.442-1.01.691-1.272.249-.262.502-.328.67-.328.167 0 .335.006.475.014.148.009.347-.058.544.417.202.489.691 1.684.75 1.805.059.12.098.262.019.41-.079.158-.12.262-.24.399-.118.136-.251.306-.358.411-.118.114-.242.238-.104.475.138.238.614 1.01.32.957.382.341.703.56.963.666.26.106.41.088.56-.079.15-.167.643-.75.814-.999.171-.249.34-.208.573-.122.233.086 1.48.697 1.737.825.257.128.428.192.488.295.06.103.06.596-.26 1.495z"/>
+    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.132-1.347a9.937 9.937 0 004.877 1.28h.005c5.505 0 9.989-4.478 9.99-9.985A9.992 9.992 0 0012.012 2zm5.836 14.199c-.32.899-1.576 1.706-2.185 1.761-.559.05-1.286.074-2.074-.176a9.839 9.839 0 01-4.705-3.023 9.388 9.388 0 01-1.926-3.412 5.097 5.097 0 01-.137-2.138c.112-.601.442-1.01.691-1.272.249-.262.502-.328.67-.328.167 0 .335.006.475.014.148.009.347-.058.544.417.202.489.691 1.684.75 1.805.059.12.098.262.019.41-.079.158-.12.262-.24.399-.118.136-.251.306-.358.411-.118.114-.242.238-.104.475.138.238.614 1.01.32.957.382.341.703.56.963.666.26.106.41.088.56-.079.15-.167.643-.75.814-.999.171-.249.34-.208.573-.122.233.086 1.48.697 1.737.825.257.128.428.192.488.295.06.103.06.596-.26 1.495z" />
   </svg>
 );
 import {
@@ -106,7 +106,7 @@ function FraudCheckBadge({ phone }: { phone?: string }) {
           });
           fraudPendingRequests[phone] = promise;
         }
-        
+
         const json = await promise;
         if (json?.status === 'success' && json?.data?.summary) {
           const summary = json.data.summary;
@@ -199,16 +199,16 @@ function OrdersContent() {
   });
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
- 
+
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [settings, setSettings] = useState<any>(null);
- 
+
   // Manual Order states
   const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
- 
+
   // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -220,7 +220,7 @@ function OrdersContent() {
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
- 
+
   // Sync state to URL search parameters when filters change
   useEffect(() => {
     const params = new URLSearchParams();
@@ -655,11 +655,21 @@ function OrdersContent() {
   }
 
   return (
-    <div className="flex-1 space-y-4 px-4 py-4 md:p-8 w-full max-w-full overflow-x-hidden">
+    <div className="flex-1 space-y-4 px-0 py-4 md:p-8 w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Order Management</h2>
-          <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Order Management</h2>
+            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
+          </div>
+          {/* Mobile-only Export Button */}
+          <Button 
+            onClick={exportToCSV} 
+            variant="outline"
+            className="md:hidden font-bold text-xs h-9 px-3 shrink-0"
+          >
+            <Download className="mr-1 h-3.5 w-3.5" /> Export
+          </Button>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {/* Mobile Filter Toggle Button */}
@@ -667,7 +677,7 @@ function OrdersContent() {
             variant="outline"
             size="sm"
             onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className={`h-9 px-3 md:hidden ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
+            className={`h-9 px-3 md:hidden flex-1 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
           >
             <SlidersHorizontal className="mr-1.5 h-4 w-4" />
             Filters
@@ -676,16 +686,18 @@ function OrdersContent() {
             )}
           </Button>
 
-          <Button 
-            onClick={() => setIsManualOrderOpen(true)} 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
+          <Button
+            onClick={() => setIsManualOrderOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0 flex-[2] md:flex-none"
           >
             <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Manual Order
           </Button>
-          <Button 
-            onClick={exportToCSV} 
+          
+          {/* Desktop-only Export Button */}
+          <Button
+            onClick={exportToCSV}
             variant="outline"
-            className="font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
+            className="hidden md:flex font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
           >
             <Download className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Export
           </Button>
@@ -768,11 +780,10 @@ function OrdersContent() {
       </div>
 
       {/* Collapsible Mobile Filter Controls */}
-      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${
-        showMobileFilters 
-          ? 'grid-rows-[1fr] opacity-100 visible' 
-          : 'grid-rows-[0fr] opacity-0 invisible h-0 overflow-hidden'
-      }`}>
+      <div className={`grid transition-all duration-300 ease-in-out md:hidden w-full ${showMobileFilters
+        ? 'grid-rows-[1fr] opacity-100 visible'
+        : 'grid-rows-[0fr] opacity-0 invisible h-0 overflow-hidden'
+        }`}>
         <div className="overflow-hidden flex flex-col gap-2.5 p-3 rounded-xl border bg-muted/30">
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -915,19 +926,17 @@ function OrdersContent() {
                 setStatusFilter(status.value);
                 setCurrentPage(1);
               }}
-              className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate flex items-center justify-center gap-1.5 ${
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-background hover:bg-muted text-muted-foreground border border-input'
-              }`}
+              className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate flex items-center justify-center gap-1.5 ${isActive
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-background hover:bg-muted text-muted-foreground border border-input'
+                }`}
               title={`${status.label} (${status.count ?? 0})`}
             >
               <span>{status.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                isActive 
-                  ? 'bg-white/20 text-white' 
-                  : 'bg-muted text-muted-foreground border'
-              }`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${isActive
+                ? 'bg-white/20 text-white'
+                : 'bg-muted text-muted-foreground border'
+                }`}>
                 {status.count ?? 0}
               </span>
             </button>
@@ -1063,11 +1072,11 @@ function OrdersContent() {
                             <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">Repeat</Badge>
                           ) : null}
                         </div>
-                        
+
                         <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
                           <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
                           <div className="flex items-center gap-1.5">
-                            <span 
+                            <span
                               onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
                               className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
                             >
@@ -1075,12 +1084,12 @@ function OrdersContent() {
                             </span>
                             {order.shippingAddress?.phone && (
                               <>
-                                <a 
-                                   href={getWhatsAppLink(order.shippingAddress.phone)}
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                                   title="Chat on WhatsApp"
+                                <a
+                                  href={getWhatsAppLink(order.shippingAddress.phone)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                                  title="Chat on WhatsApp"
                                 >
                                   <WhatsAppIcon className="h-3.5 w-3.5" />
                                 </a>
@@ -1176,10 +1185,10 @@ function OrdersContent() {
                       <div className="flex items-center justify-end gap-1.5">
                         {order.paymentMethod === 'Manual' && order.paymentStatus === 'Pending' && order.status !== 'Cancelled' && (
                           <div className="flex items-center gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                               title="Approve Manual Payment"
                               onClick={() => {
                                 Swal.fire({
@@ -1198,10 +1207,10 @@ function OrdersContent() {
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
                               title="Cancel Order"
                               onClick={() => handleCancelOrder(order._id)}
                             >
@@ -1274,9 +1283,8 @@ function OrdersContent() {
             filteredOrders.map((order) => (
               <div
                 key={order._id}
-                className={`p-4 transition-colors ${
-                  selectedIds.includes(order._id) ? 'bg-muted/50' : 'bg-background'
-                }`}
+                className={`p-3 sm:p-4 transition-colors ${selectedIds.includes(order._id) ? 'bg-muted/50' : 'bg-background'
+                  }`}
               >
                 {/* Header: Checkbox, Order ID, Status, and Actions dropdown */}
                 <div className="flex items-center justify-between mb-2">
@@ -1317,7 +1325,7 @@ function OrdersContent() {
 
                     {/* Contact details */}
                     <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
-                      <span 
+                      <span
                         onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
                         className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium text-[11px]"
                       >
@@ -1325,30 +1333,30 @@ function OrdersContent() {
                       </span>
                       {order.shippingAddress?.phone && (
                         <div className="flex items-center gap-1">
-                           <a 
-                             href={getWhatsAppLink(order.shippingAddress.phone)}
-                             target="_blank"
-                             rel="noopener noreferrer"
-                             className="text-green-600 p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                             title="Chat on WhatsApp"
-                           >
-                             <WhatsAppIcon className="h-3.5 w-3.5" />
-                           </a>
-                           <button
-                             type="button"
-                             onClick={async () => {
-                               try {
-                                 await navigator.clipboard.writeText(order.shippingAddress.phone);
-                                 toast.success('Phone number copied!');
-                               } catch (err) {
-                                 toast.error('Failed to copy phone number.');
-                               }
-                             }}
-                             className="text-muted-foreground p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                             title="Copy Phone"
-                           >
-                             <Copy className="h-3 w-3" />
-                           </button>
+                          <a
+                            href={getWhatsAppLink(order.shippingAddress.phone)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                            title="Chat on WhatsApp"
+                          >
+                            <WhatsAppIcon className="h-3.5 w-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(order.shippingAddress.phone);
+                                toast.success('Phone number copied!');
+                              } catch (err) {
+                                toast.error('Failed to copy phone number.');
+                              }
+                            }}
+                            className="text-muted-foreground p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                            title="Copy Phone"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
                         </div>
                       )}
                       {order.shippingAddress?.phone && (
@@ -1416,9 +1424,9 @@ function OrdersContent() {
                     <div className="flex items-center gap-1">
                       {order.paymentMethod === 'Manual' && order.paymentStatus === 'Pending' && order.status !== 'Cancelled' && (
                         <>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="h-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 text-[10px] px-2 py-0"
                             onClick={() => {
                               Swal.fire({
@@ -1437,9 +1445,9 @@ function OrdersContent() {
                           >
                             Approve
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="h-7 text-destructive hover:text-red-700 hover:bg-red-50 text-[10px] px-2 py-0"
                             onClick={() => handleCancelOrder(order._id)}
                           >

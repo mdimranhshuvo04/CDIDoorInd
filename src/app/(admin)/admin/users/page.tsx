@@ -270,7 +270,7 @@ function UsersContent() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-4 md:p-8 w-full max-w-full overflow-x-hidden animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 px-0 py-4 md:p-8 w-full max-w-full overflow-x-hidden animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900">Users Management</h1>
@@ -491,7 +491,7 @@ function UsersContent() {
           </div>
         ) : (
           users.map((user) => (
-            <div key={user._id} className="bg-white border border-slate-150 rounded-2xl shadow-sm p-4 space-y-3">
+            <div key={user._id} className="bg-white border border-slate-150 rounded-2xl shadow-sm p-3 sm:p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {user.image && user.image !== '' ? (
