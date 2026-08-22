@@ -35,8 +35,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LandingPagesPage() {
+  const { t } = useLanguage();
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -85,13 +87,14 @@ export default function LandingPagesPage() {
 
   const handleCreate = async () => {
     const { value: formValues } = await Swal.fire({
-      title: 'Create New Landing Page',
+      title: t("landing_pages.create_modal_title"),
       html:
-        '<input id="swal-title" class="swal2-input" placeholder="Page Title">' +
-        '<input id="swal-slug" class="swal2-input" placeholder="Slug (e.g. skin-care-deal)">',
+        `<input id="swal-title" class="swal2-input" placeholder="${t("landing_pages.page_title_placeholder")}">` +
+        `<input id="swal-slug" class="swal2-input" placeholder="${t("landing_pages.slug_placeholder")}">`,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Create Page',
+      confirmButtonText: t("landing_pages.create_btn"),
+      cancelButtonText: t("landing_pages.cancel"),
       preConfirm: () => {
         return {
           title: (document.getElementById('swal-title') as HTMLInputElement).value,
@@ -140,12 +143,12 @@ export default function LandingPagesPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
             <Monitor className="h-6 w-6 text-primary" />
-            Landing Pages
+            {t("landing_pages.title")}
           </h1>
-          <p className="text-muted-foreground text-sm">Create high-converting landing pages for your products.</p>
+          <p className="text-muted-foreground text-sm">{t("landing_pages.subtitle")}</p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-full px-6 font-bold">
-          <Plus className="h-4 w-4" /> Create New Page
+          <Plus className="h-4 w-4" /> {t("landing_pages.create_new")}
         </Button>
       </div>
 
@@ -153,7 +156,7 @@ export default function LandingPagesPage() {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search pages..." 
+            placeholder={t("landing_pages.search_placeholder") as string}
             className="pl-9 rounded-xl"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -165,21 +168,21 @@ export default function LandingPagesPage() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="font-bold">Title & URL</TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="font-bold text-center">Sections</TableHead>
-              <TableHead className="font-bold text-center">Orders</TableHead>
-              <TableHead className="font-bold text-right">Actions</TableHead>
+              <TableHead className="font-bold">{t("landing_pages.title_url")}</TableHead>
+              <TableHead className="font-bold">{t("landing_pages.status")}</TableHead>
+              <TableHead className="font-bold text-center">{t("landing_pages.sections")}</TableHead>
+              <TableHead className="font-bold text-center">{t("landing_pages.orders")}</TableHead>
+              <TableHead className="font-bold text-right">{t("landing_pages.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">Loading pages...</TableCell>
+                <TableCell colSpan={5} className="text-center py-10">{t("landing_pages.loading")}</TableCell>
               </TableRow>
             ) : filteredPages.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No landing pages found. Create your first one!</TableCell>
+                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">{t("landing_pages.no_pages")}</TableCell>
               </TableRow>
             ) : filteredPages.map((page) => (
               <TableRow key={page._id} className="hover:bg-muted/20 transition-colors">
@@ -197,7 +200,7 @@ export default function LandingPagesPage() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={page.isActive ? "default" : "secondary"} className="rounded-full px-3">
-                    {page.isActive ? "Active" : "Inactive"}
+                    {page.isActive ? t("landing_pages.active") : t("landing_pages.inactive")}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
@@ -216,25 +219,25 @@ export default function LandingPagesPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl w-48 shadow-xl">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("landing_pages.actions")}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild className="cursor-pointer">
                         <Link href={`/admin/landing-pages/${page._id}/builder`} className="flex items-center gap-2">
-                          <Edit3 className="h-4 w-4 text-blue-500" /> Open Builder
+                          <Edit3 className="h-4 w-4 text-blue-500" /> {t("landing_pages.open_builder")}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => window.open(`/lp/${page.slug}`, '_blank')}>
-                        <Eye className="h-4 w-4 text-emerald-500" /> View Live
+                        <Eye className="h-4 w-4 text-emerald-500" /> {t("landing_pages.view_live")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="cursor-pointer gap-2">
-                        <BarChart2 className="h-4 w-4 text-purple-500" /> Analytics
+                        <BarChart2 className="h-4 w-4 text-purple-500" /> {t("landing_pages.analytics")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="cursor-pointer gap-2 text-red-500 focus:text-red-500"
                         onClick={() => handleDelete(page._id)}
                       >
-                        <Trash2 className="h-4 w-4" /> Delete Page
+                        <Trash2 className="h-4 w-4" /> {t("landing_pages.delete_page")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

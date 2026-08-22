@@ -33,18 +33,45 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronRight } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 const navItems = [
   {
-    title: "Overview",
+    titleKey: "store.showroom.overview",
+    titleDefault: "Overview",
     icon: LayoutDashboard,
-    items: [{ title: "Dashboard", url: "/showroom/dashboard" }],
+    items: [{ titleKey: "store.dashboard.dashboard", titleDefault: "Dashboard", url: "/showroom/dashboard" }],
+  },
+  {
+    titleKey: "store.showroom.operations",
+    titleDefault: "Operations",
+    icon: ShoppingBag,
+    items: [
+      { titleKey: "store.showroom.orders", titleDefault: "Orders", url: "/showroom/orders" },
+      { titleKey: "store.showroom.stock", titleDefault: "Stock", url: "/showroom/stock" },
+    ],
+  },
+  {
+    titleKey: "store.showroom.finance",
+    titleDefault: "Finance",
+    icon: DollarSign,
+    items: [
+      { titleKey: "store.showroom.expenses", titleDefault: "Expenses", url: "/showroom/expenses" },
+      { titleKey: "store.showroom.bills", titleDefault: "Bills", url: "/showroom/bills" },
+    ],
+  }
+]
+/* replaced */
+  {
+    // title: "Overview",
+    icon: LayoutDashboard,
+    items: [{ // title: "Dashboard", url: "/showroom/dashboard" }],
   },
   {
     title: "My Showroom",
     icon: Store,
     items: [
-      { title: "Orders", url: "/showroom/orders" },
+      { // title: "Orders", url: "/showroom/orders" },
       { title: "Client Bills", url: "/showroom/bills" },
     ],
   },
@@ -54,9 +81,9 @@ const navItems = [
     items: [{ title: "Showroom Stock", url: "/showroom/stock" }],
   },
   {
-    title: "Finance",
+    // title: "Finance",
     icon: DollarSign,
-    items: [{ title: "Expenses", url: "/showroom/expenses" }],
+    items: [{ // title: "Expenses", url: "/showroom/expenses" }],
   },
   {
     title: "My Portal",
@@ -71,6 +98,7 @@ const navItems = [
 
 function NavMain({ items, pathname }: { items: typeof navItems; pathname: string }) {
   const { setOpenMobile, isMobile } = useSidebar()
+  const { t } = useLanguage()
   const handleLinkClick = () => { if (isMobile) setOpenMobile(false) }
 
   return (
@@ -82,22 +110,22 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
             (sub) => pathname === sub.url || pathname.startsWith(sub.url + "/")
           )
           return (
-            <Collapsible key={item.title} defaultOpen={isParentActive} className="group/collapsible">
+            <Collapsible key={item.titleDefault} defaultOpen={isParentActive} className="group/collapsible">
               <SidebarMenuItem>
-                <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isParentActive} />}>
+                <CollapsibleTrigger render={<SidebarMenuButton tooltip={t(item.titleKey) || item.titleDefault} isActive={isParentActive} />}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span>{t(item.titleKey) || item.titleDefault}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenuSubItem key={subItem.titleDefault}>
                         <SidebarMenuSubButton
                           render={<Link href={subItem.url} onClick={handleLinkClick} />}
                           isActive={pathname === subItem.url || pathname.startsWith(subItem.url + "/")}
                         >
-                          <span>{subItem.title}</span>
+                          <span>{t(subItem.titleKey) || subItem.titleDefault}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -25,7 +26,8 @@ const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
 });
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage() {  const { t } = useLanguage();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({
@@ -75,7 +77,7 @@ export default function ForgotPasswordPage() {
         >
           <div className="w-full max-w-sm space-y-8">
             <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tight">Forgot password?</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('auth.forgot.title') || 'Forgot password?'}</h1>
               <p className="text-sm text-muted-foreground text-balance">
                 Enter your email address and we&apos;ll send you a link to reset your password
               </p>
@@ -88,7 +90,7 @@ export default function ForgotPasswordPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Address</FormLabel>
+                      <FormLabel>{t('auth.register.email') || 'Email Address'}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="m@example.com"

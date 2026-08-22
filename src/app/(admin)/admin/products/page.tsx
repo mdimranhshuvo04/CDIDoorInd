@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { Pagination } from '@/components/ui/pagination';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -62,6 +63,7 @@ function ProductsContent() {
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const { t } = useLanguage();
   const [exportLoading, setExportLoading] = useState(false);
   const [selectedShowroom, setSelectedShowroom] = useState<string>('all');
   const [showroomsList, setShowroomsList] = useState<{ _id: string; name: string }[]>([]);
@@ -423,7 +425,7 @@ function ProductsContent() {
   return (
     <div className="flex flex-col gap-4 px-0 py-4 md:p-8 pt-6">
       <div className="flex items-center justify-between gap-4 px-2 md:px-0">
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight">{t("products.title")}</h1>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" onClick={exportToCSV} disabled={exportLoading} className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
             {exportLoading ? (
@@ -431,12 +433,12 @@ function ProductsContent() {
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {selectedIds.length > 0 ? `Export (${selectedIds.length})` : 'Export All'}
+            {selectedIds.length > 0 ? `${t("products.export")} (${selectedIds.length})` : t("products.export_all")}
           </Button>
           <Link href="/admin/products/new">
             <Button className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
               <Plus className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Add Product</span>
+              <span className="hidden md:inline">{t("products.add_product")}</span>
             </Button>
           </Link>
         </div>
@@ -447,7 +449,7 @@ function ProductsContent() {
         <div className="relative w-full md:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search products..."
+            placeholder={t("products.search_placeholder") as string}
             className="pl-8 h-9 text-sm w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -457,15 +459,15 @@ function ProductsContent() {
         <div className="flex items-center justify-between md:justify-start gap-1.5 bg-muted/50 p-1 rounded-lg border h-9 w-full md:w-auto">
           <div className="flex items-center gap-1 px-2 shrink-0">
             <Store className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Stock View</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t("products.stock_view")}</span>
           </div>
           <select
             value={selectedShowroom}
             onChange={(e) => setSelectedShowroom(e.target.value)}
             className="h-7 bg-transparent text-xs border-none outline-none cursor-pointer pr-2 font-medium flex-1 md:flex-none"
           >
-            <option value="all">Total (All)</option>
-            <option value="central">🏢 Central Only</option>
+            <option value="all">{t("products.total_all")}</option>
+            <option value="central">{t("products.central_only")}</option>
             {showroomsList.map(s => (
               <option key={s._id} value={s._id}>{s.name}</option>
             ))}
@@ -477,14 +479,14 @@ function ProductsContent() {
         {selectedIds.length > 0 && (
           <div className="sticky top-0 z-20 w-full bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between animate-in slide-in-from-top duration-200">
             <div className="flex items-center gap-4 text-xs md:text-sm font-medium">
-              <span>{selectedIds.length} selected</span>
+              <span>{selectedIds.length} {t("products.selected")}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-primary-foreground hover:bg-white/10 text-xs h-7 px-2"
                 onClick={() => setSelectedIds([])}
               >
-                Deselect All
+                {t("products.deselect_all")}
               </Button>
             </div>
             <div className="flex items-center gap-2">
@@ -500,7 +502,7 @@ function ProductsContent() {
                 ) : (
                   <Download className="mr-2 h-3 w-3" />
                 )}
-                Export Selected
+                {t("products.export_selected")}
               </Button>
             </div>
           </div>
@@ -518,15 +520,15 @@ function ProductsContent() {
                     className="border-muted-foreground/50"
                   />
                 </TableHead>
-                <TableHead className="w-[80px]">Image</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Price</TableHead>
+                <TableHead className="w-[80px]">{t("products.image")}</TableHead>
+                <TableHead>{t("products.name")}</TableHead>
+                <TableHead>{t("products.sku")}</TableHead>
+                <TableHead>{t("products.price")}</TableHead>
                 <TableHead>{getStockLabel()}</TableHead>
-<TableHead>Views</TableHead>
-                <TableHead>Sales</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+<TableHead>{t("products.views")}</TableHead>
+                <TableHead>{t("products.sales")}</TableHead>
+                <TableHead>{t("products.status")}</TableHead>
+                <TableHead className="text-right">{t("products.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -558,7 +560,7 @@ function ProductsContent() {
               ) : filteredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="h-24 text-center">
-                    No products found.
+                    {t("products.no_products_found")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -623,7 +625,7 @@ function ProductsContent() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={product.isPublished ? 'default' : 'secondary'}>
-                        {product.isPublished ? 'Published' : 'Draft'}
+                        {product.isPublished ? t("products.published") : t("products.draft")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -698,7 +700,7 @@ function ProductsContent() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-sm">
-              No products found.
+              {t("products.no_products_found")}
             </div>
           ) : (
             filteredProducts.map((product) => {
@@ -757,7 +759,7 @@ function ProductsContent() {
                   {/* Right side Status & Actions Dropdown */}
                   <div className="flex items-center gap-1 shrink-0">
                     <Badge variant={product.isPublished ? 'default' : 'secondary'} className="text-[8px] px-1 py-0 font-bold tracking-tighter scale-90">
-                      {product.isPublished ? 'Live' : 'Draft'}
+                      {product.isPublished ? t("products.live") : t("products.draft")}
                     </Badge>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -778,20 +780,20 @@ function ProductsContent() {
                               setTransferModalOpen(true);
                             }}
                           >
-                            <Plus className="mr-2 h-4 w-4 text-green-600" /> Add Stock
+                            <Plus className="mr-2 h-4 w-4 text-green-600" /> {t("products.add_stock")}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem 
                           disabled={getTransferSourceStock(product) <= 0}
                           onClick={() => handleInitiateTransfer(product)}
                         >
-                          <Send className="mr-2 h-4 w-4 text-blue-500" /> Transfer Stock
+                          <Send className="mr-2 h-4 w-4 text-blue-500" /> {t("products.transfer_stock")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push(`/admin/products/${product._id}/edit`)}>
-                          <Edit className="mr-2 h-4 w-4" /> Edit
+                          <Edit className="mr-2 h-4 w-4" /> {t("products.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(product._id)}>
-                          <Trash className="mr-2 h-4 w-4" /> Delete
+                          <Trash className="mr-2 h-4 w-4" /> {t("products.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -823,7 +825,7 @@ function ProductsContent() {
       <Dialog open={transferModalOpen} onOpenChange={setTransferModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{isAddMode ? 'Add Stock from Central' : 'Transfer Stock'}</DialogTitle>
+            <DialogTitle>{isAddMode ? t("products.add_stock_from_central") : t("products.modal_transfer_stock")}</DialogTitle>
           </DialogHeader>
           {transferProduct && (() => {
             const getAvailableStock = () => {
@@ -840,21 +842,21 @@ function ProductsContent() {
             return (
               <div className="grid gap-4 py-4">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold">Product:</span>
+                  <span className="text-sm font-semibold">{t("products.product_label")}</span>
                   <span className="text-sm text-muted-foreground">{transferProduct.name}</span>
-                  <span className="text-xs text-muted-foreground">Available Stock in {transferSource === 'central' ? 'Central' : showroomsList.find(s => s._id === transferSource)?.name || 'Source'}: {availableStock}</span>
+                  <span className="text-xs text-muted-foreground">{t("products.available_stock_in")} {transferSource === 'central' ? t("products.central") : showroomsList.find(s => s._id === transferSource)?.name || t("products.source")}: {availableStock}</span>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="text-right text-sm font-medium">Destination</label>
+                  <label className="text-right text-sm font-medium">{t("products.destination")}</label>
                   <select
                     className="col-span-3 h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
                     value={targetShowroom}
                     onChange={(e) => setTargetShowroom(e.target.value)}
                     disabled={isAddMode}
                   >
-                    <option value="" disabled>Select destination</option>
+                    <option value="" disabled>{t("products.select_destination")}</option>
                     {transferSource !== 'central' && (
-                      <option value="central">Central Warehouse</option>
+                      <option value="central">{t("products.central_warehouse")}</option>
                     )}
                     {showroomsList
                       .filter(s => s._id !== transferSource)
@@ -864,7 +866,7 @@ function ProductsContent() {
                   </select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="text-right text-sm font-medium">Quantity</label>
+                  <label className="text-right text-sm font-medium">{t("products.quantity")}</label>
                   <Input
                     type="number"
                     min="1"
@@ -878,10 +880,10 @@ function ProductsContent() {
             );
           })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTransferModalOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setTransferModalOpen(false)}>{t("products.cancel")}</Button>
             <Button onClick={handleTransferSubmit} disabled={transferring}>
               {transferring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-              Send Stock
+              {t("products.send_stock")}
             </Button>
           </DialogFooter>
         </DialogContent>

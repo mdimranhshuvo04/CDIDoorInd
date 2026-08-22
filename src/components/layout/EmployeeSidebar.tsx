@@ -31,40 +31,77 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronRight } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 const navItems = [
   {
-    title: "Overview",
+    titleKey: "store.employee.overview",
+    titleDefault: "Overview",
     icon: LayoutDashboard,
-    items: [{ title: "Dashboard", url: "/employee/dashboard" }],
+    items: [{ titleKey: "store.dashboard.dashboard", titleDefault: "Dashboard", url: "/employee/dashboard" }],
   },
   {
-    title: "My Profile",
+    titleKey: "store.employee.my_profile",
+    titleDefault: "My Profile",
     icon: User,
     items: [
-      { title: "Profile Info", url: "/employee/profile" },
-      { title: "Change Password", url: "/employee/change-password" },
+      { titleKey: "store.dashboard.profile", titleDefault: "Profile Info", url: "/employee/profile" },
+      { titleKey: "store.dashboard.change_password", titleDefault: "Change Password", url: "/employee/change-password" },
     ],
   },
   {
-    title: "Salary",
+    titleKey: "store.employee.salary",
+    titleDefault: "Salary",
     icon: DollarSign,
-    items: [{ title: "Salary History", url: "/employee/salary" }],
+    items: [{ titleKey: "store.employee.salary_history", titleDefault: "Salary History", url: "/employee/salary" }],
   },
   {
-    title: "Leave",
+    titleKey: "store.employee.leave",
+    titleDefault: "Leave",
     icon: CalendarOff,
-    items: [{ title: "My Leaves", url: "/employee/leaves" }],
+    items: [{ titleKey: "store.employee.my_leaves", titleDefault: "My Leaves", url: "/employee/leaves" }],
   },
   {
-    title: "Tasks",
+    titleKey: "store.employee.tasks",
+    titleDefault: "Tasks",
     icon: CheckSquare,
-    items: [{ title: "My Tasks", url: "/employee/tasks" }],
+    items: [{ titleKey: "store.employee.my_tasks", titleDefault: "My Tasks", url: "/employee/tasks" }],
+  },
+]
+/* replaced */
+  {
+    // title: "Overview",
+    icon: LayoutDashboard,
+    items: [{ // title: "Dashboard", url: "/employee/dashboard" }],
+  },
+  {
+    // title: "My Profile",
+    icon: User,
+    items: [
+      { // title: "Profile Info", url: "/employee/profile" },
+      { // title: "Change Password", url: "/employee/change-password" },
+    ],
+  },
+  {
+    // title: "Salary",
+    icon: DollarSign,
+    items: [{ // title: "Salary History", url: "/employee/salary" }],
+  },
+  {
+    // title: "Leave",
+    icon: CalendarOff,
+    items: [{ // title: "My Leaves", url: "/employee/leaves" }],
+  },
+  {
+    // title: "Tasks",
+    icon: CheckSquare,
+    items: [{ // title: "My Tasks", url: "/employee/tasks" }],
   },
 ]
 
 function NavMain({ items, pathname }: { items: typeof navItems; pathname: string }) {
   const { setOpenMobile, isMobile } = useSidebar()
+  const { t } = useLanguage()
   const handleLinkClick = () => { if (isMobile) setOpenMobile(false) }
 
   return (
@@ -75,22 +112,22 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
             (sub) => pathname === sub.url || pathname.startsWith(sub.url + "/")
           )
           return (
-            <Collapsible key={item.title} defaultOpen={isParentActive} className="group/collapsible">
+            <Collapsible key={item.titleDefault} defaultOpen={isParentActive} className="group/collapsible">
               <SidebarMenuItem>
-                <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isParentActive} />}>
+                <CollapsibleTrigger render={<SidebarMenuButton tooltip={t(item.titleKey) || item.titleDefault} isActive={isParentActive} />}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span>{t(item.titleKey) || item.titleDefault}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenuSubItem key={subItem.titleDefault}>
                         <SidebarMenuSubButton
                           render={<Link href={subItem.url} onClick={handleLinkClick} />}
                           isActive={pathname === subItem.url || pathname.startsWith(subItem.url + "/")}
                         >
-                          <span>{subItem.title}</span>
+                          <span>{t(subItem.titleKey) || subItem.titleDefault}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
@@ -123,17 +160,17 @@ export function EmployeeSidebar({ ...props }: React.ComponentProps<typeof Sideba
   const filteredNavItems = navItems
     .filter((item) => {
       // Hide tasks for permanent monthly employees
-      if (item.title === 'Tasks' && employeeType === 'monthly') return false;
+      if (item.titleDefault === 'Tasks' && employeeType === 'monthly') return false;
       // Hide leaves for contractual task-based employees
-      if (item.title === 'Leave' && employeeType === 'task-based') return false;
+      if (item.titleDefault === 'Leave' && employeeType === 'task-based') return false;
       return true;
     })
     .map((item) => {
-      if (item.title === 'Salary' && employeeType === 'task-based') {
+      if (item.titleDefault === 'Salary' && employeeType === 'task-based') {
         return {
           ...item,
-          title: 'Payments',
-          items: [{ title: 'Payout History', url: '/employee/salary' }],
+          titleDefault: 'Payments', titleKey: 'store.employee.payments',
+          items: [{ titleDefault: 'Payout History', titleKey: 'store.employee.payout_history', url: '/employee/salary' }],
         };
       }
       return item;

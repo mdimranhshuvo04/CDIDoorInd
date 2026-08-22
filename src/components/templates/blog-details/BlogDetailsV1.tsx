@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ShareButtons } from '@/components/storefront/ShareButtons';
 import Image from 'next/image';
 import { generateHtml } from '@/lib/server-html';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BlogDetailsV1({ blog, readingTime }: { blog: any, readingTime: number }) {
+  const { t } = useLanguage();
   if (!blog) return null;
 
   return (
@@ -17,7 +19,7 @@ export default function BlogDetailsV1({ blog, readingTime }: { blog: any, readin
           <div className="max-w-4xl mx-auto">
             <Link href="/blog">
               <Button variant="ghost" className="mb-8 gap-2 -ml-4 hover:bg-transparent hover:text-primary">
-                <ArrowLeft className="h-4 w-4" /> Back to Blog
+                <ArrowLeft className="h-4 w-4" /> {t('store.blog.back_to_blog') || 'Back to Blog'}
               </Button>
             </Link>
             
@@ -32,7 +34,7 @@ export default function BlogDetailsV1({ blog, readingTime }: { blog: any, readin
                 </div>
                 <div className="h-1 w-1 rounded-full bg-border" />
                 <div className="text-xs font-bold uppercase tracking-widest">
-                  {readingTime} min read
+                  {readingTime} {t('store.blog.min_read') || 'min read'}
                 </div>
               </div>
             </div>
@@ -73,10 +75,10 @@ export default function BlogDetailsV1({ blog, readingTime }: { blog: any, readin
 
               <footer className="mt-16 pt-8 border-t">
                 <div className="p-8 rounded-3xl bg-muted/30 border flex flex-col items-center text-center gap-4">
-                  <h3 className="font-bold">Enjoyed this post?</h3>
-                  <p className="text-sm text-muted-foreground">Share it with your network and join the conversation.</p>
+                  <h3 className="font-bold">{t('store.blog.enjoyed_post') || 'Enjoyed this post?'}</h3>
+                  <p className="text-sm text-muted-foreground">{t('store.blog.share_prompt') || 'Share it with your network and join the conversation.'}</p>
                   <Link href="/blog">
-                    <Button className="mt-2 font-bold px-8 rounded-full">Explore More Stories</Button>
+                    <Button className="mt-2 font-bold px-8 rounded-full">{t('store.blog.explore_more') || 'Explore More Stories'}</Button>
                   </Link>
                 </div>
               </footer>

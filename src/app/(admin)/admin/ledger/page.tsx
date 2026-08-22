@@ -44,8 +44,10 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { Pagination } from '@/components/ui/pagination';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function AccountsLedgerContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -387,13 +389,13 @@ function AccountsLedgerContent() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Accounts Ledger</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("ledger.title")}</h2>
           <p className="text-muted-foreground text-sm">
-            Manage cash & bank opening balances, record manual entries, and track account receivables.
+            {t("ledger.subtitle")}
           </p>
         </div>
         <Button onClick={() => setIsTxOpen(true)} className="w-full md:w-auto bg-primary text-primary-foreground">
-          <Plus className="mr-2 h-4 w-4" /> New Journal Entry
+          <Plus className="mr-2 h-4 w-4" /> {t("ledger.new_journal_entry")}
         </Button>
       </div>
 
@@ -449,12 +451,12 @@ function AccountsLedgerContent() {
       <Card className="border-0 md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
         <CardHeader className="px-4 md:px-6 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle>Transaction Journal</CardTitle>
+            <CardTitle>{t("ledger.transaction_journal")}</CardTitle>
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search description or reference..."
+                  placeholder={t("ledger.search_placeholder") as string}
                   className="pl-8 text-xs h-8"
                   value={journalSearchTerm}
                   onChange={(e) => setJournalSearchTerm(e.target.value)}
@@ -470,7 +472,7 @@ function AccountsLedgerContent() {
                     onChange={(e) => setFilterByDate(e.target.checked)}
                     className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
                   />
-                  Filter by Date
+                  {t("ledger.filter_by_date")}
                 </label>
 
                 <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -482,7 +484,7 @@ function AccountsLedgerContent() {
                     onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
                     disabled={!filterByDate}
                   />
-                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">{t("ledger.to")}</span>
                   <Input
                     type="date"
                     aria-label="End date"
@@ -511,7 +513,7 @@ function AccountsLedgerContent() {
                   }}
                   className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
                 >
-                  Clear
+                  {t("ledger.clear")}
                 </Button>
               )}
             </div>
@@ -533,7 +535,7 @@ function AccountsLedgerContent() {
           ) : filteredTransactions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
               <Plus className="h-10 w-10 mb-2 stroke-1" />
-              <p>No journal entries found</p>
+              <p>{t("ledger.no_journal_entries")}</p>
             </div>
           ) : (
             <div>
@@ -542,13 +544,13 @@ function AccountsLedgerContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Account</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Amount (৳)</TableHead>
-                      <TableHead className="text-right">Running Balance (৳)</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t("ledger.date")}</TableHead>
+                      <TableHead>{t("ledger.account")}</TableHead>
+                      <TableHead>{t("ledger.description")}</TableHead>
+                      <TableHead>{t("ledger.type")}</TableHead>
+                      <TableHead className="text-right">{t("ledger.amount")}</TableHead>
+                      <TableHead className="text-right">{t("ledger.running_balance")}</TableHead>
+                      <TableHead className="text-right">{t("ledger.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -563,7 +565,7 @@ function AccountsLedgerContent() {
                             <p>{tx.description}</p>
                             {tx.reference && (
                               <span className="text-xs text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
-                                Ref: {tx.reference}
+                                {t("ledger.ref")}: {tx.reference}
                               </span>
                             )}
                           </div>
@@ -573,7 +575,7 @@ function AccountsLedgerContent() {
                             variant={tx.type === 'debit' ? 'default' : 'outline'}
                             className={tx.type === 'debit' ? 'bg-primary/20 text-primary hover:bg-primary/20 border-transparent' : ''}
                           >
-                            {tx.type === 'debit' ? 'Debit (+)' : 'Credit (-)'}
+                            {tx.type === 'debit' ? t("ledger.debit") : t("ledger.credit")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">৳{Math.round(tx.amount)}</TableCell>
@@ -589,13 +591,13 @@ function AccountsLedgerContent() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handleEditClick(tx)}>
-                                    <Edit2 className="mr-2 h-4 w-4 text-indigo-600" /> Edit
+                                    <Edit2 className="mr-2 h-4 w-4 text-indigo-600" /> {t("ledger.edit")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => handleDeleteTx(tx._id)}
                                   >
-                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                    <Trash2 className="mr-2 h-4 w-4" /> {t("ledger.delete")}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -624,7 +626,7 @@ function AccountsLedgerContent() {
                           variant={isDebit ? 'default' : 'outline'}
                           className={isDebit ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-transparent font-extrabold text-[10px] px-2 py-0.5' : 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/10 border-transparent font-extrabold text-[10px] px-2 py-0.5'}
                         >
-                          {isDebit ? 'Received (+)' : 'Spent (-)'}
+                          {isDebit ? t("ledger.received") : t("ledger.spent")}
                         </Badge>
                       </div>
 
@@ -637,7 +639,7 @@ function AccountsLedgerContent() {
                             </span>
                             {tx.reference && (
                               <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-semibold text-muted-foreground uppercase">
-                                Ref: {tx.reference}
+                                {t("ledger.ref")}: {tx.reference}
                               </span>
                             )}
                           </div>
@@ -648,7 +650,7 @@ function AccountsLedgerContent() {
                             {isDebit ? '+' : '-'}৳{Math.round(tx.amount)}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-medium pt-0.5">
-                            Balance: ৳{Math.round(tx.balanceAfter)}
+                            {t("ledger.balance")}: ৳{Math.round(tx.balanceAfter)}
                           </p>
                         </div>
                       </div>
@@ -657,10 +659,10 @@ function AccountsLedgerContent() {
                       {tx.reference && ['manual-deposit', 'manual-withdrawal', 'manual-transfer'].includes(tx.reference) && (
                         <div className="flex justify-end gap-2 pt-2 mt-1">
                           <Button variant="outline" size="xs" onClick={() => handleEditClick(tx)} className="h-7 px-2.5 text-[10px] font-bold text-indigo-600">
-                            <Edit2 className="h-3 w-3 mr-1" /> Edit
+                            <Edit2 className="h-3 w-3 mr-1" /> {t("ledger.edit")}
                           </Button>
                           <Button variant="outline" size="xs" onClick={() => handleDeleteTx(tx._id)} className="h-7 px-2.5 text-[10px] font-bold text-destructive hover:bg-destructive/10">
-                            <Trash2 className="h-3 w-3 mr-1" /> Delete
+                            <Trash2 className="h-3 w-3 mr-1" /> {t("ledger.delete")}
                           </Button>
                         </div>
                       )}
@@ -686,11 +688,11 @@ function AccountsLedgerContent() {
       <Dialog open={!!editingAccount} onOpenChange={(open) => { if (!open) setEditingAccount(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Opening Balance — {editingAccount?.name}</DialogTitle>
+            <DialogTitle>{t("ledger.edit_opening_balance")} — {editingAccount?.name}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateOpeningBalance} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="openingBal">Opening Balance (৳)</Label>
+              <Label htmlFor="openingBal">{t("ledger.opening_balance_label")}</Label>
               <Input
                 id="openingBal"
                 type="number"
@@ -699,16 +701,16 @@ function AccountsLedgerContent() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Note: Changing the opening balance will recalculate the entire ledger running balance.
+                {t("ledger.opening_balance_note")}
               </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditingAccount(null)}>
-                Cancel
+                {t("ledger.cancel")}
               </Button>
               <Button type="submit" disabled={updatingOpening} className="bg-primary text-primary-foreground">
                 {updatingOpening && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Balance
+                {t("ledger.save_balance")}
               </Button>
             </DialogFooter>
           </form>
@@ -719,7 +721,7 @@ function AccountsLedgerContent() {
       <Dialog open={isTxOpen} onOpenChange={(open) => { setIsTxOpen(open); if(!open) resetTxForm(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingTx ? 'Edit' : 'New'} Journal Entry</DialogTitle>
+            <DialogTitle>{editingTx ? t("ledger.edit_journal_entry") : t("ledger.new_journal_entry_title")}</DialogTitle>
           </DialogHeader>
 
           {/* Custom Tabs */}
@@ -734,7 +736,7 @@ function AccountsLedgerContent() {
                 }`}
                 onClick={() => setActiveTab('journal')}
               >
-                Cash In / Out (Journal)
+                {t("ledger.cash_in_out")}
               </button>
               <button
                 type="button"
@@ -745,7 +747,7 @@ function AccountsLedgerContent() {
                 }`}
                 onClick={() => setActiveTab('transfer')}
               >
-                Account Transfer
+                {t("ledger.account_transfer")}
               </button>
             </div>
           )}
@@ -755,7 +757,7 @@ function AccountsLedgerContent() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="txDate">Transaction Date</Label>
+                    <Label htmlFor="txDate">{t("ledger.transaction_date")}</Label>
                     <Input
                       id="txDate"
                       type="date"
@@ -766,7 +768,7 @@ function AccountsLedgerContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="accCode">Target Account</Label>
+                    <Label htmlFor="accCode">{t("ledger.target_account")}</Label>
                     <Select
                       value={accountCode}
                       onValueChange={(val: any) => setAccountCode(val)}
@@ -775,15 +777,15 @@ function AccountsLedgerContent() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CASH">Cash Account</SelectItem>
-                        <SelectItem value="BANK">Bank Account</SelectItem>
+                        <SelectItem value="CASH">{t("ledger.cash_account")}</SelectItem>
+                        <SelectItem value="BANK">{t("ledger.bank_account")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Type</Label>
+                  <Label>{t("ledger.type_label")}</Label>
                   <div className="flex items-center gap-6 pt-1">
                     <label className="flex items-center space-x-2 cursor-pointer select-none">
                       <input
@@ -795,7 +797,7 @@ function AccountsLedgerContent() {
                         className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300"
                       />
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
-                        Debit (Cash In)
+                        {t("ledger.debit_cash_in")}
                       </span>
                     </label>
                     <label className="flex items-center space-x-2 cursor-pointer select-none">
@@ -808,7 +810,7 @@ function AccountsLedgerContent() {
                         className="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300"
                       />
                       <span className="text-rose-600 dark:text-rose-400 font-semibold text-sm">
-                        Credit (Cash Out)
+                        {t("ledger.credit_cash_out")}
                       </span>
                     </label>
                   </div>
@@ -817,7 +819,7 @@ function AccountsLedgerContent() {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="txDate">Transaction Date</Label>
+                  <Label htmlFor="txDate">{t("ledger.transaction_date")}</Label>
                   <Input
                     id="txDate"
                     type="date"
@@ -828,7 +830,7 @@ function AccountsLedgerContent() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fromAcc">From Account</Label>
+                    <Label htmlFor="fromAcc">{t("ledger.from_account")}</Label>
                     <Select
                       value={fromAccountCode}
                       onValueChange={(val: any) => {
@@ -842,13 +844,13 @@ function AccountsLedgerContent() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CASH">Cash</SelectItem>
-                        <SelectItem value="BANK">Bank</SelectItem>
+                        <SelectItem value="CASH">{t("ledger.cash_account")}</SelectItem>
+                        <SelectItem value="BANK">{t("ledger.bank_account")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="toAcc">To Account</Label>
+                    <Label htmlFor="toAcc">{t("ledger.to_account")}</Label>
                     <Select
                       value={toAccountCode}
                       onValueChange={(val: any) => {
@@ -862,8 +864,8 @@ function AccountsLedgerContent() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CASH">Cash</SelectItem>
-                        <SelectItem value="BANK">Bank</SelectItem>
+                        <SelectItem value="CASH">{t("ledger.cash_account")}</SelectItem>
+                        <SelectItem value="BANK">{t("ledger.bank_account")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -872,7 +874,7 @@ function AccountsLedgerContent() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="txDesc">Title</Label>
+              <Label htmlFor="txDesc">{t("ledger.title_description")}</Label>
               <Input
                 id="txDesc"
                 ref={titleRef}
@@ -890,7 +892,7 @@ function AccountsLedgerContent() {
 
             {activeTab === 'journal' ? (
               <div className="space-y-2">
-                <Label htmlFor="journalAmt">Amount (৳)</Label>
+                <Label htmlFor="journalAmt">{t("ledger.amount_label")}</Label>
                 <Input
                   id="journalAmt"
                   type="number"
@@ -903,7 +905,7 @@ function AccountsLedgerContent() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="transferAmt">Transfer Amount (৳)</Label>
+                <Label htmlFor="transferAmt">{t("ledger.transfer_amount")}</Label>
                 <Input
                   id="transferAmt"
                   type="number"
@@ -918,11 +920,11 @@ function AccountsLedgerContent() {
 
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsTxOpen(false)}>
-                Cancel
+                {t("ledger.cancel")}
               </Button>
               <Button type="submit" disabled={creatingTx} className="bg-primary text-primary-foreground">
                 {creatingTx && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Log Transaction
+                {t("ledger.log_transaction")}
               </Button>
             </DialogFooter>
           </form>

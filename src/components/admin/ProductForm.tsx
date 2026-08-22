@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 
 import { slugify, sanitizeSlugInput } from '@/lib/slugify';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const NovelEditor = dynamic(() => import('@/components/editor/NovelEditor'), {
   ssr: false,
@@ -86,6 +87,7 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ initialData }: ProductFormProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -329,12 +331,12 @@ export function ProductForm({ initialData }: ProductFormProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold tracking-tight">
-              {initialData ? 'Edit' : 'Add'} Product
+              {initialData ? t("products.form.edit_product") : t("products.form.add_product")}
             </h1>
           </div>
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Product
+            {t("products.form.save_product")}
           </Button>
         </div>
 
@@ -347,9 +349,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product Name</FormLabel>
+                    <FormLabel>{t("products.form.product_name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter product name" {...field} />
+                      <Input placeholder={t("products.form.product_name") as string} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -361,7 +363,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="slug"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Slug</FormLabel>
+                      <FormLabel>{t("products.form.slug")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="product-slug"
@@ -380,7 +382,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="sku"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SKU</FormLabel>
+                      <FormLabel>{t("products.form.sku")}</FormLabel>
                       <FormControl>
                         <Input placeholder="STK-001" {...field} />
                       </FormControl>
@@ -394,7 +396,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t("products.form.description")}</FormLabel>
                     <FormControl>
                       <div className="prose-sm max-w-none">
                         <NovelEditor
@@ -423,9 +425,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex flex-col gap-1">
-                <Label>Gallery Images</Label>
+                <Label>{t("products.form.gallery_images")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  If the product has variants, there is no need to add images here. Use the Variation Manager below.
+                  {t("products.form.gallery_images_desc")}
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-4">
@@ -461,20 +463,20 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Attributes (Size, Color, etc.)</Label>
+                <Label>{t("products.form.attributes")}</Label>
                 <Button type="button" variant="outline" size="sm" onClick={() => append({ key: '', value: '' })}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Attribute
+                  <Plus className="mr-2 h-4 w-4" /> {t("products.form.add_attribute")}
                 </Button>
               </div>
               <div className="space-y-4">
                 {fields.map((item, index) => (
                   <div key={item.id} className="flex gap-4 items-end">
                     <div className="flex-1">
-                      <Label>Label</Label>
+                      <Label>{t("products.form.label")}</Label>
                       <Input {...form.register(`attributes.${index}.key` as const)} placeholder="e.g. Material" />
                     </div>
                     <div className="flex-1">
-                      <Label>Value</Label>
+                      <Label>{t("products.form.value")}</Label>
                       <Input {...form.register(`attributes.${index}.value` as const)} placeholder="e.g. Cotton" />
                     </div>
                     <Button
@@ -497,9 +499,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
               <div>
                 <h3 className="text-lg font-bold text-primary flex items-center gap-2 whitespace-nowrap">
                   <PlusCircle className="h-5 w-5 shrink-0" />
-                  Variation Manager
+                  {t("products.form.variation_manager")}
                 </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Manage images and sizes for each color variant.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("products.form.variation_manager_desc")}</p>
               </div>
               <Button
                 type="button"
@@ -508,13 +510,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 className="w-full sm:w-auto bg-background hover:bg-primary hover:text-white transition-all border-primary/20 shrink-0"
                 onClick={() => appendVariant({ color: '', images: [], sizes: [{ size: '', price: form.getValues('price') || '', stock: '', sku: '' }] })}
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Color Variant
+                <Plus className="mr-2 h-4 w-4" /> {t("products.form.add_color_variant")}
               </Button>
             </div>
             <CardContent className="p-6">
               {variantFields.length === 0 ? (
                 <div className="text-center py-10 border-2 border-dashed border-muted rounded-xl text-muted-foreground italic text-sm">
-                  No variations added yet. Click &quot;Add Color Variant&quot; to start.
+                  {t("products.form.no_variations_added")}
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -535,7 +537,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                           {/* Color Input */}
                           <div className="space-y-2">
-                            <Label className="text-sm font-bold">Color Name</Label>
+                            <Label className="text-sm font-bold">{t("products.form.color_name")}</Label>
                             <Input
                               {...form.register(`variants.${colorIndex}.color` as const)}
                               placeholder="e.g. Yellow"
@@ -545,7 +547,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
                           {/* Images Upload */}
                           <div className="lg:col-span-2 space-y-2">
-                            <Label className="text-sm font-bold">Color Images (Upload multiple)</Label>
+                            <Label className="text-sm font-bold">{t("products.form.color_images")}</Label>
                             <div className="flex flex-wrap gap-2 items-center">
                               {colorImages.map((imgUrl: string, imgIdx: number) => (
                                 <div key={imgIdx} className="relative h-16 w-16 rounded-lg overflow-hidden border bg-background group">
@@ -582,7 +584,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                         {/* Sizes List under this color */}
                         <div className="space-y-4 pt-4 border-t border-muted/50">
                           <div className="flex items-center justify-between">
-                            <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Sizes & Pricing</Label>
+                            <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("products.form.sizes_pricing")}</Label>
                             <Button
                               type="button"
                               variant="outline"
@@ -595,7 +597,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                 ]);
                               }}
                             >
-                              <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Size
+                              <Plus className="mr-1.5 h-3.5 w-3.5" /> {t("products.form.add_size")}
                             </Button>
                           </div>
 
@@ -622,7 +624,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                   {/* Row 1: Size, Price, Purchase Price, Stock, SKU */}
                                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Size</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.size")}</Label>
                                       <Input
                                         {...form.register(`variants.${colorIndex}.sizes.${sizeIndex}.size` as const)}
                                         placeholder="e.g. XL"
@@ -630,7 +632,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Price (Tk)</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.price_tk")}</Label>
                                       <Input
                                         type="number"
                                         value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.price`) ?? ''}
@@ -646,7 +648,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Purchase (Tk)</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.purchase_tk")}</Label>
                                       <Input
                                         type="number"
                                         value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.purchasePrice`) ?? ''}
@@ -658,7 +660,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Stock</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.stock")}</Label>
                                       <Input
                                         type="number"
                                         value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.stock`) ?? ''}
@@ -670,7 +672,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div className="col-span-2 md:col-span-1">
-                                      <Label className="text-xs font-medium text-muted-foreground">SKU</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.sku")}</Label>
                                       <Input
                                         {...form.register(`variants.${colorIndex}.sizes.${sizeIndex}.sku` as const)}
                                         placeholder="SKU"
@@ -682,7 +684,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                   {/* Row 2: Discount Rate (%), Sale Price, Wholesale Price */}
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Disc (%)</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.disc_percent")}</Label>
                                       <Input
                                         type="number"
                                         placeholder="0"
@@ -701,7 +703,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div>
-                                      <Label className="text-xs font-medium text-muted-foreground">Sale Price (Tk)</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.sale_price_tk")}</Label>
                                       <Input
                                         type="number"
                                         placeholder="Optional"
@@ -720,7 +722,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div className="col-span-2">
-                                      <Label className="text-xs font-medium text-muted-foreground">Wholesale Price (Tk)</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">{t("products.form.wholesale_price_tk")}</Label>
                                       <Input
                                         type="number"
                                         placeholder="Optional"
@@ -753,7 +755,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Regular Price (Tk)</FormLabel>
+                      <FormLabel>{t("products.form.regular_price_tk")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -782,7 +784,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="purchasePrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Purchase Price (Tk)</FormLabel>
+                      <FormLabel>{t("products.form.purchase_price_tk")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -804,7 +806,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="discountRate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount (%)</FormLabel>
+                      <FormLabel>{t("products.form.discount_percent")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -833,7 +835,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="salePrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sale Price (Tk)</FormLabel>
+                      <FormLabel>{t("products.form.sale_price_tk")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -862,7 +864,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="wholesaleSalePrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Wholesale Price (Tk)</FormLabel>
+                      <FormLabel>{t("products.form.wholesale_price_tk")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -886,7 +888,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="stock"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Stock Quantity</FormLabel>
+                      <FormLabel>{t("products.form.total_stock_quantity")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -896,7 +898,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                           onChange={(e) => field.onChange(e.target.value === '' ? '' : (parseInt(e.target.value) || 0))}
                         />
                       </FormControl>
-                      <FormDescription>Physical stock available for sale</FormDescription>
+                      <FormDescription>{t("products.form.physical_stock")}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -910,8 +912,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-bold">Product Category</Label>
-                <span className="text-[10px] text-destructive uppercase font-bold">Required</span>
+                <Label className="text-base font-bold">{t("products.form.product_category")}</Label>
+                <span className="text-[10px] text-destructive uppercase font-bold">{t("products.form.required")}</span>
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
                 {mainCategories.map((mainCat) => (
@@ -927,7 +929,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
               </div>
               {!hasMainCategory && form.formState.isSubmitted && (
                 <p className="text-[0.8rem] font-medium text-destructive">
-                  Select at least one product category
+                  {t("products.form.select_one_category")}
                 </p>
               )}
             </CardContent>
@@ -936,8 +938,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-bold">Sub Category</Label>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">Optional</span>
+                <Label className="text-base font-bold">{t("products.form.sub_category")}</Label>
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">{t("products.form.optional")}</span>
               </div>
               <div className="space-y-4 pt-2">
                 {selectedMainCategoryIds.length > 0 ? (
@@ -960,7 +962,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground italic">
-                    Select a product category to see available subcategories
+                    {t("products.form.select_category_to_see_sub")}
                   </p>
                 )}
               </div>
@@ -970,7 +972,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="featured">Featured Product</Label>
+                <Label htmlFor="featured">{t("products.form.featured_product")}</Label>
                 <input
                   type="checkbox"
                   id="featured"
@@ -979,7 +981,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="new-arrival">New Arrival</Label>
+                <Label htmlFor="new-arrival">{t("products.form.new_arrival")}</Label>
                 <input
                   type="checkbox"
                   id="new-arrival"
@@ -988,7 +990,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="flash-sale">Flash Sale</Label>
+                <Label htmlFor="flash-sale">{t("products.form.flash_sale")}</Label>
                 <input
                   type="checkbox"
                   id="flash-sale"
@@ -997,7 +999,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="published">Published</Label>
+                <Label htmlFor="published">{t("products.form.published")}</Label>
                 <input
                   type="checkbox"
                   id="published"

@@ -11,8 +11,10 @@ import {
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function WholesalerTopbar() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const { toggleSidebar } = useSidebar();
 
@@ -30,8 +32,8 @@ export default function WholesalerTopbar() {
         </Button>
         <div className="hidden md:flex items-center gap-2">
           <Package className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">Wholesaler Panel</span>
-          <Badge variant="secondary" className="text-xs">Wholesale Rate</Badge>
+          <span className="font-semibold text-sm">{t('store.wholesaler.panel') || 'Wholesaler Panel'}</span>
+          <Badge variant="secondary" className="text-xs">{t('store.wholesaler.wholesale_rate') || 'Wholesale Rate'}</Badge>
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -62,7 +64,7 @@ export default function WholesalerTopbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={() => signOut({ callbackUrl: window.location.origin })}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t('store.dashboard.log_out') || 'Log out'}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

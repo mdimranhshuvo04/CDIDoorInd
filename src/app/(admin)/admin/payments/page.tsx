@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Payment {
   _id: string;
@@ -34,6 +35,7 @@ interface Payment {
 }
 
 export default function AdminManagePayments() {
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,8 +51,8 @@ export default function AdminManagePayments() {
         setPayments(data);
       } else {
         Swal.fire({
-          title: 'Error',
-          text: 'Failed to fetch payments.',
+          title: t("payments.error"),
+          text: t("payments.fetch_error"),
           icon: 'error',
           confirmButtonColor: '#e11d48',
         });
@@ -58,8 +60,8 @@ export default function AdminManagePayments() {
     } catch (error) {
       console.error('Fetch error:', error);
       Swal.fire({
-        title: 'Error',
-        text: 'An error occurred while fetching payments.',
+        title: t("payments.error"),
+        text: t("payments.general_error"),
         icon: 'error',
         confirmButtonColor: '#e11d48',
       });
@@ -77,13 +79,13 @@ export default function AdminManagePayments() {
   const handleUpdateStatus = async (id: string, newStatus: 'confirmed' | 'rejected') => {
     // SweetAlert2 confirmation
     const confirmResult = await Swal.fire({
-      title: 'Are you sure?',
-      text: `Do you want to mark this payment as ${newStatus}?`,
+      title: t("payments.confirm_title"),
+      text: `${t("payments.confirm_text_prefix")}${newStatus === 'confirmed' ? t("payments.confirmed") : t("payments.rejected")}${t("payments.confirm_text_suffix")}`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: newStatus === 'confirmed' ? '#10b981' : '#ef4444',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: `Yes, ${newStatus}!`,
+      confirmButtonText: `${t("payments.yes_prefix")}${newStatus === 'confirmed' ? t("payments.confirmed") : t("payments.rejected")}!`,
     });
 
     if (!confirmResult.isConfirmed) return;
@@ -98,8 +100,8 @@ export default function AdminManagePayments() {
 
       if (response.ok) {
         Swal.fire({
-          title: 'Updated',
-          text: `Payment marked as ${newStatus} successfully!`,
+          title: t("payments.updated"),
+          text: `${t("payments.updated_text_prefix")}${newStatus === 'confirmed' ? t("payments.confirmed") : t("payments.rejected")}${t("payments.updated_text_suffix")}`,
           icon: 'success',
           confirmButtonColor: '#10b981',
         });
@@ -108,8 +110,8 @@ export default function AdminManagePayments() {
         );
       } else {
         Swal.fire({
-          title: 'Error',
-          text: 'Failed to update payment status.',
+          title: t("payments.error"),
+          text: t("payments.update_error"),
           icon: 'error',
           confirmButtonColor: '#e11d48',
         });
@@ -117,8 +119,8 @@ export default function AdminManagePayments() {
     } catch (error) {
       console.error('Update error:', error);
       Swal.fire({
-        title: 'Error',
-        text: 'An error occurred during updating status.',
+        title: t("payments.error"),
+        text: t("payments.general_error"),
         icon: 'error',
         confirmButtonColor: '#e11d48',
       });
@@ -152,7 +154,7 @@ export default function AdminManagePayments() {
       <div className="min-h-[400px] flex items-center justify-center bg-card border border-border rounded-2xl">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Verifying session...</p>
+          <p className="text-sm text-muted-foreground">{t("payments.verifying_session")}</p>
         </div>
       </div>
     );
@@ -162,7 +164,7 @@ export default function AdminManagePayments() {
   if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'manager') {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-destructive font-bold">Unauthorized. Admin access only.</p>
+        <p className="text-destructive font-bold">{t("payments.unauthorized")}</p>
       </div>
     );
   }
@@ -171,8 +173,8 @@ export default function AdminManagePayments() {
     <div className="space-y-6 p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground font-heading">Manage Payments</h1>
-          <p className="text-muted-foreground text-sm">Verify and process client payment submissions.</p>
+          <h1 className="text-2xl font-bold text-foreground font-heading">{t("payments.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("payments.subtitle")}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -180,7 +182,7 @@ export default function AdminManagePayments() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <input
               type="text"
-              placeholder="Search by name, TxID, number..."
+              placeholder={t("payments.search_placeholder") as string}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary w-full md:w-64 transition-all"
@@ -192,10 +194,10 @@ export default function AdminManagePayments() {
             onChange={(e) => setFilter(e.target.value)}
             className="px-4 py-2 bg-background border border-border rounded-lg text-sm outline-none focus:border-primary"
           >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="rejected">Rejected</option>
+            <option value="all">{t("payments.all_status")}</option>
+            <option value="pending">{t("payments.pending")}</option>
+            <option value="confirmed">{t("payments.confirmed")}</option>
+            <option value="rejected">{t("payments.rejected")}</option>
           </select>
         </div>
       </div>
@@ -204,7 +206,7 @@ export default function AdminManagePayments() {
         <div className="min-h-[400px] flex items-center justify-center bg-card border border-border rounded-2xl">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">Loading submissions...</p>
+            <p className="text-sm text-muted-foreground">{t("payments.loading_submissions")}</p>
           </div>
         </div>
       ) : filteredPayments.length === 0 ? (
@@ -212,8 +214,8 @@ export default function AdminManagePayments() {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
             <AlertCircle className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-bold text-foreground">No submissions found</h3>
-          <p className="text-muted-foreground text-sm">Try adjusting your search or filter.</p>
+          <h3 className="text-lg font-bold text-foreground">{t("payments.no_submissions")}</h3>
+          <p className="text-muted-foreground text-sm">{t("payments.adjust_search")}</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
@@ -221,12 +223,12 @@ export default function AdminManagePayments() {
             <table className="w-full text-left">
               <thead className="bg-muted/50 border-b border-border text-sm">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Client</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Details</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Amount</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("payments.client")}</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("payments.details")}</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("payments.amount")}</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("payments.date")}</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("payments.status")}</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">{t("payments.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-sm">
@@ -238,8 +240,8 @@ export default function AdminManagePayments() {
                           <UserIcon className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-bold text-foreground">{payment.clientName || payment.user?.name || 'Unknown'}</span>
-                          <span className="text-xs text-muted-foreground">{payment.clientEmail || payment.user?.email || 'No email'}</span>
+                          <span className="font-bold text-foreground">{payment.clientName || payment.user?.name || t("payments.unknown")}</span>
+                          <span className="text-xs text-muted-foreground">{payment.clientEmail || payment.user?.email || t("payments.no_email")}</span>
                           <span className="text-xs text-muted-foreground">{payment.clientMobile}</span>
                         </div>
                       </div>
@@ -255,7 +257,7 @@ export default function AdminManagePayments() {
                           )}
                         </div>
                         {payment.senderNumber && (
-                          <span className="text-xs text-muted-foreground">From: {payment.senderNumber}</span>
+                          <span className="text-xs text-muted-foreground">{t("payments.from")}: {payment.senderNumber}</span>
                         )}
                         {payment.notes && (
                           <span className="text-xs italic text-primary mt-1">"{payment.notes}"</span>
@@ -274,7 +276,7 @@ export default function AdminManagePayments() {
                         payment.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800' :
                         'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400 dark:border-yellow-800'
                       }`}>
-                        {payment.status}
+                        {payment.status === 'confirmed' ? t("payments.confirmed") : payment.status === 'rejected' ? t("payments.rejected") : t("payments.pending")}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -284,7 +286,7 @@ export default function AdminManagePayments() {
                             onClick={() => handleUpdateStatus(payment._id, 'confirmed')}
                             disabled={!!processingId}
                             className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                            title="Confirm Payment"
+                            title={t("payments.confirm_payment") as string}
                           >
                             {processingId === payment._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                           </button>
@@ -292,7 +294,7 @@ export default function AdminManagePayments() {
                             onClick={() => handleUpdateStatus(payment._id, 'rejected')}
                             disabled={!!processingId}
                             className="p-2 bg-destructive hover:bg-destructive/90 text-white rounded-lg transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                            title="Reject Payment"
+                            title={t("payments.reject_payment") as string}
                           >
                             {processingId === payment._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
                           </button>

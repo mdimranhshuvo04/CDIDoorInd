@@ -1,8 +1,8 @@
 "use client";
 
 import { useSession, signOut } from 'next-auth/react';
-import { 
-  User, 
+import {
+  User,
   LogOut,
   Plus,
   Home,
@@ -11,6 +11,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
+import { LanguageToggle } from '@/components/layout/LanguageToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
@@ -21,19 +23,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { TransactionForm } from '@/components/admin/TransactionForm';
-import { useState, useEffect } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 export default function AdminTopbar() {
   const { data: session } = useSession();
-  const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <header className="relative flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between sticky top-0 z-30">
@@ -42,21 +37,22 @@ export default function AdminTopbar() {
           <Home className="h-5 w-5 text-muted-foreground" />
         </Link>
         <div className="absolute left-1/2 -translate-x-1/2 font-semibold text-lg md:hidden max-w-[40%] truncate text-center">
-          Admin Panel
+          {t("topbar.admin_panel")}
         </div>
       </div>
       <div className="hidden md:flex flex-1" />
       <div className="flex items-center gap-4">
+        <LanguageToggle />
         <ModeToggle />
-        
+
         {session?.user ? (
           <DropdownMenu>
             <DropdownMenuTrigger nativeButton={true} render={
               <Button variant="secondary" size="icon" className="rounded-full overflow-hidden border border-primary/20">
                 {session.user.image ? (
-                  <Image 
-                    src={session.user.image} 
-                    alt={session.user.name || "Admin"} 
+                  <Image
+                    src={session.user.image}
+                    alt={session.user.name || "Admin"}
                     width={40}
                     height={40}
                     className="h-full w-full object-cover"
@@ -80,12 +76,12 @@ export default function AdminTopbar() {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 variant="destructive"
                 onClick={() => signOut({ callbackUrl: window.location.origin })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t("topbar.log_out")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export default function EmployeeTopbar() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const { toggleSidebar } = useSidebar();
 
@@ -59,7 +60,7 @@ export default function EmployeeTopbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={() => signOut({ callbackUrl: window.location.origin })}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t("store.dashboard.log_out") || "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

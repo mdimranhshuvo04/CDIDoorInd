@@ -51,6 +51,7 @@ interface OrderItem {
 }
 
 function ShowroomOrdersContent() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -72,7 +73,7 @@ function ShowroomOrdersContent() {
   });
   const limit = 15;
 
-  // Manual Order states
+  // {t('store.showroom.manual_order') || 'Manual Order'} states
   const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
 
   const handleCopyLink = async (orderId: string) => {
@@ -160,13 +161,13 @@ function ShowroomOrdersContent() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Orders</h2>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">{t('store.showroom.orders_title') || 'Showroom Orders'}</h2>
           <p className="text-muted-foreground text-xs md:text-sm">
-            আপনার শো-রুমের মাধ্যমে আসা অর্ডারগুলো ট্র্যাক ও প্রসেস করুন।
+            {t('store.showroom.orders_desc') || 'আপনার শো-রুমের মাধ্যমে আসা অর্ডারগুলো ট্র্যাক ও প্রসেস করুন।'}
           </p>
         </div>
         <Button onClick={() => setIsManualOrderOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
-          <Plus className="mr-2 h-4 w-4" /> Manual Order
+          <Plus className="mr-2 h-4 w-4" /> {t('store.showroom.manual_order') || 'Manual Order'}
         </Button>
       </div>
 
@@ -174,14 +175,14 @@ function ShowroomOrdersContent() {
       <Tabs value={statusFilter} onValueChange={handleTabChange} className="w-full">
         <div className="overflow-x-auto pb-2">
           <TabsList className="flex w-max lg:w-full lg:grid lg:grid-cols-8 h-10">
-            <TabsTrigger value="All" className="px-3 text-xs">All ({counts.all})</TabsTrigger>
-            <TabsTrigger value="Order Placed" className="px-3 text-xs">Placed ({counts.placed})</TabsTrigger>
-            <TabsTrigger value="Processing" className="px-3 text-xs">Processing ({counts.processing})</TabsTrigger>
-            <TabsTrigger value="Shipped via Courier" className="px-3 text-xs">Courier ({counts.courier})</TabsTrigger>
-            <TabsTrigger value="Completed" className="px-3 text-xs">Completed ({counts.completed})</TabsTrigger>
-            <TabsTrigger value="Cancelled" className="px-3 text-xs">Cancelled ({counts.cancelled})</TabsTrigger>
-            <TabsTrigger value="On Hold" className="px-3 text-xs">Hold ({counts.hold})</TabsTrigger>
-            <TabsTrigger value="Returned" className="px-3 text-xs">Returned ({counts.returned})</TabsTrigger>
+            <TabsTrigger value="All" className="px-3 text-xs">{t('store.showroom.tab_all') || 'All'} ({counts.all})</TabsTrigger>
+            <TabsTrigger value="Order Placed" className="px-3 text-xs">{t('store.showroom.tab_placed') || 'Placed'} ({counts.placed})</TabsTrigger>
+            <TabsTrigger value="Processing" className="px-3 text-xs">{t('store.showroom.tab_processing') || 'Processing'} ({counts.processing})</TabsTrigger>
+            <TabsTrigger value="Shipped via Courier" className="px-3 text-xs">{t('store.showroom.tab_courier') || 'Courier'} ({counts.courier})</TabsTrigger>
+            <TabsTrigger value="Completed" className="px-3 text-xs">{t('store.showroom.tab_completed') || 'Completed'} ({counts.completed})</TabsTrigger>
+            <TabsTrigger value="Cancelled" className="px-3 text-xs">{t('store.showroom.tab_cancelled') || 'Cancelled'} ({counts.cancelled})</TabsTrigger>
+            <TabsTrigger value="On Hold" className="px-3 text-xs">{t('store.showroom.tab_hold') || 'Hold'} ({counts.hold})</TabsTrigger>
+            <TabsTrigger value="Returned" className="px-3 text-xs">{t('store.showroom.tab_returned') || 'Returned'} ({counts.returned})</TabsTrigger>
           </TabsList>
         </div>
       </Tabs>
@@ -191,7 +192,7 @@ function ShowroomOrdersContent() {
         <div className="relative w-full md:w-80">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by Order ID, name, phone..."
+            placeholder={t('store.showroom.search_orders_placeholder') || 'Search by Order ID, name, phone...'}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -212,7 +213,7 @@ function ShowroomOrdersContent() {
               setCurrentPage(1);
             }}
           />
-          <span className="text-muted-foreground text-xs">to</span>
+          <span className="text-muted-foreground text-xs">{t('store.showroom.date_to') || 'to'}</span>
           <Input
             type="date"
             className="h-8 border-none bg-transparent focus-visible:ring-0 p-1 w-32"
@@ -245,13 +246,13 @@ function ShowroomOrdersContent() {
           <Table className="block md:table">
             <TableHeader className="hidden md:table-header-group">
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('store.showroom.th_order_id') || 'Order ID'}</TableHead>
+                <TableHead>{t('store.showroom.th_customer') || 'Customer'}</TableHead>
+                <TableHead>{t('store.showroom.th_date') || 'Date'}</TableHead>
+                <TableHead>{t('store.showroom.th_payment') || 'Payment'}</TableHead>
+                <TableHead>{t('store.showroom.th_status') || 'Status'}</TableHead>
+                <TableHead className="text-right">{t('store.showroom.th_total') || 'Total'}</TableHead>
+                <TableHead className="text-right">{t('store.showroom.th_actions') || 'Actions'}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -264,7 +265,7 @@ function ShowroomOrdersContent() {
               ) : orders.length === 0 ? (
                 <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                   <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
-                    No orders found.
+                    {t('store.showroom.no_orders_found') || 'No orders found.'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -295,7 +296,7 @@ function ShowroomOrdersContent() {
                           size="icon" 
                           className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
                           onClick={() => handleCopyLink(order._id)}
-                          title="Copy Shareable Invoice/Payment Link"
+                          title={t('store.showroom.copy_link_title') || 'Copy Shareable Invoice/Payment Link'}
                         >
                           <Share2 className="h-4 w-4" />
                         </Button>
@@ -319,7 +320,7 @@ function ShowroomOrdersContent() {
             </div>
           ) : orders.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-sm">
-              No orders found.
+              {t('store.showroom.no_orders_found') || 'No orders found.'}
             </div>
           ) : (
             orders.map((order) => (
@@ -354,7 +355,7 @@ function ShowroomOrdersContent() {
                       size="icon" 
                       className="h-7 w-7 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0"
                       onClick={() => handleCopyLink(order._id)}
-                      title="Copy Shareable Link"
+                      title={t('store.showroom.copy_link_title_mobile') || 'Copy Shareable Link'}
                     >
                       <Share2 className="h-3.5 w-3.5" />
                     </Button>
@@ -407,6 +408,7 @@ function ShowroomOrdersContent() {
 }
 
 export default function ShowroomOrdersPage() {
+  const { t } = useLanguage();
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center">

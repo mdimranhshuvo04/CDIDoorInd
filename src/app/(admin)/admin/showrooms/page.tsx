@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/select";
 import Swal from 'sweetalert2';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const showroomSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -62,6 +63,7 @@ const showroomSchema = z.object({
 type ShowroomFormValues = z.infer<typeof showroomSchema>;
 
 export default function ShowroomsPage() {
+  const { t } = useLanguage();
   const [showrooms, setShowrooms] = useState<any[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,19 +198,19 @@ export default function ShowroomsPage() {
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8 pt-6">
       <div className="flex items-center justify-between gap-4 px-2 md:px-0">
-        <h2 className="text-xl md:text-3xl font-bold tracking-tight">Showrooms</h2>
+        <h2 className="text-xl md:text-3xl font-bold tracking-tight">{t("showrooms.title")}</h2>
         <Button onClick={() => {
           setEditingShowroom(null);
           form.reset({ name: '', address: '', image: '', manager: '', isActive: true });
           setOpen(true);
         }} className="h-9 px-3 text-xs md:h-10 md:px-4 md:text-sm">
-          <Plus className="mr-2 h-4 w-4" /> Add Showroom
+          <Plus className="mr-2 h-4 w-4" /> {t("showrooms.add_showroom")}
         </Button>
       </div>
 
       {showrooms.length === 0 ? (
         <div className="rounded-md border bg-white p-8 text-center text-muted-foreground">
-          No showrooms found.
+          {t("showrooms.no_showrooms_found")}
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
@@ -224,13 +226,13 @@ export default function ShowroomsPage() {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-xs md:text-sm font-medium">
-                    No Showroom
+                    {t("showrooms.no_showroom")}
                   </div>
                 )}
                 {/* Active/Inactive Badge */}
                 <div className="absolute top-2 left-2 z-10">
                   <Badge variant={showroom.isActive ? 'default' : 'secondary'} className="shadow-sm font-semibold text-[8px] md:text-xs px-1.5 py-0">
-                    {showroom.isActive ? 'Active' : 'Inactive'}
+                    {showroom.isActive ? t("showrooms.active") : t("showrooms.inactive")}
                   </Badge>
                 </div>
 
@@ -244,10 +246,10 @@ export default function ShowroomsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32">
                       <DropdownMenuItem onClick={() => handleEdit(showroom)} className="cursor-pointer font-medium text-xs md:text-sm">
-                        <Edit className="mr-2 h-4 w-4 text-muted-foreground" /> Edit
+                        <Edit className="mr-2 h-4 w-4 text-muted-foreground" /> {t("showrooms.edit")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDelete(showroom._id)} className="cursor-pointer text-destructive focus:text-destructive font-medium text-xs md:text-sm">
-                        <Trash className="mr-2 h-4 w-4 text-muted-foreground" /> Delete
+                        <Trash className="mr-2 h-4 w-4 text-muted-foreground" /> {t("showrooms.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -265,37 +267,37 @@ export default function ShowroomsPage() {
 
                 {/* Manager Info */}
                 <div className="rounded-lg bg-muted/30 p-1.5 md:p-3 border border-muted/50">
-                  <span className="text-[8px] md:text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground block mb-0.5">Showroom Manager</span>
+                  <span className="text-[8px] md:text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground block mb-0.5">{t("showrooms.showroom_manager")}</span>
                   {showroom.manager ? (
                     <div>
                       <p className="font-bold text-[10px] md:text-sm text-foreground truncate">{showroom.manager.name}</p>
                       <p className="text-[8px] md:text-xs text-muted-foreground truncate">{showroom.manager.email}</p>
                     </div>
                   ) : (
-                    <span className="text-destructive text-[8px] md:text-xs font-bold">No Manager</span>
+                    <span className="text-destructive text-[8px] md:text-xs font-bold">{t("showrooms.no_manager")}</span>
                   )}
                 </div>
 
                 {/* Stats Section */}
                 <div className="grid grid-cols-2 gap-1 md:gap-3 pt-0.5 md:pt-1">
                   <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
-                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Sales</span>
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">{t("showrooms.todays_sales")}</span>
                     <span className="text-[10px] md:text-base font-black text-emerald-600">৳{Math.round(showroom.todaySales || 0)}</span>
                   </div>
                   <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
-                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month</span>
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">{t("showrooms.this_month_sales")}</span>
                     <span className="text-[10px] md:text-base font-black text-emerald-600">৳{Math.round(showroom.monthSales || 0)}</span>
                   </div>
                   <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
-                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Today's Cost</span>
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">{t("showrooms.todays_cost")}</span>
                     <span className="text-[10px] md:text-base font-black text-rose-600">৳{Math.round(showroom.todayCost || 0)}</span>
                   </div>
                   <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center">
-                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">This Month</span>
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">{t("showrooms.this_month_cost")}</span>
                     <span className="text-[10px] md:text-base font-black text-rose-600">৳{Math.round(showroom.monthCost || 0)}</span>
                   </div>
                   <div className="rounded-lg border bg-card p-1.5 md:p-3 text-center col-span-2">
-                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">Pending Approval</span>
+                    <span className="text-[7px] md:text-[9px] uppercase tracking-wider font-bold text-muted-foreground block mb-0.5">{t("showrooms.pending_approval")}</span>
                     <span className="text-[10px] md:text-base font-black text-amber-600">৳{Math.round(showroom.pendingCost || 0)}</span>
                   </div>
                 </div>
@@ -308,9 +310,9 @@ export default function ShowroomsPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{editingShowroom ? 'Edit Showroom' : 'Create Showroom'}</DialogTitle>
+            <DialogTitle>{editingShowroom ? t("showrooms.edit_showroom") : t("showrooms.create_showroom")}</DialogTitle>
             <DialogDescription>
-              Provide showroom name, address, and select a manager user.
+              {t("showrooms.showroom_dialog_desc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -321,7 +323,7 @@ export default function ShowroomsPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Showroom Name</FormLabel>
+                    <FormLabel>{t("showrooms.showroom_name")}</FormLabel>
                     <FormControl>
                       <Input placeholder="E.g., Dhaka Showroom" {...field} />
                     </FormControl>
@@ -335,7 +337,7 @@ export default function ShowroomsPage() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t("showrooms.address")}</FormLabel>
                     <FormControl>
                       <Input placeholder="E.g., Mirpur-10, Dhaka" {...field} />
                     </FormControl>
@@ -349,7 +351,7 @@ export default function ShowroomsPage() {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Showroom Image</FormLabel>
+                    <FormLabel>{t("showrooms.showroom_image")}</FormLabel>
                     <FormControl>
                       <ImageUpload
                         value={field.value}
@@ -367,11 +369,11 @@ export default function ShowroomsPage() {
                 name="manager"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign Manager</FormLabel>
+                    <FormLabel>{t("showrooms.assign_manager")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a manager user">
+                          <SelectValue placeholder={t("showrooms.select_manager") as string}>
                             {(() => {
                               const mgr = managers.find((m) => m._id === field.value);
                               return mgr ? `${mgr.name} (${mgr.email})` : undefined;
@@ -381,7 +383,7 @@ export default function ShowroomsPage() {
                       </FormControl>
                       <SelectContent>
                         {managers.length === 0 ? (
-                          <SelectItem value="none" disabled>No managers found</SelectItem>
+                          <SelectItem value="none" disabled>{t("showrooms.no_managers")}</SelectItem>
                         ) : (
                           managers.map((manager) => (
                             <SelectItem key={manager._id} value={manager._id}>
@@ -399,7 +401,7 @@ export default function ShowroomsPage() {
               <DialogFooter>
                 <Button type="submit" disabled={submitting}>
                   {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {editingShowroom ? 'Save Changes' : 'Create'}
+                  {editingShowroom ? t("showrooms.save_changes") : t("showrooms.create")}
                 </Button>
               </DialogFooter>
             </form>

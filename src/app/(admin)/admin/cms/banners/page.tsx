@@ -17,8 +17,10 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BannersPage() {
+  const { t } = useLanguage();
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -100,12 +102,12 @@ export default function BannersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Promotional Banners</h1>
-          <p className="text-muted-foreground text-sm">Manage banners appearing in the homepage hero slider</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("banners.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("banners.subtitle")}</p>
         </div>
         <Link href="/admin/cms/banners/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add Banner
+            <Plus className="mr-2 h-4 w-4" /> {t("banners.add_banner")}
           </Button>
         </Link>
       </div>
@@ -114,13 +116,13 @@ export default function BannersPage() {
         <Table className="block md:table">
           <TableHeader className="hidden md:table-header-group">
             <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 bg-muted/50">
-              <TableHead className="w-[180px]">Preview</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Order</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Primary CTA</TableHead>
-              <TableHead>Secondary CTA</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[180px]">{t("banners.preview")}</TableHead>
+              <TableHead>{t("banners.banner_title")}</TableHead>
+              <TableHead>{t("banners.order")}</TableHead>
+              <TableHead>{t("banners.status")}</TableHead>
+              <TableHead>{t("banners.primary_cta")}</TableHead>
+              <TableHead>{t("banners.secondary_cta")}</TableHead>
+              <TableHead className="text-right">{t("banners.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -157,10 +159,10 @@ export default function BannersPage() {
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <p className="text-lg font-medium">No banners found</p>
-                    <p className="text-sm text-muted-foreground">Add your first promotional banner to get started.</p>
+                    <p className="text-lg font-medium">{t("banners.no_banners")}</p>
+                    <p className="text-sm text-muted-foreground">{t("banners.no_banners_desc")}</p>
                     <Link href="/admin/cms/banners/new" className="mt-2">
-                      <Button variant="outline" size="sm">Add Banner</Button>
+                      <Button variant="outline" size="sm">{t("banners.add_banner")}</Button>
                     </Link>
                   </div>
                 </TableCell>
@@ -193,23 +195,23 @@ export default function BannersPage() {
                       className="transition-opacity hover:opacity-80"
                     >
                       <Badge variant={banner.isActive ? 'default' : 'secondary'} className="cursor-pointer">
-                        {banner.isActive ? 'Active' : 'Inactive'}
+                        {banner.isActive ? t("banners.active") : t("banners.inactive")}
                       </Badge>
                     </button>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium">{banner.primaryBtnText || 'Shop Now'}</span>
+                      <span className="text-sm font-medium">{banner.primaryBtnText || t("banners.shop_now")}</span>
                       <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
-                        {banner.primaryBtnLink || 'No link'}
+                        {banner.primaryBtnLink || t("banners.no_link")}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium">{banner.secondaryBtnText || 'Contact'}</span>
+                      <span className="text-sm font-medium">{banner.secondaryBtnText || t("banners.contact")}</span>
                       <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
-                        {banner.secondaryBtnLink || 'No link'}
+                        {banner.secondaryBtnLink || t("banners.no_link")}
                       </span>
                     </div>
                   </TableCell>

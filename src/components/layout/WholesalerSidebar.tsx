@@ -31,30 +31,35 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronRight } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 const navItems = [
   {
-    title: "Overview",
+    titleKey: "store.wholesaler.overview",
+    titleDefault: "Overview",
     icon: LayoutDashboard,
-    items: [{ title: "Dashboard", url: "/wholesaler/dashboard" }],
+    items: [{ titleKey: "store.dashboard.dashboard", titleDefault: "Dashboard", url: "/wholesaler/dashboard" }],
   },
   {
-    title: "My Orders",
+    titleKey: "store.wholesaler.my_orders",
+    titleDefault: "My Orders",
     icon: ShoppingBag,
-    items: [{ title: "Order History", url: "/wholesaler/orders" }],
+    items: [{ titleKey: "store.wholesaler.order_history", titleDefault: "Order History", url: "/wholesaler/orders" }],
   },
   {
-    title: "My Account",
+    titleKey: "store.wholesaler.my_account",
+    titleDefault: "My Account",
     icon: User,
     items: [
-      { title: "Profile", url: "/wholesaler/profile" },
-      { title: "Change Password", url: "/wholesaler/change-password" },
+      { titleKey: "store.dashboard.profile", titleDefault: "Profile", url: "/wholesaler/profile" },
+      { titleKey: "store.dashboard.change_password", titleDefault: "Change Password", url: "/wholesaler/change-password" },
     ],
   },
 ]
 
 function NavMain({ items, pathname }: { items: typeof navItems; pathname: string }) {
   const { setOpenMobile, isMobile } = useSidebar()
+  const { t } = useLanguage()
   const handleLinkClick = () => { if (isMobile) setOpenMobile(false) }
 
   return (
@@ -65,22 +70,22 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
             (sub) => pathname === sub.url || pathname.startsWith(sub.url + "/")
           )
           return (
-            <Collapsible key={item.title} defaultOpen={isParentActive} className="group/collapsible">
+            <Collapsible key={item.titleDefault} defaultOpen={isParentActive} className="group/collapsible">
               <SidebarMenuItem>
-                <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isParentActive} />}>
+                <CollapsibleTrigger render={<SidebarMenuButton tooltip={t(item.titleKey) || item.titleDefault} isActive={isParentActive} />}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span>{t(item.titleKey) || item.titleDefault}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenuSubItem key={subItem.titleDefault}>
                         <SidebarMenuSubButton
                           render={<Link href={subItem.url} onClick={handleLinkClick} />}
                           isActive={pathname === subItem.url || pathname.startsWith(subItem.url + "/")}
                         >
-                          <span>{subItem.title}</span>
+                          <span>{t(subItem.titleKey) || subItem.titleDefault}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
@@ -92,9 +97,9 @@ function NavMain({ items, pathname }: { items: typeof navItems; pathname: string
         })}
         {/* Browse Store - direct link item */}
         <SidebarMenuItem>
-          <SidebarMenuButton tooltip="Browse Store" render={<Link href="/shop" />}>
+          <SidebarMenuButton tooltip={t('store.wholesaler.browse_store') || "Browse Store"} render={<Link href="/shop" />}>
             <ExternalLink className="h-4 w-4" />
-            <span>Browse Store</span>
+            <span>{t('store.wholesaler.browse_store') || "Browse Store"}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

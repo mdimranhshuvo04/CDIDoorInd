@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { slugify, sanitizeSlugInput } from '@/lib/slugify';
 
 const categorySchema = z.object({
@@ -64,6 +65,7 @@ export default function CategoriesPage() {
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useLanguage();
 
   const form = useForm({
     resolver: zodResolver(categorySchema),
@@ -188,7 +190,7 @@ export default function CategoriesPage() {
   return (
     <div className="flex flex-col gap-4 pt-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("categories.title")}</h1>
         <Dialog open={open} onOpenChange={(val) => {
           setOpen(val);
           if (!val) {
@@ -197,15 +199,15 @@ export default function CategoriesPage() {
           }
         }}>
         <DialogTrigger render={<Button />}>
-          <Plus className="mr-2 h-4 w-4" /> Add Category
+          <Plus className="mr-2 h-4 w-4" /> {t("categories.add_category")}
         </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingCategory ? 'Edit' : 'Add'} Category</DialogTitle>
+              <DialogTitle>{editingCategory ? t("categories.edit_category") : t("categories.add_category")}</DialogTitle>
               <DialogDescription>
                 {editingCategory 
-                  ? "Update the category details." 
-                  : "Create a new category to organize your products."}
+                  ? t("categories.update_details") 
+                  : t("categories.create_details")}
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -215,9 +217,9 @@ export default function CategoriesPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>{t("categories.name")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Category name" {...field} />
+                        <Input placeholder={t("categories.name_placeholder") as string} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -229,10 +231,10 @@ export default function CategoriesPage() {
                     name="slug"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Slug</FormLabel>
+                        <FormLabel>{t("categories.slug")}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="category-slug" 
+                            placeholder={t("categories.slug_placeholder") as string} 
                             {...field} 
                             onChange={(e) => {
                               field.onChange(sanitizeSlugInput(e.target.value));
@@ -240,7 +242,7 @@ export default function CategoriesPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Unique URL-friendly name.
+                          {t("categories.slug_description")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -252,7 +254,7 @@ export default function CategoriesPage() {
                   name="parentCategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Parent Category</FormLabel>
+                      <FormLabel>{t("categories.parent_category")}</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         defaultValue={field.value || "none"}
@@ -260,11 +262,11 @@ export default function CategoriesPage() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a parent category" />
+                            <SelectValue placeholder={t("categories.select_parent") as string} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">None (Top Level)</SelectItem>
+                          <SelectItem value="none">{t("categories.none_top_level")}</SelectItem>
                           {categories
                             .filter((c) => c._id !== editingCategory?._id)
                             .map((category) => (
@@ -284,7 +286,7 @@ export default function CategoriesPage() {
                     name="image"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category Image</FormLabel>
+                        <FormLabel>{t("categories.category_image")}</FormLabel>
                         <FormControl>
                           <ImageUpload 
                             value={field.value} 
@@ -300,7 +302,7 @@ export default function CategoriesPage() {
                 <DialogFooter>
                   <Button type="submit" disabled={submitting}>
                     {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {editingCategory ? 'Update' : 'Create'} Category
+                    {editingCategory ? t("categories.update") : t("categories.create")}
                   </Button>
                 </DialogFooter>
               </form>
@@ -313,12 +315,12 @@ export default function CategoriesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Parent</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[100px]">{t("categories.image")}</TableHead>
+              <TableHead>{t("categories.name")}</TableHead>
+              <TableHead>{t("categories.slug")}</TableHead>
+              <TableHead>{t("categories.parent")}</TableHead>
+              <TableHead>{t("categories.status")}</TableHead>
+              <TableHead className="text-right">{t("categories.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -341,7 +343,7 @@ export default function CategoriesPage() {
             ) : categories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  No categories found.
+                  {t("categories.no_categories_found")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -369,7 +371,7 @@ export default function CategoriesPage() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={category.isActive ? 'default' : 'secondary'}>
-                      {category.isActive ? 'Active' : 'Inactive'}
+                      {category.isActive ? t("categories.active") : t("categories.inactive")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

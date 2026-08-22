@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   CheckSquare,
   Clock,
@@ -26,7 +27,8 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function EmployeeTasksPage() {
+export default function EmployeeTasksPage() {  const { t } = useLanguage();
+
   const { data: session } = useSession();
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,7 @@ export default function EmployeeTasksPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Assigned Tasks</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            আপনাকে অ্যাসাইন করা চুক্তিভিত্তিক কাজের তালিকা এবং সম্পন্ন করার বিবরণ।
+            {t('store.employee.task_list_desc') || 'আপনাকে অ্যাসাইন করা চুক্তিভিত্তিক কাজের তালিকা এবং সম্পন্ন করার বিবরণ।'}
           </p>
         </div>
       </div>
@@ -107,41 +109,41 @@ export default function EmployeeTasksPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">পেন্ডিং টাস্ক</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.pending_task_title') || 'পেন্ডিং টাস্ক'}</CardTitle>
             <Clock className="h-4 w-4 text-primary shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             <div className="text-lg sm:text-2xl font-black text-primary">
-              {pendingTasks.length} টি
+              {pendingTasks.length} {t('store.employee.pcs') || 'টি'}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">চলমান কাজ</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.ongoing_task_subtitle') || 'চলমান কাজ'}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-emerald-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">সম্পন্ন টাস্ক</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.completed_task_title') || 'সম্পন্ন টাস্ক'}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             <div className="text-lg sm:text-2xl font-black text-foreground">
-              {completedTasks.length} টি
+              {completedTasks.length} {t('store.employee.pcs') || 'টি'}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">মোট সম্পন্ন কাজ</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.total_completed_task') || 'মোট সম্পন্ন কাজ'}</p>
           </CardContent>
         </Card>
 
         <div className="col-span-2 md:col-span-1">
           <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-amber-500 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">কাজের মোট অর্জিত মজুরি</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.total_earned_task_wage') || 'কাজের মোট অর্জিত মজুরি'}</CardTitle>
               <DollarSign className="h-4 w-4 text-amber-500 shrink-0" />
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pt-0">
               <div className="text-lg sm:text-2xl font-black text-foreground">
                 {fmt(totalEarnedFromTasks)}
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">সম্পন্ন কাজের ভিত্তিতে প্রাপ্য</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.due_on_completed_task') || 'সম্পন্ন কাজের ভিত্তিতে প্রাপ্য'}</p>
             </CardContent>
           </Card>
         </div>
@@ -150,9 +152,9 @@ export default function EmployeeTasksPage() {
       {/* Task List Table */}
       <Card className="shadow-sm border">
         <CardHeader className="p-4 sm:p-6 border-b bg-muted/20">
-          <CardTitle className="text-base font-bold">কাজের তালিকা (Task List)</CardTitle>
+          <CardTitle className="text-base font-bold">{t('store.employee.task_list_heading') || 'কাজের তালিকা (Task List)'}</CardTitle>
           <CardDescription className="text-xs">
-            কাজ শেষ হলে &apos;Mark Completed&apos; বাটনে ক্লিক করে কাজ সম্পন্ন করুন।
+            {t('store.employee.task_list_instruction') || 'কাজ শেষ হলে \'Mark Completed\' বাটনে ক্লিক করে কাজ সম্পন্ন করুন।'}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -161,11 +163,11 @@ export default function EmployeeTasksPage() {
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead className="font-bold">টাস্ক বিবরণ</TableHead>
-                  <TableHead className="font-bold">মজুরি (Payout)</TableHead>
-                  <TableHead className="font-bold">ডেডলাইন (Due Date)</TableHead>
-                  <TableHead className="font-bold">স্ট্যাটাস</TableHead>
-                  <TableHead className="text-right font-bold">অ্যাকশন</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.task_desc_th') || 'টাস্ক বিবরণ'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.payout_th') || 'মজুরি (Payout)'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.due_date_th') || 'ডেডলাইন (Due Date)'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.status_th') || 'স্ট্যাটাস'}</TableHead>
+                  <TableHead className="text-right font-bold">{t('store.employee.action_th') || 'অ্যাকশন'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,7 +176,7 @@ export default function EmployeeTasksPage() {
                     <TableCell colSpan={5} className="h-40 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <CheckSquare className="h-8 w-8 text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground text-sm">কোনো কাজ অ্যাসাইন করা নেই।</p>
+                        <p className="text-muted-foreground text-sm">{t('store.employee.no_assigned_task') || 'কোনো কাজ অ্যাসাইন করা নেই।'}</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -208,7 +210,7 @@ export default function EmployeeTasksPage() {
                           variant={task.status === 'Completed' ? 'default' : 'secondary'}
                           className="text-xs"
                         >
-                          {task.status === 'Completed' ? 'সম্পন্ন' : 'চলমান (Pending)'}
+                          {task.status === 'Completed' ? t('store.employee.completed_badge') || 'সম্পন্ন' : t('store.employee.pending_badge') || 'চলমান (Pending)'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -240,7 +242,7 @@ export default function EmployeeTasksPage() {
             {tasks.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs space-y-2">
                 <CheckSquare className="h-8 w-8 mx-auto opacity-20" />
-                <p>কোনো কাজ অ্যাসাইন করা নেই।</p>
+                <p>{t('store.employee.no_assigned_task') || 'কোনো কাজ অ্যাসাইন করা নেই।'}</p>
               </div>
             ) : (
               tasks.map((task) => (
@@ -250,7 +252,7 @@ export default function EmployeeTasksPage() {
                       {fmt(task.payout)}
                     </span>
                     <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="text-xs">
-                      {task.status === 'Completed' ? 'সম্পন্ন' : 'চলমান'}
+                      {task.status === 'Completed' ? t('store.employee.completed_badge') || 'সম্পন্ন' : t('store.employee.ongoing_badge') || 'চলমান'}
                     </Badge>
                   </div>
 

@@ -38,6 +38,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import {
   Dialog,
@@ -148,6 +149,7 @@ function FraudCheckBadge({ phone }: { phone?: string }) {
 function OrdersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(Math.max(1, parseInt(searchParams.get('page') || '1')));
 
   const [orders, setOrders] = useState<any[]>([]);
@@ -659,8 +661,8 @@ function OrdersContent() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Order Management</h2>
-            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t("orders.title")}</h2>
+            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">{t("orders.subtitle")}</p>
           </div>
           {/* Mobile-only Export Button */}
           <Button 
@@ -668,7 +670,7 @@ function OrdersContent() {
             variant="outline"
             className="md:hidden font-bold text-xs h-9 px-3 shrink-0"
           >
-            <Download className="mr-1 h-3.5 w-3.5" /> Export
+            <Download className="mr-1 h-3.5 w-3.5" /> {t("orders.export")}
           </Button>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -680,7 +682,7 @@ function OrdersContent() {
             className={`h-9 px-3 md:hidden flex-1 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
           >
             <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-            Filters
+            {t("orders.filters")}
             {(statusFilter !== 'All' || dateFilter.from || dateFilter.to || searchTerm) && (
               <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
             )}
@@ -690,7 +692,7 @@ function OrdersContent() {
             onClick={() => setIsManualOrderOpen(true)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0 flex-[2] md:flex-none"
           >
-            <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Manual Order
+            <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> {t("orders.manual_order")}
           </Button>
           
           {/* Desktop-only Export Button */}
@@ -699,7 +701,7 @@ function OrdersContent() {
             variant="outline"
             className="hidden md:flex font-bold text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 shrink-0"
           >
-            <Download className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Export
+            <Download className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> {t("orders.export")}
           </Button>
         </div>
       </div>
@@ -709,7 +711,7 @@ function OrdersContent() {
         <div className="relative w-full md:w-80 shrink-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search name, phone, email or ID..."
+            placeholder={t("orders.search_placeholder") as string}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8 w-full h-10"
@@ -725,7 +727,7 @@ function OrdersContent() {
               onChange={(e) => setFilterByDate(e.target.checked)}
               className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
             />
-            Filter by Date
+            {t("orders.filter_by_date")}
           </label>
 
           <div className={`flex items-center gap-1 bg-muted/50 p-1 rounded-md border w-auto h-10 transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -739,7 +741,7 @@ function OrdersContent() {
               }}
               disabled={!filterByDate}
             />
-            <span className="text-muted-foreground text-xs">to</span>
+            <span className="text-muted-foreground text-xs">{t("orders.to")}</span>
             <Input
               type="date"
               className="h-8 w-36 border-none bg-transparent focus-visible:ring-0 text-xs font-medium"
@@ -774,7 +776,7 @@ function OrdersContent() {
             }}
             className="text-xs text-muted-foreground hover:text-primary shrink-0"
           >
-            Clear All
+            {t("orders.clear_all")}
           </Button>
         )}
       </div>
@@ -788,7 +790,7 @@ function OrdersContent() {
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search name, phone, email or ID..."
+              placeholder={t("orders.search_placeholder") as string}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8 w-full h-9 text-xs"
@@ -800,14 +802,14 @@ function OrdersContent() {
               <Button variant="outline" className="h-9 w-full justify-between text-xs">
                 <span className="flex items-center">
                   <FilterIcon className="mr-2 h-3.5 w-3.5" />
-                  {statusFilter === 'All' ? 'All Statuses' : statusFilter}
+                  {statusFilter === 'All' ? t("orders.all_statuses") : (t(`orders.status_${statusFilter.toLowerCase().replace(/ /g, '_')}`) || statusFilter)}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
               <DropdownMenuGroup>
-                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("orders.filter_by_status")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {[
                   { label: 'All', value: 'All', count: statusCounts.all },
@@ -830,7 +832,7 @@ function OrdersContent() {
                     className={statusFilter === status.value ? "bg-accent font-bold" : ""}
                   >
                     <div className="flex items-center justify-between w-full text-xs">
-                      <span>{status.label}</span>
+                      <span>{t(`orders.status_${status.label.toLowerCase()}`)}</span>
                       <Badge variant="secondary" className="ml-2 text-[9px] px-1.5 py-0">
                         {status.count ?? 0}
                       </Badge>
@@ -850,7 +852,7 @@ function OrdersContent() {
                 onChange={(e) => setFilterByDate(e.target.checked)}
                 className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
               />
-              Filter by Date
+              {t("orders.filter_by_date")}
             </label>
             <div className={`flex items-center gap-1 transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
               <Input
@@ -863,7 +865,7 @@ function OrdersContent() {
                 }}
                 disabled={!filterByDate}
               />
-              <span className="text-muted-foreground text-[10px]">to</span>
+              <span className="text-muted-foreground text-[10px]">{t("orders.to")}</span>
               <Input
                 type="date"
                 className="h-7 w-full border border-input rounded bg-transparent focus-visible:ring-0 p-1 text-xs"
@@ -898,7 +900,7 @@ function OrdersContent() {
               }}
               className="text-xs text-muted-foreground hover:text-primary h-8"
             >
-              Clear All Filters
+              {t("orders.clear_all_filters")}
             </Button>
           )}
         </div>
@@ -932,7 +934,7 @@ function OrdersContent() {
                 }`}
               title={`${status.label} (${status.count ?? 0})`}
             >
-              <span>{status.label}</span>
+              <span>{t(`orders.status_${status.label.toLowerCase()}`)}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${isActive
                 ? 'bg-white/20 text-white'
                 : 'bg-muted text-muted-foreground border'
@@ -949,14 +951,14 @@ function OrdersContent() {
         {selectedIds.length > 0 && (
           <div className="sticky top-0 z-20 w-full bg-primary text-primary-foreground px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 animate-in slide-in-from-top duration-200">
             <div className="flex items-center gap-4 text-sm font-medium">
-              <span>{selectedIds.length} selected</span>
+              <span>{selectedIds.length} {t("orders.selected")}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-primary-foreground hover:bg-white/10"
                 onClick={() => setSelectedIds([])}
               >
-                Deselect
+                {t("orders.deselect")}
               </Button>
             </div>
 
@@ -967,7 +969,7 @@ function OrdersContent() {
                 className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8"
                 onClick={() => handlePrint(selectedIds)}
               >
-                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Print Invoices</span><span className="sm:hidden">Print</span>
+                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">{t("orders.print_invoices")}</span><span className="sm:hidden">{t("orders.print")}</span>
               </Button>
 
               <Button
@@ -976,7 +978,7 @@ function OrdersContent() {
                 className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8"
                 onClick={() => handlePrintStickers(selectedIds)}
               >
-                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Print Stickers</span><span className="sm:hidden">Stickers</span>
+                <Printer className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">{t("orders.print_stickers")}</span><span className="sm:hidden">{t("orders.stickers")}</span>
               </Button>
 
               <Button
@@ -985,24 +987,24 @@ function OrdersContent() {
                 className="bg-orange-500 text-white hover:bg-orange-600 border-none text-xs py-1 h-8"
                 onClick={() => handleSendToSteadfast(selectedIds)}
               >
-                <Truck className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Send to Steadfast</span><span className="sm:hidden">Steadfast</span>
+                <Truck className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">{t("orders.send_to_steadfast")}</span><span className="sm:hidden">{t("orders.steadfast")}</span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-white/90 text-xs py-1 h-8">
-                    Status <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                    {t("orders.status_dropdown")} <ChevronDown className="ml-1 h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuGroup>
-                    <DropdownMenuLabel>Change Status to:</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("orders.change_status_to")}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleBulkUpdate('Confirmed')}>Confirmed</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate('Paid')}>Paid</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate('Ready for Delivery')}>Ready for Delivery</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate('Released for Delivery')}>Released for Delivery</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate('Delivered')}>Delivered</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate('Confirmed')}>{t("orders.status_confirmed")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate('Paid')}>{t("orders.status_paid")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate('Ready for Delivery')}>{t("orders.status_ready")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate('Released for Delivery')}>{t("orders.status_released")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate('Delivered')}>{t("orders.status_delivered")}</DropdownMenuItem>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1030,19 +1032,19 @@ function OrdersContent() {
                     onCheckedChange={toggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Order Info</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("orders.order_info")}</TableHead>
+                <TableHead>{t("orders.items")}</TableHead>
+                <TableHead>{t("orders.total")}</TableHead>
+                <TableHead>{t("orders.payment")}</TableHead>
+                <TableHead>{t("orders.status_col")}</TableHead>
+                <TableHead className="text-right">{t("orders.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredOrders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    No orders found.
+                    {t("orders.no_orders_found")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -1067,20 +1069,20 @@ function OrdersContent() {
                             </span>
                           </button>
                           {order.isDuplicate ? (
-                            <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[9px] px-1 py-0 h-4">Duplicate</Badge>
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[9px] px-1 py-0 h-4">{t("orders.duplicate")}</Badge>
                           ) : order.isRepeat ? (
-                            <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">Repeat</Badge>
+                            <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">{t("orders.repeat")}</Badge>
                           ) : null}
                         </div>
 
                         <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
-                          <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                          <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || t("orders.guest_user")}</span>
                           <div className="flex items-center gap-1.5">
                             <span
                               onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
                               className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
                             >
-                              {order.shippingAddress?.phone || 'No Phone'}
+                              {order.shippingAddress?.phone || t("orders.no_phone")}
                             </span>
                             {order.shippingAddress?.phone && (
                               <>
@@ -1116,7 +1118,7 @@ function OrdersContent() {
                               <FraudCheckBadge phone={order.shippingAddress.phone} />
                             </div>
                           )}
-                          <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'No Email'}</span>
+                          <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || t("orders.no_email")}</span>
                           <span className="text-[10px] text-muted-foreground uppercase mt-0.5">
                             {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, p') : 'N/A'}
                           </span>
@@ -1139,7 +1141,7 @@ function OrdersContent() {
                         </div>
                         {order.internalNote && (
                           <div className="mt-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line max-w-[200px]" title={order.internalNote}>
-                            Note: {order.internalNote}
+                            {t("orders.note")} {order.internalNote}
                           </div>
                         )}
                       </div>
@@ -1156,11 +1158,11 @@ function OrdersContent() {
                         {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
                           <div className={`flex flex-col gap-0.5 mt-1 p-1.5 rounded border ${order.paymentStatus === 'Paid' ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 border-red-500/20'}`}>
                             <span className={`font-extrabold text-[10px] uppercase tracking-wider ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {order.paymentStatus === 'Paid' ? 'Credit (Paid)' : 'Credit / Due'}
+                              {order.paymentStatus === 'Paid' ? t("orders.credit_paid") : t("orders.credit_due")}
                             </span>
                             {order.expectedPaymentDate && (
                               <span className={`text-[9px] font-semibold ${order.paymentStatus === 'Paid' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                                Due: {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
+                                {t("orders.due_date")} {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
                               </span>
                             )}
                           </div>
@@ -1169,11 +1171,11 @@ function OrdersContent() {
                           <div className="flex flex-col text-[10px] text-muted-foreground bg-slate-50 dark:bg-zinc-900 p-1.5 rounded border border-slate-100 dark:border-zinc-800 font-mono">
                             <span className="font-bold text-primary uppercase text-[9px]">{order.manualPaymentDetails.methodName}</span>
                             {order.manualPaymentDetails.senderNumber && (
-                              <span>No: {order.manualPaymentDetails.senderNumber}</span>
+                              <span>{t("orders.no")} {order.manualPaymentDetails.senderNumber}</span>
                             )}
                             {order.manualPaymentDetails.transactionId && (
                               <span className="truncate max-w-[120px] font-bold text-slate-800 dark:text-zinc-200" title={order.manualPaymentDetails.transactionId}>
-                                TrxID: {order.manualPaymentDetails.transactionId}
+                                {t("orders.trx_id")} {order.manualPaymentDetails.transactionId}
                               </span>
                             )}
                           </div>
@@ -1231,36 +1233,36 @@ function OrdersContent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuGroup>
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuLabel>{t("orders.actions")}</DropdownMenuLabel>
                               <DropdownMenuItem onClick={() => handleCopyLink(order._id)}>
-                                <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Invoice/Pay Link
+                                <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> {t("orders.copy_link")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
-                                <FileText className="mr-2 h-4 w-4 text-primary" /> Download Invoice
+                                <FileText className="mr-2 h-4 w-4 text-primary" /> {t("orders.download_invoice")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handlePrint([order._id])}>
-                                <Printer className="mr-2 h-4 w-4 text-primary" /> Print Invoice
+                                <Printer className="mr-2 h-4 w-4 text-primary" /> {t("orders.print_invoice")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handlePrintStickers([order._id])}>
-                                <Printer className="mr-2 h-4 w-4 text-primary" /> Print Sticker Invoice
+                                <Printer className="mr-2 h-4 w-4 text-primary" /> {t("orders.print_sticker_invoice")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleSendToSteadfast([order._id])} disabled={!!order.shippingDetails?.consignmentId}>
-                                <Truck className="mr-2 h-4 w-4 text-orange-500" /> Send to Steadfast
+                                <Truck className="mr-2 h-4 w-4 text-orange-500" /> {t("orders.send_to_steadfast")}
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
-                              <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Confirmed')}>Confirm</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Paid', { paymentStatus: 'Paid' })}>Mark Paid</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Ready for Delivery')}>Ready for Delivery</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Released for Delivery')}>Release for Delivery</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Delivered')}>Mark Delivered</DropdownMenuItem>
+                              <DropdownMenuLabel>{t("orders.change_status")}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Confirmed')}>{t("orders.confirm")}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Paid', { paymentStatus: 'Paid' })}>{t("orders.mark_paid")}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Ready for Delivery')}>{t("orders.ready_for_delivery")}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Released for Delivery')}>{t("orders.release_for_delivery")}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(order._id, 'Delivered')}>{t("orders.mark_delivered")}</DropdownMenuItem>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
-                              <DropdownMenuItem className="text-destructive" onClick={() => handleCancelOrder(order._id)}>Cancel Order</DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive font-bold" onClick={() => deleteOrder(order._id)}>Delete Order</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleCancelOrder(order._id)}>{t("orders.cancel_order")}</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive font-bold" onClick={() => deleteOrder(order._id)}>{t("orders.delete_order")}</DropdownMenuItem>
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1277,7 +1279,7 @@ function OrdersContent() {
         <div className="block md:hidden divide-y">
           {filteredOrders.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-xs">
-              No orders found.
+              {t("orders.no_orders_found")}
             </div>
           ) : (
             filteredOrders.map((order) => (
@@ -1304,9 +1306,9 @@ function OrdersContent() {
                       </span>
                     </button>
                     {order.isDuplicate ? (
-                      <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[8px] px-1 py-0 h-3.5">Duplicate</Badge>
+                      <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[8px] px-1 py-0 h-3.5">{t("orders.duplicate")}</Badge>
                     ) : order.isRepeat ? (
-                      <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[8px] px-1 py-0 h-3.5">Repeat</Badge>
+                      <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[8px] px-1 py-0 h-3.5">{t("orders.repeat")}</Badge>
                     ) : null}
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1319,7 +1321,7 @@ function OrdersContent() {
                   {/* Name and Price */}
                   <div className="flex flex-col gap-0.5">
                     <div className="font-semibold text-slate-900 dark:text-white text-sm flex items-center justify-between">
-                      <span>{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                      <span>{order.shippingAddress?.fullName || order.user?.name || t("orders.guest_user")}</span>
                       <span className="font-bold text-slate-900 dark:text-white">৳{Math.round(order.totalAmount ?? 0)}</span>
                     </div>
 
@@ -1329,7 +1331,7 @@ function OrdersContent() {
                         onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
                         className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium text-[11px]"
                       >
-                        {order.shippingAddress?.phone || 'No Phone'}
+                        {order.shippingAddress?.phone || t("orders.no_phone")}
                       </span>
                       {order.shippingAddress?.phone && (
                         <div className="flex items-center gap-1">
@@ -1382,11 +1384,11 @@ function OrdersContent() {
                     {(order.isCreditOrder || order.paymentMethod === 'Credit') && (
                       <div className={`flex flex-row items-center gap-1 px-1.5 py-0.5 rounded border ${order.paymentStatus === 'Paid' ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 dark:bg-red-500/20 border-red-500/20'}`}>
                         <span className={`font-extrabold text-[9px] uppercase tracking-wider ${order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {order.paymentStatus === 'Paid' ? 'Credit (Paid)' : 'Credit / Due'}
+                          {order.paymentStatus === 'Paid' ? t("orders.credit_paid") : t("orders.credit_due")}
                         </span>
                         {order.expectedPaymentDate && (
                           <span className={`text-[9px] font-semibold border-l pl-1 ml-0.5 ${order.paymentStatus === 'Paid' ? 'text-green-700 dark:text-green-300 border-green-500/30' : 'text-red-700 dark:text-red-300 border-red-500/30'}`}>
-                            Due: {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
+                            {t("orders.due_date")} {format(new Date(order.expectedPaymentDate), 'MMM dd, yyyy')}
                           </span>
                         )}
                       </div>
@@ -1415,7 +1417,7 @@ function OrdersContent() {
 
                   {order.internalNote && (
                     <div className="text-[9px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line">
-                      Note: {order.internalNote}
+                      {t("orders.note")} {order.internalNote}
                     </div>
                   )}
 
@@ -1443,7 +1445,7 @@ function OrdersContent() {
                               });
                             }}
                           >
-                            Approve
+                            {t("orders.approve")}
                           </Button>
                           <Button
                             variant="outline"
@@ -1451,7 +1453,7 @@ function OrdersContent() {
                             className="h-7 text-destructive hover:text-red-700 hover:bg-red-50 text-[10px] px-2 py-0"
                             onClick={() => handleCancelOrder(order._id)}
                           >
-                            Cancel
+                            {t("orders.cancel")}
                           </Button>
                         </>
                       )}
@@ -1459,7 +1461,7 @@ function OrdersContent() {
 
                     <div className="flex items-center gap-1.5 ml-auto">
                       <Button variant="outline" size="sm" className="h-7 text-primary text-[10px] px-2 py-0 flex items-center gap-1" onClick={() => openDetails(order._id)}>
-                        <Eye className="h-3 w-3" /> View
+                        <Eye className="h-3 w-3" /> {t("orders.view")}
                       </Button>
 
                       <DropdownMenu>
@@ -1470,36 +1472,36 @@ function OrdersContent() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuGroup>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t("orders.actions")}</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleCopyLink(order._id)}>
-                              <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Invoice/Pay Link
+                              <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> {t("orders.copy_link")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
-                              <FileText className="mr-2 h-4 w-4 text-primary" /> Download Invoice
+                              <FileText className="mr-2 h-4 w-4 text-primary" /> {t("orders.download_invoice")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handlePrint([order._id])}>
-                              <Printer className="mr-2 h-4 w-4 text-primary" /> Print Invoice
+                              <Printer className="mr-2 h-4 w-4 text-primary" /> {t("orders.print_invoice")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handlePrintStickers([order._id])}>
-                              <Printer className="mr-2 h-4 w-4 text-primary" /> Print Sticker Invoice
+                              <Printer className="mr-2 h-4 w-4 text-primary" /> {t("orders.print_sticker_invoice")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleSendToSteadfast([order._id])} disabled={!!order.shippingDetails?.consignmentId}>
-                              <Truck className="mr-2 h-4 w-4 text-orange-500" /> Send to Steadfast
+                              <Truck className="mr-2 h-4 w-4 text-orange-500" /> {t("orders.send_to_steadfast")}
                             </DropdownMenuItem>
                           </DropdownMenuGroup>
                           <DropdownMenuSeparator />
                           <DropdownMenuGroup>
-                            <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Confirmed')}>Confirm</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Paid', { paymentStatus: 'Paid' })}>Mark Paid</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Ready for Delivery')}>Ready for Delivery</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Released for Delivery')}>Release for Delivery</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Delivered')}>Mark Delivered</DropdownMenuItem>
+                            <DropdownMenuLabel>{t("orders.change_status")}</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Confirmed')}>{t("orders.confirm")}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Paid', { paymentStatus: 'Paid' })}>{t("orders.mark_paid")}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Ready for Delivery')}>{t("orders.ready_for_delivery")}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Released for Delivery')}>{t("orders.release_for_delivery")}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(order._id, 'Delivered')}>{t("orders.mark_delivered")}</DropdownMenuItem>
                           </DropdownMenuGroup>
                           <DropdownMenuSeparator />
                           <DropdownMenuGroup>
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleCancelOrder(order._id)}>Cancel Order</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive font-bold" onClick={() => deleteOrder(order._id)}>Delete Order</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleCancelOrder(order._id)}>{t("orders.cancel_order")}</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive font-bold" onClick={() => deleteOrder(order._id)}>{t("orders.delete_order")}</DropdownMenuItem>
                           </DropdownMenuGroup>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -1544,7 +1546,7 @@ function OrdersContent() {
         <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="font-bold">Processing bulk action...</p>
+            <p className="font-bold">{t("orders.processing_bulk")}</p>
           </div>
         </div>
       )}

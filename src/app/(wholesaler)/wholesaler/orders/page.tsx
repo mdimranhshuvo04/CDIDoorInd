@@ -12,10 +12,8 @@ import {
   ChevronRight,
   Loader2,
   FileText,
-  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -27,8 +25,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function WholesalerOrdersPage() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
@@ -87,9 +87,9 @@ export default function WholesalerOrdersPage() {
     <div className="flex-1 space-y-4 pt-3 pb-6 md:p-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Order History</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('store.wholesaler.order_history') || 'Order History'}</h1>
         </div>
-        <p className="text-xs text-muted-foreground font-bold">{orders.length} total orders</p>
+        <p className="text-xs text-muted-foreground font-bold">{orders.length} {t('store.wholesaler.total_orders_label') || 'total orders'}</p>
       </div>
 
       {/* Desktop Table View */}
@@ -97,13 +97,13 @@ export default function WholesalerOrdersPage() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="font-bold">Order ID</TableHead>
-              <TableHead className="font-bold">Date</TableHead>
-              <TableHead className="font-bold">Items</TableHead>
-              <TableHead className="font-bold">Total</TableHead>
-              <TableHead className="font-bold">Payment</TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-right font-bold w-[130px]">Action</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.order_id') || 'Order ID'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.date') || 'Date'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.items') || 'Items'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.total') || 'Total'}</TableHead>
+              <TableHead className="font-bold">{t('store.wholesaler.payment') || 'Payment'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.status') || 'Status'}</TableHead>
+              <TableHead className="text-right font-bold w-[130px]">{t('store.dashboard.action') || 'Action'}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -112,7 +112,7 @@ export default function WholesalerOrdersPage() {
                 <TableCell colSpan={7} className="h-40 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <Package className="h-8 w-8 text-muted-foreground opacity-20" />
-                    <p className="text-muted-foreground">You haven&apos;t placed any orders yet.</p>
+                    <p className="text-muted-foreground">{t('store.dashboard.no_orders') || "You haven't placed any orders yet."}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -123,7 +123,7 @@ export default function WholesalerOrdersPage() {
                   <TableCell className="text-xs">{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                   <TableCell className="text-xs">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">{Array.isArray(order?.items) ? order.items.length : 0} items</span>
+                      <span className="font-medium">{Array.isArray(order?.items) ? order.items.length : 0} {t('store.dashboard.items_count') || 'items'}</span>
                       <div className="flex flex-wrap gap-1 max-w-[200px]">
                         {order.items?.slice(0, 2).map((item: any, idx: number) => (
                           <span key={idx} className="text-[10px] text-muted-foreground truncate">
@@ -131,7 +131,7 @@ export default function WholesalerOrdersPage() {
                           </span>
                         ))}
                         {order.items?.length > 2 && (
-                          <span className="text-[10px] text-muted-foreground">+{order.items.length - 2} more</span>
+                          <span className="text-[10px] text-muted-foreground">+{order.items.length - 2} {t('store.wholesaler.more') || 'more'}</span>
                         )}
                       </div>
                     </div>
@@ -154,7 +154,7 @@ export default function WholesalerOrdersPage() {
                           rel="noreferrer"
                           className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 mt-1"
                         >
-                          <Truck className="h-3 w-3" /> Track Parcel
+                          <Truck className="h-3 w-3" /> {t('store.dashboard.track_parcel') || 'Track Parcel'}
                         </a>
                       )}
                     </div>
@@ -177,7 +177,7 @@ export default function WholesalerOrdersPage() {
                         className="h-8 group"
                         onClick={() => router.push(`/wholesaler/orders/${order._id}`)}
                       >
-                        Details
+                        {t('store.dashboard.details') || 'Details'}
                         <ChevronRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                       </Button>
                     </div>
@@ -194,7 +194,7 @@ export default function WholesalerOrdersPage() {
         {orders.length === 0 ? (
           <div className="rounded-xl border bg-background p-8 text-center text-muted-foreground text-xs space-y-2">
             <Package className="h-8 w-8 mx-auto opacity-20" />
-            <p>You haven&apos;t placed any orders yet.</p>
+            <p>{t('store.dashboard.no_orders') || "You haven't placed any orders yet."}</p>
           </div>
         ) : (
           orders.map((order) => (
@@ -237,7 +237,7 @@ export default function WholesalerOrdersPage() {
               {/* Total & Payment Info */}
               <div className="flex items-center justify-between pt-2 border-t text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-muted-foreground">Payment:</span>
+                  <span className="text-muted-foreground">{t('store.wholesaler.payment') || 'Payment'}:</span>
                   <Badge variant={order.paymentStatus === 'Paid' ? 'default' : 'secondary'} className="text-[10px] py-0 px-1.5">
                     {order.paymentStatus || 'Pending'}
                   </Badge>
@@ -246,7 +246,7 @@ export default function WholesalerOrdersPage() {
                   )}
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-muted-foreground mr-1">Total:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('store.dashboard.total') || 'Total'}:</span>
                   <span className="font-black text-sm text-foreground">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount).toLocaleString('en-BD') : '0'}</span>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function WholesalerOrdersPage() {
                     rel="noreferrer"
                     className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/5 p-2 rounded-lg"
                   >
-                    <Truck className="h-3.5 w-3.5" /> Track Courier Parcel
+                    <Truck className="h-3.5 w-3.5" /> {t('store.dashboard.track_parcel') || 'Track Parcel'}
                   </a>
                 </div>
               )}
@@ -275,14 +275,14 @@ export default function WholesalerOrdersPage() {
                   onClick={() => settings && generateInvoicePDF(order, settings)}
                 >
                   <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  Invoice
+                  {t('store.dashboard.invoice') || 'Invoice'}
                 </Button>
                 <Button
                   size="sm"
                   className="flex-1 text-xs h-9 text-white"
                   onClick={() => router.push(`/wholesaler/orders/${order._id}`)}
                 >
-                  Details
+                  {t('store.dashboard.details') || 'Details'}
                   <ChevronRight className="ml-1 h-3.5 w-3.5" />
                 </Button>
               </div>

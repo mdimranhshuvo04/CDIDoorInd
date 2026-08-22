@@ -35,18 +35,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function TestimonialsPage() {
+  const { t } = useLanguage();
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     name: '',
-    role: 'Verified Buyer',
+    role: t("testimonials.verified_buyer") as string,
     content: '',
     image: '',
     rating: 5
@@ -54,12 +55,11 @@ export default function TestimonialsPage() {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await fetch('/api/admin/testimonials');
-      if (!response.ok) throw new Error('Failed to fetch testimonials');
+      if (!response.ok) throw new Error(t("testimonials.failed_fetch") as string);
       const data = await response.json();
       setTestimonials(data);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || (t("testimonials.failed_fetch") as string));
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,7 @@ export default function TestimonialsPage() {
     setEditingId(null);
     setFormData({
       name: '',
-      role: 'Verified Buyer',
+      role: t("testimonials.verified_buyer") as string,
       content: '',
       image: '',
       rating: 5
@@ -96,7 +96,7 @@ export default function TestimonialsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.content) {
-      toast.error('Name and Content are required');
+      toast.error(t("testimonials.name_content_required") as string);
       return;
     }
 
@@ -111,13 +111,13 @@ export default function TestimonialsPage() {
         body: JSON.stringify(body),
       });
 
-      if (!response.ok) throw new Error('Failed to save testimonial');
+      if (!response.ok) throw new Error(t("testimonials.failed_save") as string);
       
-      toast.success(editingId ? 'Testimonial updated' : 'Testimonial added');
+      toast.success(editingId ? (t("testimonials.updated") as string) : (t("testimonials.saved") as string));
       setIsDialogOpen(false);
       fetchTestimonials();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || (t("testimonials.failed_save") as string));
     } finally {
       setIsSubmitting(false);
     }
@@ -125,13 +125,13 @@ export default function TestimonialsPage() {
 
   const handleDelete = async (id: string, name: string) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: `Delete testimonial from "${name}"?`,
+      title: t("testimonials.delete_title"),
+      text: `${t("testimonials.delete_desc")}"${name}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#00D1B2',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: t("testimonials.yes_delete"),
       background: '#fff',
       customClass: {
         popup: 'rounded-xl',
@@ -148,12 +148,12 @@ export default function TestimonialsPage() {
           body: JSON.stringify({ id }),
         });
 
-        if (!response.ok) throw new Error('Failed to delete');
+        if (!response.ok) throw new Error(t("testimonials.failed_delete") as string);
         
-        toast.success('Deleted successfully');
+        toast.success(t("testimonials.deleted") as string);
         fetchTestimonials();
       } catch (error: any) {
-        toast.error(error.message);
+        toast.error(error.message || (t("testimonials.failed_delete") as string));
       }
     }
   };
@@ -162,11 +162,11 @@ export default function TestimonialsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customer Testimonials</h1>
-          <p className="text-muted-foreground text-sm">Manage feedback displayed on your storefront</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("testimonials.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("testimonials.desc")}</p>
         </div>
         <Button onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" /> Add Testimonial
+          <Plus className="mr-2 h-4 w-4" /> {t("testimonials.add")}
         </Button>
       </div>
 
@@ -174,11 +174,11 @@ export default function TestimonialsPage() {
         <Table className="block md:table">
           <TableHeader className="hidden md:table-header-group">
             <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0 bg-muted/50">
-              <TableHead className="w-[80px]">User</TableHead>
-              <TableHead>Customer Info</TableHead>
-              <TableHead className="max-w-[400px]">Testimonial Content</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[80px]">{t("testimonials.user")}</TableHead>
+              <TableHead>{t("testimonials.customer_info")}</TableHead>
+              <TableHead className="max-w-[400px]">{t("testimonials.content")}</TableHead>
+              <TableHead>{t("testimonials.rating")}</TableHead>
+              <TableHead className="text-right">{t("testimonials.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -216,8 +216,8 @@ export default function TestimonialsPage() {
                 <TableCell colSpan={5} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-lg font-medium">No testimonials yet</p>
-                    <p className="text-sm text-muted-foreground">Add customer feedback to build trust with new visitors.</p>
+                    <p className="text-lg font-medium">{t("testimonials.no_testimonials")}</p>
+                    <p className="text-sm text-muted-foreground">{t("testimonials.no_testimonials_desc")}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -277,45 +277,45 @@ export default function TestimonialsPage() {
         <DialogContent className="sm:max-w-[500px]">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>{editingId ? 'Edit Testimonial' : 'Add New Testimonial'}</DialogTitle>
+              <DialogTitle>{editingId ? t("testimonials.edit_title") : t("testimonials.add_title")}</DialogTitle>
               <DialogDescription>
-                Fill in the details below to showcase customer feedback.
+                {t("testimonials.dialog_desc")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Customer Name</Label>
+                  <Label htmlFor="name">{t("testimonials.name_label")}</Label>
                   <Input 
                     id="name" 
                     value={formData.name} 
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="e.g. John Doe"
+                    placeholder={t("testimonials.name_placeholder") as string}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role / Label</Label>
+                  <Label htmlFor="role">{t("testimonials.role_label")}</Label>
                   <Input 
                     id="role" 
                     value={formData.role} 
                     onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    placeholder="e.g. Verified Buyer"
+                    placeholder={t("testimonials.role_placeholder") as string}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="content">Testimonial Content</Label>
+                <Label htmlFor="content">{t("testimonials.content_label")}</Label>
                 <Textarea 
                   id="content" 
                   value={formData.content} 
                   onChange={(e) => setFormData({...formData, content: e.target.value})}
-                  placeholder="What did the customer say?"
+                  placeholder={t("testimonials.content_placeholder") as string}
                   className="min-h-[100px]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rating">Rating (1-5)</Label>
+                  <Label htmlFor="rating">{t("testimonials.rating_label")}</Label>
                   <Input 
                     id="rating" 
                     type="number"
@@ -326,7 +326,7 @@ export default function TestimonialsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Customer Image (Optional)</Label>
+                  <Label>{t("testimonials.image_label")}</Label>
                   <ImageUpload 
                     value={formData.image}
                     onUpload={(url) => setFormData({...formData, image: url})}
@@ -337,11 +337,11 @@ export default function TestimonialsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+                {t("testimonials.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingId ? 'Update Testimonial' : 'Save Testimonial'}
+                {editingId ? t("testimonials.update") : t("testimonials.save")}
               </Button>
             </DialogFooter>
           </form>

@@ -28,8 +28,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function OrdersPage() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
@@ -337,20 +339,20 @@ export default function OrdersPage() {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-black tracking-tight">Order History</h1>
-        <p className="text-sm text-muted-foreground">{orders.length} total orders found</p>
+        <h1 className="text-3xl font-black tracking-tight">{t('store.dashboard.order_history') || 'Order History'}</h1>
+        <p className="text-sm text-muted-foreground">{orders.length} {t('store.dashboard.total_orders') || 'total orders found'}</p>
       </div>
 
       <div className="rounded-xl border bg-background shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="font-bold">Order ID</TableHead>
-              <TableHead className="font-bold">Date</TableHead>
-              <TableHead className="font-bold">Items</TableHead>
-              <TableHead className="font-bold">Total</TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-right font-bold w-[120px]">Action</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.order_id') || 'Order ID'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.date') || 'Date'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.items') || 'Items'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.total') || 'Total'}</TableHead>
+              <TableHead className="font-bold">{t('store.dashboard.status') || 'Status'}</TableHead>
+              <TableHead className="text-right font-bold w-[120px]">{t('store.dashboard.action') || 'Action'}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -359,7 +361,7 @@ export default function OrdersPage() {
                 <TableCell colSpan={6} className="h-40 text-center">
                     <div className="flex flex-col items-center gap-2">
                          <Package className="h-8 w-8 text-muted-foreground opacity-20" />
-                         <p className="text-muted-foreground">You haven't placed any orders yet.</p>
+                         <p className="text-muted-foreground">{t('store.dashboard.no_orders') || "You haven't placed any orders yet."}</p>
                     </div>
                 </TableCell>
               </TableRow>
@@ -368,7 +370,7 @@ export default function OrdersPage() {
                 <TableRow key={order._id} className="hover:bg-muted/30 transition-colors">
                   <TableCell className="font-mono text-xs">#{order?._id?.slice(-8).toUpperCase() || 'N/A'}</TableCell>
                   <TableCell className="text-xs">{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
-                  <TableCell className="text-xs">{Array.isArray(order?.items) ? order.items.length : 0} items</TableCell>
+                  <TableCell className="text-xs">{Array.isArray(order?.items) ? order.items.length : 0} {t('store.dashboard.items_count') || 'items'}</TableCell>
                   <TableCell className="font-bold">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount) : '0'}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
@@ -382,7 +384,7 @@ export default function OrdersPage() {
                           rel="noreferrer"
                           className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 mt-1"
                         >
-                          <Truck className="h-3 w-3" /> Track Parcel
+                          <Truck className="h-3 w-3" /> {t('store.dashboard.track_parcel') || 'Track Parcel'}
                         </a>
                       )}
                     </div>
@@ -405,7 +407,7 @@ export default function OrdersPage() {
                             className="h-8 group"
                             onClick={() => router.push(`/dashboard/orders/${order._id}`)}
                         >
-                            Details
+                            {t('store.dashboard.details') || 'Details'}
                             <ChevronRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                         </Button>
                     </div>
@@ -424,12 +426,12 @@ export default function OrdersPage() {
                   <Package className="h-6 w-6 text-primary" />
                   <div className="text-2xl font-black">৳{profile?.walletBalance || 0}</div>
                   <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-                    Available Tokens
+                    {t('store.dashboard.available_tokens') || 'Available Tokens'}
                   </div>
                   {profile?.isSubscriptionActive ? (
-                    <Badge variant="default" className="text-[8px] h-4">Active Subscriber</Badge>
+                    <Badge variant="default" className="text-[8px] h-4">{t('store.dashboard.active_subscriber') || 'Active Subscriber'}</Badge>
                   ) : (
-                    <div className="text-[8px] text-muted-foreground">Inactive</div>
+                    <div className="text-[8px] text-muted-foreground">{t('store.dashboard.inactive') || 'Inactive'}</div>
                   )}
               </CardContent>
           </Card>
@@ -437,21 +439,21 @@ export default function OrdersPage() {
               <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
                   <Clock className="h-6 w-6 text-primary" />
                   <div className="text-2xl font-black">{orders.filter(o => o.status === 'Pending').length}</div>
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Pending Orders</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t('store.dashboard.pending_orders') || 'Pending Orders'}</div>
               </CardContent>
           </Card>
           <Card className="bg-primary/5 border-none shadow-none">
               <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
                   <Truck className="h-6 w-6 text-primary" />
                   <div className="text-2xl font-black">{orders.filter(o => o.status === 'Shipped').length}</div>
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Shipped Orders</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t('store.dashboard.shipped_orders') || 'Shipped Orders'}</div>
               </CardContent>
           </Card>
           <Card className="bg-primary/5 border-none shadow-none">
               <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
                   <CheckCircle2 className="h-6 w-6 text-primary" />
                   <div className="text-2xl font-black">{orders.filter(o => o.status === 'Delivered').length}</div>
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Delivered Orders</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t('store.dashboard.delivered_orders') || 'Delivered Orders'}</div>
               </CardContent>
           </Card>
       </div>

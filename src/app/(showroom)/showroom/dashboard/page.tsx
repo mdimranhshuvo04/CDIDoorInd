@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   ShoppingBag, DollarSign, TrendingUp, Package,
   Loader2, AlertTriangle, ArrowRight, Store,
@@ -83,6 +84,7 @@ const CustomTooltip = ({ active, payload, label, activeChart }: any) => {
 };
 
 export default function ShowroomDashboard() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -291,7 +293,7 @@ export default function ShowroomDashboard() {
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">{data?.showroom?.name || 'My Showroom'}</h2>
           </div>
           <p className="text-muted-foreground text-xs md:text-sm mt-1">
-            স্বাগতম, {session?.user?.name}! এখানে আপনার শো-রুমের সামারি দেখুন।
+            {t('store.showroom.welcome') || 'স্বাগতম, '} {session?.user?.name}! {t('store.showroom.dashboard_desc') || 'এখানে আপনার শো-রুমের সামারি দেখুন।'}
           </p>
           {data?.showroom?.address && (
             <p className="text-xs text-muted-foreground hidden md:block">{data.showroom.address}</p>
@@ -308,7 +310,7 @@ export default function ShowroomDashboard() {
                 onChange={(e) => setFilterByDate(e.target.checked)}
                 className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
               />
-              <span>Filter by Date</span>
+              <span>{t('store.showroom.filter_by_date') || 'Filter by Date'}</span>
             </label>
             <div className="flex items-center gap-1">
               <Input
@@ -368,12 +370,12 @@ export default function ShowroomDashboard() {
                   onChange={(e) => setFilterByDate(e.target.checked)}
                   className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
                 />
-                <span>Filter by Date</span>
+                <span>{t('store.showroom.filter_by_date') || 'Filter by Date'}</span>
               </label>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground font-semibold">From</span>
+                <span className="text-[10px] text-muted-foreground font-semibold">{t('store.showroom.from') || 'From'}</span>
                 <Input
                   type="date"
                   disabled={!filterByDate}
@@ -384,7 +386,7 @@ export default function ShowroomDashboard() {
                 />
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground font-semibold">To</span>
+                <span className="text-[10px] text-muted-foreground font-semibold">{t('store.showroom.to') || 'To'}</span>
                 <Input
                   type="date"
                   disabled={!filterByDate}
@@ -405,12 +407,12 @@ export default function ShowroomDashboard() {
         <Link href="/showroom/orders" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-orange-500/5 border-orange-500/10 border-l-2 border-l-orange-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Pending Orders</CardTitle>
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">{t('store.showroom.pending_orders') || 'Pending Orders'}</CardTitle>
               <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-600 shrink-0" />
             </CardHeader>
             <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
               <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-orange-700">{stats?.pendingOrdersCount || 0}</div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Requires attention</p>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{t('store.showroom.requires_attention') || 'Requires attention'}</p>
             </CardContent>
           </Card>
         </Link>
@@ -419,12 +421,12 @@ export default function ShowroomDashboard() {
         <div className="block cursor-default">
           <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Total Customers</CardTitle>
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">{t('store.showroom.total_customers') || 'Total Customers'}</CardTitle>
               <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
             </CardHeader>
             <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
               <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-blue-700">{stats?.totalUsers || 0}</div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Across all time</p>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{t('store.showroom.across_all_time') || 'Across all time'}</p>
             </CardContent>
           </Card>
         </div>
@@ -433,14 +435,14 @@ export default function ShowroomDashboard() {
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-emerald-500/5 border-emerald-500/10 border-l-2 border-l-emerald-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Cash Balance</CardTitle>
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">{t('store.showroom.cash_balance') || 'Cash Balance'}</CardTitle>
               <Wallet className="h-3.5 w-3.5 md:h-4 md:w-4 text-emerald-600 shrink-0" />
             </CardHeader>
             <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
               <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-emerald-700">
                 {fmt(stats?.cashBalance || 0)}
               </div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Showroom vault cash</p>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{t('store.showroom.showroom_vault_cash') || 'Showroom vault cash'}</p>
             </CardContent>
           </Card>
         </Link>
@@ -449,14 +451,14 @@ export default function ShowroomDashboard() {
         <Link href="/showroom/expenses" className="block transition-transform hover:scale-[1.02] active:scale-95">
           <Card className="bg-indigo-500/5 border-indigo-500/10 border-l-2 border-l-indigo-500 relative overflow-hidden group h-full shadow-sm hover:shadow transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Bank Balance</CardTitle>
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">{t('store.showroom.bank_balance') || 'Bank Balance'}</CardTitle>
               <Landmark className="h-3.5 w-3.5 md:h-4 md:w-4 text-indigo-600 shrink-0" />
             </CardHeader>
             <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
               <div className="text-[11px] sm:text-lg md:text-2xl font-extrabold text-indigo-700">
                 {fmt(stats?.bankBalance || 0)}
               </div>
-              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Liquid bank accounts</p>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{t('store.showroom.liquid_bank_accounts') || 'Liquid bank accounts'}</p>
             </CardContent>
           </Card>
         </Link>
@@ -465,7 +467,7 @@ export default function ShowroomDashboard() {
         <div className="block cursor-default">
           <Card className="bg-blue-500/5 border-blue-500/10 border-l-2 border-l-blue-500 relative overflow-hidden group h-full shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">Accounts Receivable</CardTitle>
+              <CardTitle className="text-[10px] sm:text-sm font-semibold truncate">{t('store.showroom.accounts_receivable') || 'Accounts Receivable'}</CardTitle>
               <ArrowUpRight className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" />
             </CardHeader>
             <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
@@ -473,7 +475,7 @@ export default function ShowroomDashboard() {
                 {fmt(stats?.accountReceivable || 0)}
               </div>
               <div className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[8px] sm:text-xs font-semibold text-rose-600 truncate">
-                <span>Matured: {fmt(stats?.maturedReceivable || 0)}</span>
+                <span>{t('store.showroom.matured') || 'Matured: '} {fmt(stats?.maturedReceivable || 0)}</span>
               </div>
             </CardContent>
           </Card>
@@ -486,7 +488,7 @@ export default function ShowroomDashboard() {
         <Card className="col-span-full">
           <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
             <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
-              <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
+              <CardTitle className="text-lg md:text-xl">{t('store.showroom.performance_trends') || 'Performance Trends'}</CardTitle>
             </div>
             <div className="flex w-full border-t sm:border-t-0">
               {(["revenue", "orders", "expense", "netIncome"] as const).map((key) => (
@@ -606,16 +608,16 @@ export default function ShowroomDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">সাম্প্রতিক অর্ডার</CardTitle>
-              <CardDescription>শো-রুমের সর্বশেষ ৫টি অর্ডার</CardDescription>
+              <CardTitle className="text-base">{t('store.showroom.recent_orders') || 'সাম্প্রতিক অর্ডার'}</CardTitle>
+              <CardDescription>{t('store.showroom.last_5_orders') || 'শো-রুমের সর্বশেষ ৫টি অর্ডার'}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/showroom/orders">সব দেখুন <ArrowRight className="h-3 w-3 ml-1" /></Link>
+              <Link href="/showroom/orders">{t('store.showroom.see_all') || 'সব দেখুন'} <ArrowRight className="h-3 w-3 ml-1" /></Link>
             </Button>
           </CardHeader>
           <CardContent>
             {data?.recentOrders?.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">কোনো অর্ডার নেই</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('store.showroom.no_orders') || 'কোনো অর্ডার নেই'}</p>
             ) : (
               <div className="space-y-2">
                 {data?.recentOrders?.map((order: any) => (
@@ -641,16 +643,16 @@ export default function ShowroomDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">স্টক স্ট্যাটাস</CardTitle>
-              <CardDescription>কম স্টক আগে দেখানো হচ্ছে</CardDescription>
+              <CardTitle className="text-base">{t('store.showroom.stock_status') || 'স্টক স্ট্যাটাস'}</CardTitle>
+              <CardDescription>{t('store.showroom.low_stock_first') || 'কম স্টক আগে দেখানো হচ্ছে'}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/showroom/stock">সব দেখুন <ArrowRight className="h-3 w-3 ml-1" /></Link>
+              <Link href="/showroom/stock">{t('store.showroom.see_all') || 'সব দেখুন'} <ArrowRight className="h-3 w-3 ml-1" /></Link>
             </Button>
           </CardHeader>
           <CardContent>
             {data?.stockItems?.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">কোনো প্রোডাক্ট নেই</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('store.showroom.no_products') || 'কোনো প্রোডাক্ট নেই'}</p>
             ) : (
               <div className="space-y-2">
                 {data?.stockItems?.slice(0, 6).map((item: any, i: number) => (
@@ -663,7 +665,7 @@ export default function ShowroomDashboard() {
                       variant={item.stock === 0 ? 'destructive' : item.stock < 5 ? 'secondary' : 'default'}
                       className="text-xs"
                     >
-                      {item.stock === 0 ? 'আউট অব স্টক' : `${item.stock} পিস`}
+                      {item.stock === 0 ? '{t('store.showroom.out_of_stock') || 'আউট অব স্টক'}' : `${item.stock} {t('store.showroom.pcs') || 'পিস'}`}
                     </Badge>
                   </div>
                 ))}

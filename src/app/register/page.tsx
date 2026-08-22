@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -53,7 +54,8 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export default function RegisterPage() {
+export default function RegisterPage() {  const { t } = useLanguage();
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -139,7 +141,7 @@ export default function RegisterPage() {
         >
           <div className="w-full max-w-lg space-y-8 py-8">
             <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tight">Create an account</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('auth.register.title') || 'Create an account'}</h1>
               <p className="text-sm text-muted-foreground">
                 Join us today and start your shopping journey
               </p>
@@ -189,7 +191,7 @@ export default function RegisterPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('auth.register.full_name') || 'Full Name'}</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} disabled={isLoading} className="h-11 focus-visible:ring-primary/20" />
                           </FormControl>
@@ -202,7 +204,7 @@ export default function RegisterPage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Mobile Number</FormLabel>
+                          <FormLabel>{t('auth.register.mobile') || 'Mobile Number'}</FormLabel>
                           <FormControl>
                             <Input placeholder="017XXXXXXXX" {...field} disabled={isLoading} className="h-11 focus-visible:ring-primary/20" />
                           </FormControl>
@@ -217,7 +219,7 @@ export default function RegisterPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>{t('auth.register.email') || 'Email Address'}</FormLabel>
                         <FormControl>
                           <Input placeholder="john@example.com" type="email" {...field} disabled={isLoading} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
@@ -231,7 +233,7 @@ export default function RegisterPage() {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address Line</FormLabel>
+                        <FormLabel>{t('auth.register.address') || 'Address Line'}</FormLabel>
                         <FormControl>
                           <Input placeholder="House #, Road #, Area" {...field} disabled={isLoading} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
@@ -246,7 +248,7 @@ export default function RegisterPage() {
                       name="division"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Division</FormLabel>
+                          <FormLabel>{t('auth.register.division') || 'Division'}</FormLabel>
                           <Select
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -278,7 +280,7 @@ export default function RegisterPage() {
                       name="district"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>District</FormLabel>
+                          <FormLabel>{t('auth.register.district') || 'District'}</FormLabel>
                           <Select
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -309,7 +311,7 @@ export default function RegisterPage() {
                       name="thana"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Thana</FormLabel>
+                          <FormLabel>{t('auth.register.thana') || 'Thana'}</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
@@ -339,7 +341,7 @@ export default function RegisterPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>{t('auth.login.password') || 'Password'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -378,7 +380,7 @@ export default function RegisterPage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
+                        <FormLabel>{t('auth.register.confirm_password') || 'Confirm Password'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -421,7 +423,7 @@ export default function RegisterPage() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <span className="flex items-center justify-center">
-                        Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                        {t('auth.register.create_account') || 'Create Account'} <ArrowRight className="ml-2 h-4 w-4" />
                       </span>
                     )}
                   </Button>
@@ -430,7 +432,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
+              {t('auth.register.already_have') || 'Already have an account?'}{' '}
               <Link href="/login" className="font-semibold text-primary hover:underline underline-offset-4">
                 Log in instead
               </Link>

@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   DollarSign,
   TrendingUp,
@@ -39,7 +40,8 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function EmployeeSalaryPage() {
+export default function EmployeeSalaryPage() {  const { t } = useLanguage();
+
   const { data: session } = useSession();
   const [stats, setStats] = useState<any>(null);
   const [disbursements, setDisbursements] = useState<any[]>([]);
@@ -115,8 +117,8 @@ export default function EmployeeSalaryPage() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {isMonthly
-              ? 'আপনার বেতন ও পরিশোধিত পারিশ্রমিকের বিস্তারিত তথ্য ও হিসাব।'
-              : 'আপনার সম্পন্ন কাজের অর্জিত মজুরি ও পরিশোধিত পারিশ্রমিকের হিসাব বিবরণী।'}
+              ? '{t('store.employee.salary_desc_monthly') || 'আপনার বেতন ও পরিশোধিত পারিশ্রমিকের বিস্তারিত তথ্য ও হিসাব।'}'
+              : '{t('store.employee.salary_desc_task') || 'আপনার সম্পন্ন কাজের অর্জিত মজুরি ও পরিশোধিত পারিশ্রমিকের হিসাব বিবরণী।'}'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -136,7 +138,7 @@ export default function EmployeeSalaryPage() {
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              {isMonthly ? 'এই মাসের প্রাপ্তি' : 'চলতি মাসের প্রাপ্তি'}
+              {isMonthly ? t('store.employee.received_this_month_monthly') || 'এই মাসের প্রাপ্তি' : t('store.employee.received_this_month_task') || 'চলতি মাসের প্রাপ্তি'}
             </CardTitle>
             <DollarSign className="h-4 w-4 text-primary shrink-0" />
           </CardHeader>
@@ -144,27 +146,27 @@ export default function EmployeeSalaryPage() {
             <div className="text-lg sm:text-2xl font-black text-primary">
               {fmt(stats?.salary?.thisMonth || 0)}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">চলতি মাসের মোট পেমেন্ট</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.total_payment_this_month') || 'চলতি মাসের মোট পেমেন্ট'}</p>
           </CardContent>
         </Card>
 
         {isMonthly ? (
           <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-blue-500 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">বেস স্যালারি</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.base_salary_title') || 'বেস স্যালারি'}</CardTitle>
               <Briefcase className="h-4 w-4 text-blue-500 shrink-0" />
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pt-0">
               <div className="text-lg sm:text-2xl font-black text-foreground">
                 {fmt(stats?.profile?.baseSalary || 0)}
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">নির্ধারিত মাসিক বেতন</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.fixed_monthly_salary') || 'নির্ধারিত মাসিক বেতন'}</p>
             </CardContent>
           </Card>
         ) : (
           <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-blue-500 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">কাজের মোট মজুরি</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.total_task_wage') || 'কাজের মোট মজুরি'}</CardTitle>
               <Briefcase className="h-4 w-4 text-blue-500 shrink-0" />
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pt-0">
@@ -172,7 +174,7 @@ export default function EmployeeSalaryPage() {
                 {fmt(stats?.tasks?.totalEarnings || 0)}
               </div>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-                সম্পন্ন: {(stats?.tasks?.completed || 0) + (stats?.tasks?.paid || 0)}টি কাজ
+                {t('store.employee.completed_prefix') || 'সম্পন্ন: '}{(stats?.tasks?.completed || 0) + (stats?.tasks?.paid || 0)}{t('store.employee.task_suffix') || 'টি কাজ'}
               </p>
             </CardContent>
           </Card>
@@ -181,7 +183,7 @@ export default function EmployeeSalaryPage() {
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-emerald-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              {isMonthly ? 'মোট প্রাপ্ত বেতন' : 'মোট পরিশোধিত বিল'}
+              {isMonthly ? t('store.employee.total_received_salary') || 'মোট প্রাপ্ত বেতন' : t('store.employee.total_paid_bill') || 'মোট পরিশোধিত বিল'}
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
           </CardHeader>
@@ -189,14 +191,14 @@ export default function EmployeeSalaryPage() {
             <div className="text-lg sm:text-2xl font-black text-foreground">
               {fmt(totalEarnedAllTime)}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">সব সময় মিলিয়ে প্রাপ্ত মোট</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.total_received_all_time') || 'সব সময় মিলিয়ে প্রাপ্ত মোট'}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-amber-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-              {isMonthly ? 'মোট বোনাস' : 'বোনাস / অতিরিক্ত'}
+              {isMonthly ? t('store.employee.total_bonus_monthly') || 'মোট বোনাস' : t('store.employee.total_bonus_task') || 'বোনাস / অতিরিক্ত'}
             </CardTitle>
             <Gift className="h-4 w-4 text-amber-500 shrink-0" />
           </CardHeader>
@@ -204,7 +206,7 @@ export default function EmployeeSalaryPage() {
             <div className="text-lg sm:text-2xl font-black text-foreground">
               {fmt(totalBonusAllTime)}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">অর্জিত বোনাস / ইনসেন্টিভ</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.earned_bonus') || 'অর্জিত বোনাস / ইনসেন্টিভ'}</p>
           </CardContent>
         </Card>
       </div>
@@ -214,9 +216,9 @@ export default function EmployeeSalaryPage() {
         <CardHeader className="p-4 sm:p-6 border-b bg-muted/20">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base font-bold">বেতন প্রদানের তালিকা (Disbursements)</CardTitle>
+              <CardTitle className="text-base font-bold">{t('store.employee.disbursements_list') || 'বেতন প্রদানের তালিকা (Disbursements)'}</CardTitle>
               <CardDescription className="text-xs">
-                অ্যাডমিন কর্তৃক আপনাকে পরিশোধিত সকল বেতন ও বোনাসের হিস্টোরি ও হিসাব বিবরণী।
+                {t('store.employee.disbursements_desc') || 'অ্যাডমিন কর্তৃক আপনাকে পরিশোধিত সকল বেতন ও বোনাসের হিস্টোরি ও হিসাব বিবরণী।'}
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-xs">
@@ -230,12 +232,12 @@ export default function EmployeeSalaryPage() {
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead className="font-bold">তারিখ (Date)</TableHead>
-                  <TableHead className="font-bold">পেমেন্ট টাইপ</TableHead>
-                  <TableHead className="font-bold">মাস / পিরিয়ড</TableHead>
-                  <TableHead className="font-bold">পরিশোধিত অর্থ</TableHead>
-                  <TableHead className="font-bold">মন্তব্য (Remarks)</TableHead>
-                  <TableHead className="text-right font-bold">বিবরণী (Slip)</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.date_th') || 'তারিখ (Date)'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.payment_type_th') || 'পেমেন্ট টাইপ'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.period_th') || 'মাস / পিরিয়ড'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.paid_amount_th') || 'পরিশোধিত অর্থ'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.remarks_th') || 'মন্তব্য (Remarks)'}</TableHead>
+                  <TableHead className="text-right font-bold">{t('store.employee.slip_th') || 'বিবরণী (Slip)'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -244,7 +246,7 @@ export default function EmployeeSalaryPage() {
                     <TableCell colSpan={6} className="h-40 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="h-8 w-8 text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground text-sm">কোনো বেতন প্রদানের রেকর্ড পাওয়া যায়নি।</p>
+                        <p className="text-muted-foreground text-sm">{t('store.employee.no_disbursement_records') || 'কোনো বেতন প্রদানের রেকর্ড পাওয়া যায়নি।'}</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -300,7 +302,7 @@ export default function EmployeeSalaryPage() {
             {disbursements.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs space-y-2">
                 <FileText className="h-8 w-8 mx-auto opacity-20" />
-                <p>কোনো বেতন প্রদানের রেকর্ড পাওয়া যায়নি।</p>
+                <p>{t('store.employee.no_disbursement_records') || 'কোনো বেতন প্রদানের রেকর্ড পাওয়া যায়নি।'}</p>
               </div>
             ) : (
               disbursements.map((item) => {
@@ -385,24 +387,24 @@ export default function EmployeeSalaryPage() {
                   return (
                     <div className="space-y-2 border rounded-lg p-3.5 bg-background">
                       <div className="flex justify-between items-center py-1 border-b text-xs">
-                        <span className="text-muted-foreground">মূল মাসিক বেতন (Monthly Base):</span>
+                        <span className="text-muted-foreground">{t('store.employee.monthly_base') || 'মূল মাসিক বেতন (Monthly Base):'}</span>
                         <span className="font-bold">{fmt(baseSalary)}</span>
                       </div>
 
                       {breakdown.proratedSalary && breakdown.proratedSalary !== breakdown.baseSalary && (
                         <div className="flex justify-between items-center py-1 border-b text-xs bg-amber-500/5 px-2 rounded">
-                          <span className="text-amber-600 dark:text-amber-400 font-medium">যোগদানের তারিখ অনুসারে প্রোরেটেড বেসিক:</span>
+                          <span className="text-amber-600 dark:text-amber-400 font-medium">{t('store.employee.prorated_basic') || 'যোগদানের তারিখ অনুসারে প্রোরেটেড বেসিক:'}</span>
                           <span className="font-bold text-amber-600 dark:text-amber-400">{fmt(breakdown.proratedSalary)}</span>
                         </div>
                       )}
 
                       <div className="flex justify-between items-center py-1 border-b text-xs">
-                        <span className="text-muted-foreground">মোট কর্মদিবস (Working Days):</span>
-                        <span className="font-bold">{breakdown.workingDays || 0} দিন</span>
+                        <span className="text-muted-foreground">{t('store.employee.working_days') || 'মোট কর্মদিবস (Working Days):'}</span>
+                        <span className="font-bold">{breakdown.workingDays || 0} {t('store.employee.days') || 'দিন'}</span>
                       </div>
 
                       <div className="flex justify-between items-center py-1 border-b text-xs">
-                        <span className="text-muted-foreground text-emerald-600">উপস্থিতি (Present Days):</span>
+                        <span className="text-muted-foreground text-emerald-600">{t('store.employee.present_days') || 'উপস্থিতি (Present Days):'}</span>
                         <span className="font-bold text-emerald-600">
                           {breakdown.presentDays || 0} দিন
                         </span>
@@ -410,7 +412,7 @@ export default function EmployeeSalaryPage() {
 
                       {Number(breakdown.leaveDays) > 0 && (
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground text-blue-600">অনুমোদিত ছুটি (Leaves):</span>
+                          <span className="text-muted-foreground text-blue-600">{t('store.employee.approved_leaves_calc') || 'অনুমোদিত ছুটি (Leaves):'}</span>
                           <span className="font-bold text-blue-600">
                             {breakdown.leaveDays} দিন
                           </span>
@@ -418,7 +420,7 @@ export default function EmployeeSalaryPage() {
                       )}
 
                       <div className="flex justify-between items-center py-1 border-b text-xs">
-                        <span className="text-muted-foreground text-destructive">অনুপস্থিতি (Absents):</span>
+                        <span className="text-muted-foreground text-destructive">{t('store.employee.absents') || 'অনুপস্থিতি (Absents):'}</span>
                         <span className="font-bold text-destructive">
                           {breakdown.absentDays || 0} দিন
                         </span>
@@ -426,19 +428,19 @@ export default function EmployeeSalaryPage() {
 
                       {Number(breakdown.deduction) > 0 ? (
                         <div className="flex justify-between items-center py-1 border-b text-xs text-destructive">
-                          <span>অনুপস্থিতির জন্য কর্তন (Deduction):</span>
+                          <span>{t('store.employee.absence_deduction') || 'অনুপস্থিতির জন্য কর্তন (Deduction):'}</span>
                           <span className="font-bold">- {fmt(breakdown.deduction)}</span>
                         </div>
                       ) : (
                         <div className="flex justify-between items-center py-1 border-b text-xs text-muted-foreground">
-                          <span>কর্তন (Deductions):</span>
-                          <span>৳০ (কোনো কর্তন নেই)</span>
+                          <span>{t('store.employee.deductions') || 'কর্তন (Deductions):'}</span>
+                          <span>{t('store.employee.no_deduction') || '৳০ (কোনো কর্তন নেই)'}</span>
                         </div>
                       )}
 
                       {Number(breakdown.bonus) > 0 && (
                         <div className="flex justify-between items-center py-1 border-b text-xs text-emerald-600">
-                          <span>বোনাস / ইনসেন্টিভ:</span>
+                          <span>{t('store.employee.bonus_incentive') || 'বোনাস / ইনসেন্টিভ:'}</span>
                           <span className="font-bold">+ {fmt(breakdown.bonus)}</span>
                         </div>
                       )}
@@ -453,7 +455,7 @@ export default function EmployeeSalaryPage() {
                 return (
                   <div className="space-y-2 border rounded-lg p-3.5 bg-background">
                     <div className="flex justify-between items-center py-1 border-b text-xs">
-                      <span className="text-muted-foreground">মূল মাসিক বেতন (Monthly Base):</span>
+                      <span className="text-muted-foreground">{t('store.employee.monthly_base') || 'মূল মাসিক বেতন (Monthly Base):'}</span>
                       <span className="font-bold">{fmt(baseSalary)}</span>
                     </div>
 
@@ -461,25 +463,25 @@ export default function EmployeeSalaryPage() {
                       <>
                         <div className="flex justify-between items-center py-1 border-b text-xs bg-amber-500/10 p-2 rounded">
                           <div>
-                            <div className="font-bold text-foreground">যোগদান (Joining Date):</div>
-                            <div className="text-[11px] text-muted-foreground">19 July 2026 (মাসের মাঝে যোগদান)</div>
+                            <div className="font-bold text-foreground">{t('store.employee.joining_date') || 'যোগদান (Joining Date):'}</div>
+                            <div className="text-[11px] text-muted-foreground">{t('store.employee.mid_month_join') || '19 July 2026 (মাসের মাঝে যোগদান)'}</div>
                           </div>
-                          <span className="font-bold text-xs text-amber-600 dark:text-amber-400">14 দিন সক্রিয়</span>
+                          <span className="font-bold text-xs text-amber-600 dark:text-amber-400">14 {t('store.employee.days_space') || 'দিন '} সক্রিয়</span>
                         </div>
 
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground">প্রোরেটেড হিসাব (Prorated Calculation):</span>
-                          <span className="font-mono text-xs font-semibold">(৳25,000 ÷ 31) × 14 দিন</span>
+                          <span className="text-muted-foreground">{t('store.employee.prorated_calculation') || 'প্রোরেটেড হিসাব (Prorated Calculation):'}</span>
+                          <span className="font-mono text-xs font-semibold">(৳25,000 ÷ 31) × 14 {t('store.employee.days') || 'দিন'}</span>
                         </div>
 
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground">উপস্থিতি (Present Days):</span>
-                          <span className="font-bold text-emerald-600">12 দিন (শুক্রবার ব্যতিত)</span>
+                          <span className="text-muted-foreground">{t('store.employee.present_days') || 'উপস্থিতি (Present Days):'}</span>
+                          <span className="font-bold text-emerald-600">12 {t('store.employee.days_space') || 'দিন '} (শুক্রবার ব্যতিত)</span>
                         </div>
 
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground">অনুপস্থিতি ও কর্তন:</span>
-                          <span className="font-bold text-muted-foreground">৳০ (কোনো কর্তন নেই)</span>
+                          <span className="text-muted-foreground">{t('store.employee.absence_and_deduction') || 'অনুপস্থিতি ও কর্তন:'}</span>
+                          <span className="font-bold text-muted-foreground">{t('store.employee.no_deduction') || '৳০ (কোনো কর্তন নেই)'}</span>
                         </div>
                       </>
                     )}
@@ -487,11 +489,11 @@ export default function EmployeeSalaryPage() {
                     {!isJulyJoin && (
                       <>
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground">পেমেন্ট টাইপ:</span>
+                          <span className="text-muted-foreground">{t('store.employee.payment_type') || 'পেমেন্ট টাইপ:'}</span>
                           <span className="font-bold">{getDisbursementTypeLabel(selectedDisbursement.type).label}</span>
                         </div>
                         <div className="flex justify-between items-center py-1 border-b text-xs">
-                          <span className="text-muted-foreground">মন্তব্য / বিবরণ:</span>
+                          <span className="text-muted-foreground">{t('store.employee.remarks_details') || 'মন্তব্য / বিবরণ:'}</span>
                           <span>{selectedDisbursement.remarks || 'Monthly Salary'}</span>
                         </div>
                       </>
@@ -503,7 +505,7 @@ export default function EmployeeSalaryPage() {
               {/* Total Net Paid */}
               <div className="bg-primary/10 border border-primary/20 p-3.5 rounded-lg flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-primary">সর্বমোট পরিশোধিত অর্থ (Net Paid)</div>
+                  <div className="text-xs font-bold text-primary">{t('store.employee.net_paid') || 'সর্বমোট পরিশোধিত অর্থ (Net Paid)'}</div>
                   <div className="text-[10px] text-muted-foreground">Disbursed by Admin</div>
                 </div>
                 <div className="text-xl font-black text-primary">

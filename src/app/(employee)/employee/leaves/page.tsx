@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   CalendarOff,
   Plus,
@@ -41,6 +42,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function EmployeeLeavesPage() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const [leaves, setLeaves] = useState<any[]>([]);
   const [employeeType, setEmployeeType] = useState<string | null>(null);
@@ -237,9 +239,9 @@ export default function EmployeeLeavesPage() {
     return (
       <div className="flex-1 space-y-6 py-6 md:p-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Leave Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{t('store.employee.leave_management') || 'Leave Management'}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            ছুটি সংক্রান্ত তথ্যাবলী।
+            {t('store.employee.leave_info') || 'ছুটি সংক্রান্ত তথ্যাবলী।'}
           </p>
         </div>
 
@@ -249,14 +251,14 @@ export default function EmployeeLeavesPage() {
               <CalendarOff className="h-6 w-6" />
             </div>
             <div className="max-w-md mx-auto space-y-2">
-              <h3 className="text-lg font-bold text-foreground">ছুটির আবেদন প্রযোজ্য নয়</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('store.employee.leave_not_applicable') || 'ছুটির আবেদন প্রযোজ্য নয়'}</h3>
               <p className="text-sm text-muted-foreground">
-                ছুটির আবেদন সুবিধাটি শুধুমাত্র নিয়মিত মাসিক (Monthly) কর্মীদের জন্য প্রযোজ্য। আপনার বর্তমান কর্মী শ্রেণিবিভাগে কোনো ছুটির আবেদন অনুমোদিত নয়।
+                {t('store.employee.leave_only_monthly') || 'ছুটির আবেদন সুবিধাটি শুধুমাত্র নিয়মিত মাসিক (Monthly) কর্মীদের জন্য প্রযোজ্য। আপনার বর্তমান কর্মী শ্রেণিবিভাগে কোনো ছুটির আবেদন অনুমোদিত নয়।'}
               </p>
             </div>
             <div className="pt-2">
               <Button asChild className="text-white">
-                <Link href="/employee/tasks">আমার কাজের তালিকা দেখুন</Link>
+                <Link href="/employee/tasks">{t('store.employee.see_task_list') || 'আমার কাজের তালিকা দেখুন'}</Link>
               </Button>
             </div>
           </CardContent>
@@ -273,29 +275,29 @@ export default function EmployeeLeavesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Leave Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{t('store.employee.leave_management') || 'Leave Management'}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            ছুটির আবেদন করুন এবং পূর্ববর্তী ছুটির হিস্টোরি ও স্ট্যাটাস ট্র্যাক করুন।
+            {t('store.employee.leave_desc') || 'ছুটির আবেদন করুন এবং পূর্ববর্তী ছুটির হিস্টোরি ও স্ট্যাটাস ট্র্যাক করুন।'}
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={<Button className="font-bold flex items-center gap-2 self-start md:self-auto text-white" />}>
-            <Plus className="h-4 w-4" /> Apply for Leave
+            <Plus className="h-4 w-4" /> {t('store.employee.apply_for_leave') || 'Apply for Leave'}
           </DialogTrigger>
           <DialogContent className="sm:max-w-[480px]">
             <form onSubmit={handleSubmitLeave}>
               <DialogHeader>
-                <DialogTitle>Apply for Leave</DialogTitle>
+                <DialogTitle>{t('store.employee.apply_for_leave') || 'Apply for Leave'}</DialogTitle>
                 <DialogDescription>
-                  আপনার ছুটির শুরুর তারিখ, শেষের তারিখ ও ছুটির কারণ উল্লেখ করে আবেদন জমা দিন।
+                  {t('store.employee.leave_apply_desc') || 'আপনার ছুটির শুরুর তারিখ, শেষের তারিখ ও ছুটির কারণ উল্লেখ করে আবেদন জমা দিন।'}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="start">Start Date *</Label>
+                    <Label htmlFor="start">{t('store.employee.start_date') || 'Start Date *'}</Label>
                     <Input
                       id="start"
                       type="date"
@@ -305,7 +307,7 @@ export default function EmployeeLeavesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="end">End Date *</Label>
+                    <Label htmlFor="end">{t('store.employee.end_date') || 'End Date *'}</Label>
                     <Input
                       id="end"
                       type="date"
@@ -317,10 +319,10 @@ export default function EmployeeLeavesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="reason">Reason for Leave *</Label>
+                  <Label htmlFor="reason">{t('store.employee.reason_for_leave') || 'Reason for Leave *'}</Label>
                   <Textarea
                     id="reason"
-                    placeholder="ছুটির কারণ বিস্তারিত লিখুন..."
+                    placeholder="{t('store.employee.reason_placeholder') || 'ছুটির কারণ বিস্তারিত লিখুন...'}"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     rows={3}
@@ -335,7 +337,7 @@ export default function EmployeeLeavesPage() {
                 </Button>
                 <Button type="submit" disabled={submitting} className="text-white">
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Submit Application
+                  {t('store.employee.submit_application') || 'Submit Application'}
                 </Button>
               </DialogFooter>
             </form>
@@ -347,41 +349,41 @@ export default function EmployeeLeavesPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-primary shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">মোট আবেদন</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.total_applications') || 'মোট আবেদন'}</CardTitle>
             <CalendarOff className="h-4 w-4 text-primary shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             <div className="text-lg sm:text-2xl font-black text-primary">
-              {leaves.length} টি
+              {leaves.length} {t('store.employee.pcs') || 'টি'}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">সর্বমোট ছুটির রিকোয়েস্ট</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.total_leave_requests') || 'সর্বমোট ছুটির রিকোয়েস্ট'}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-amber-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">পেন্ডিং আবেদন</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.pending_applications') || 'পেন্ডিং আবেদন'}</CardTitle>
             <Clock className="h-4 w-4 text-amber-500 shrink-0" />
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             <div className="text-lg sm:text-2xl font-black text-foreground">
-              {pendingCount} টি
+              {pendingCount} {t('store.employee.pcs') || 'টি'}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">অনুমোদনের অপেক্ষায়</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.awaiting_approval') || 'অনুমোদনের অপেক্ষায়'}</p>
           </CardContent>
         </Card>
 
         <div className="col-span-2 md:col-span-1">
           <Card className="bg-primary/5 border-primary/10 border-l-2 border-l-emerald-500 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-5 pb-1 sm:pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">অনুমোদিত ছুটি</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('store.employee.approved_leaves') || 'অনুমোদিত ছুটি'}</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
             </CardHeader>
             <CardContent className="p-4 sm:p-5 pt-0">
               <div className="text-lg sm:text-2xl font-black text-foreground">
-                {approvedCount} টি
+                {approvedCount} {t('store.employee.pcs') || 'টি'}
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">অ্যাডমিন কর্তৃক অনুমোদিত</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{t('store.employee.approved_by_admin') || 'অ্যাডমিন কর্তৃক অনুমোদিত'}</p>
             </CardContent>
           </Card>
         </div>
@@ -390,9 +392,9 @@ export default function EmployeeLeavesPage() {
       {/* Leave List Table */}
       <Card className="shadow-sm border">
         <CardHeader className="p-4 sm:p-6 border-b bg-muted/20">
-          <CardTitle className="text-base font-bold">ছুটির আবেদন হিস্টোরি (Leave Requests)</CardTitle>
+          <CardTitle className="text-base font-bold">{t('store.employee.leave_history') || 'ছুটির আবেদন হিস্টোরি (Leave Requests)'}</CardTitle>
           <CardDescription className="text-xs">
-            আপনার করা সকল ছুটির আবেদনের বর্তমান স্ট্যাটাস ও বিবরণ।
+            {t('store.employee.leave_history_desc') || 'আপনার করা সকল ছুটির আবেদনের বর্তমান স্ট্যাটাস ও বিবরণ।'}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -401,10 +403,10 @@ export default function EmployeeLeavesPage() {
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead className="font-bold">আবেদনের তারিখ</TableHead>
-                  <TableHead className="font-bold">ছুটির সময়সীমা</TableHead>
-                  <TableHead className="font-bold">ছুটির কারণ (Reason)</TableHead>
-                  <TableHead className="font-bold">স্ট্যাটাস</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.application_date') || 'আবেদনের তারিখ'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.leave_duration') || 'ছুটির সময়সীমা'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.leave_reason') || 'ছুটির কারণ (Reason)'}</TableHead>
+                  <TableHead className="font-bold">{t('store.employee.status') || 'স্ট্যাটাস'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -413,7 +415,7 @@ export default function EmployeeLeavesPage() {
                     <TableCell colSpan={4} className="h-40 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <CalendarOff className="h-8 w-8 text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground text-sm">কোনো ছুটির আবেদন পাওয়া যায়নি।</p>
+                        <p className="text-muted-foreground text-sm">{t('store.employee.no_leave_applications') || 'কোনো ছুটির আবেদন পাওয়া যায়নি।'}</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -447,14 +449,14 @@ export default function EmployeeLeavesPage() {
             {leaves.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs space-y-2">
                 <CalendarOff className="h-8 w-8 mx-auto opacity-20" />
-                <p>কোনো ছুটির আবেদন পাওয়া যায়নি।</p>
+                <p>{t('store.employee.no_leave_applications') || 'কোনো ছুটির আবেদন পাওয়া যায়নি।'}</p>
               </div>
             ) : (
               leaves.map((leave) => (
                 <div key={leave._id} className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[11px] text-muted-foreground">
-                      Applied: {leave.createdAt ? format(new Date(leave.createdAt), 'dd MMM yyyy') : 'N/A'}
+                      {t('store.employee.applied') || 'Applied: '} {leave.createdAt ? format(new Date(leave.createdAt), 'dd MMM yyyy') : 'N/A'}
                     </span>
                     {getStatusBadge(leave.status)}
                   </div>

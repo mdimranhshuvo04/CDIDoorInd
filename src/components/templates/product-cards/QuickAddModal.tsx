@@ -14,6 +14,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { addToCart } from '@/store/slices/cartSlice';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface QuickAddModalProps {
   product: any;
@@ -22,6 +23,7 @@ interface QuickAddModalProps {
 }
 
 export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -54,31 +56,33 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
     [product.variants, selectedColor, selectedSize]
   );
 
+  // Reset state when modal opens or product changes — done safely via useEffect
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => {
-        const initialColor = uniqueColors[0] || null;
-        setSelectedColor(initialColor);
+      const initialColor = uniqueColors[0] || null;
+      setSelectedColor(initialColor);
 
-        const initialSizes = (product.variants || [])
-          .filter((v: any) => !initialColor || v.color === initialColor)
-          .map((v: any) => v.size)
-          .filter(Boolean);
-        const initialSize = initialSizes[0] || null;
-        setSelectedSize(initialSize);
-      }, 0);
-      return () => clearTimeout(timer);
+      const initialSizes = (product.variants || [])
+        .filter((v: any) => !initialColor || v.color === initialColor)
+        .map((v: any) => v.size)
+        .filter(Boolean);
+      const initialSize = initialSizes[0] || null;
+      setSelectedSize(initialSize);
+    } else {
+      setSelectedColor(null);
+      setSelectedSize(null);
     }
-  }, [isOpen, uniqueColors, product.variants]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, product?._id]);
 
+  // Fix selectedSize if out of available sizes — done via useEffect
   useEffect(() => {
+    if (!isOpen) return;
     if (selectedSize == null || !availableSizes.includes(selectedSize)) {
-      const timer = setTimeout(() => {
-        setSelectedSize(availableSizes[0] || null);
-      }, 0);
-      return () => clearTimeout(timer);
+      setSelectedSize(availableSizes[0] || null);
     }
-  }, [selectedColor, selectedSize, availableSizes]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableSizes]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -112,9 +116,9 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <DialogTitle className="text-xl">Select Options</DialogTitle>
+          <DialogTitle className="text-xl">{t('store.product.select_options') || 'Select Options'}</DialogTitle>
           <DialogDescription>
-            Choose your preferred options before adding to cart.
+            {t('store.product.select_options_desc') || 'Choose your preferred options before adding to cart.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -202,7 +206,7 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
             disabled={(activeVariant?.stock ?? product.stock) === 0}
           >
             <ShoppingCart className="mr-2 h-4 w-4" /> 
-            {(activeVariant?.stock ?? product.stock) === 0 ? 'Out of Stock' : 'Add to Cart'}
+            {(activeVariant?.stock ?? product.stock) === 0 ? t('store.product.out_of_stock') : t('store.product.add_cart')}
           </Button>
         </div>
       </DialogContent>

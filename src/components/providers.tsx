@@ -13,6 +13,8 @@ import { WishlistHydrator } from './WishlistHydrator';
 import { SettingsProvider } from './SettingsProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+import { LanguageProvider } from '@/contexts/LanguageContext';
+
 export function Providers({ 
   children,
   settings 
@@ -29,17 +31,19 @@ export function Providers({
           enableSystem
           disableTransitionOnChange
         >
-          <SettingsProvider settings={settings}>
-            <TooltipProvider>
-              <AnimationProvider>
-                <CartHydrator>
-                  <WishlistHydrator>
-                    {children}
-                  </WishlistHydrator>
-                </CartHydrator>
-              </AnimationProvider>
-            </TooltipProvider>
-          </SettingsProvider>
+          <LanguageProvider>
+            <SettingsProvider settings={settings}>
+              <TooltipProvider>
+                <AnimationProvider>
+                  <CartHydrator>
+                    <WishlistHydrator>
+                      {children}
+                    </WishlistHydrator>
+                  </CartHydrator>
+                </AnimationProvider>
+              </TooltipProvider>
+            </SettingsProvider>
+          </LanguageProvider>
         </NextThemesProvider>
       </ReduxProvider>
     </SessionProvider>

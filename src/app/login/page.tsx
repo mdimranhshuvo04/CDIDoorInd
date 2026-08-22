@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
 import { useState, useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -42,7 +43,8 @@ const loginSchema = z.object({
   password: z.string().min(1, { message: 'Password is required' }),
 });
 
-export default function LoginPage() {
+export default function LoginPage() {  const { t } = useLanguage();
+
   const router = useRouter();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
@@ -126,7 +128,7 @@ export default function LoginPage() {
         >
           <div className="w-full max-w-sm space-y-8">
             <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('auth.login.welcome') || 'Welcome back'}</h1>
               <p className="text-sm text-muted-foreground">
                 Enter your credentials to access your account
               </p>
@@ -175,7 +177,7 @@ export default function LoginPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email or Phone Number</FormLabel>
+                        <FormLabel>{t('auth.login.email_phone') || 'Email or Phone Number'}</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="email@example.com or 017xxxxxxxx"
@@ -195,7 +197,7 @@ export default function LoginPage() {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center justify-between">
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('auth.login.password') || 'Password'}</FormLabel>
                           <Link
                             href="/forgot-password"
                             className="text-sm font-medium text-foreground/80 hover:text-primary hover:underline underline-offset-4 transition-colors"
@@ -245,7 +247,7 @@ export default function LoginPage() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <span className="flex items-center justify-center">
-                        Sign In <ArrowRight className="ml-2 h-4 w-4" />
+                        {t('auth.login.sign_in') || 'Sign In'} <ArrowRight className="ml-2 h-4 w-4" />
                       </span>
                     )}
                   </Button>
@@ -263,11 +265,11 @@ export default function LoginPage() {
         </motion.div>
 
         <div className="mt-auto pt-6 text-center text-xs text-muted-foreground">
-          By clicking continue, you agree to our{' '}
+          {t('auth.login.agree_terms') || 'By clicking continue, you agree to our'}{' '}
           <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
             Terms of Service
           </Link>{' '}
-          and{' '}
+          {t('auth.login.and') || 'and'}{' '}
           <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
             Privacy Policy
           </Link>.

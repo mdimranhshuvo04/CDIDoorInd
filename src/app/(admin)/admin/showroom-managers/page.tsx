@@ -30,8 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ShowroomManagersPage() {
+  const { t } = useLanguage();
   const [managers, setManagers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -197,14 +199,14 @@ export default function ShowroomManagersPage() {
     <div className="px-0 py-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Showroom Managers</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage and assign showroom managers to different locations.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{t("showroom_managers.title")}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{t("showroom_managers.subtitle")}</p>
         </div>
         <Button 
           onClick={() => { resetForm(); setShowAddModal(true); }}
           className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold flex gap-2 h-10 text-xs sm:text-sm md:h-11 px-4 rounded-full w-full sm:w-auto justify-center"
         >
-          <UserPlus className="h-4 w-4" /> Add Showroom Manager
+          <UserPlus className="h-4 w-4" /> {t("showroom_managers.add_manager")}
         </Button>
       </div>
 
@@ -213,9 +215,9 @@ export default function ShowroomManagersPage() {
           <Card className="border-dashed border-2 py-10">
             <CardContent className="flex flex-col items-center justify-center text-center space-y-3">
               <ShieldAlert className="h-12 w-12 text-muted-foreground" />
-              <h3 className="font-bold text-lg">No Showroom Managers Found</h3>
+              <h3 className="font-bold text-lg">{t("showroom_managers.no_managers_found")}</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Click the button above to register a new showroom manager.
+                {t("showroom_managers.no_managers_desc")}
               </p>
             </CardContent>
           </Card>
@@ -228,11 +230,11 @@ export default function ShowroomManagersPage() {
                 <Table className="block md:table">
                   <TableHeader className="hidden md:table-header-group">
                     <TableRow>
-                      <TableHead className="font-bold">Name</TableHead>
-                      <TableHead className="font-bold">Email</TableHead>
-                      <TableHead className="font-bold">Phone</TableHead>
-                      <TableHead className="font-bold">Assigned Showroom</TableHead>
-                      <TableHead className="font-bold text-right">Actions</TableHead>
+                      <TableHead className="font-bold">{t("showroom_managers.name")}</TableHead>
+                      <TableHead className="font-bold">{t("showroom_managers.email")}</TableHead>
+                      <TableHead className="font-bold">{t("showroom_managers.phone")}</TableHead>
+                      <TableHead className="font-bold">{t("showroom_managers.assigned_showroom")}</TableHead>
+                      <TableHead className="font-bold text-right">{t("showroom_managers.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -253,20 +255,20 @@ export default function ShowroomManagersPage() {
                             )}
                             <div>
                               <div className="font-bold text-sm md:text-base text-foreground">{manager.name}</div>
-                              <div className="text-[10px] sm:text-xs text-muted-foreground">Showroom Manager</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">{t("showroom_managers.role")}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="py-1 md:py-4 text-xs md:text-sm text-muted-foreground block md:table-cell text-left">
-                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Email:</span>
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">{t("showroom_managers.email")}:</span>
                           {manager.email}
                         </TableCell>
                         <TableCell className="py-1 md:py-4 text-xs md:text-sm text-muted-foreground block md:table-cell text-left">
-                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Phone:</span>
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">{t("showroom_managers.phone")}:</span>
                           {manager.phone || 'N/A'}
                         </TableCell>
                         <TableCell className="py-1 md:py-4 block md:table-cell text-left">
-                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">Showroom:</span>
+                          <span className="md:hidden text-[10px] text-muted-foreground font-bold mr-2 uppercase">{t("showroom_managers.assigned_showroom")}:</span>
                           <Badge 
                             variant={manager.showroomName === 'Not Assigned' ? 'outline' : 'default'}
                             className={`font-semibold border-none text-[10px] ${
@@ -275,7 +277,7 @@ export default function ShowroomManagersPage() {
                                 : 'bg-primary/10 text-primary'
                             }`}
                           >
-                            {manager.showroomName}
+                            {manager.showroomName === 'Not Assigned' ? t("showroom_managers.not_assigned") : manager.showroomName}
                           </Badge>
                         </TableCell>
                         <TableCell className="py-2 md:py-4 text-left md:text-right block md:table-cell border-t md:border-t-0 mt-2 md:mt-0 pt-2 md:pt-4">
@@ -286,7 +288,7 @@ export default function ShowroomManagersPage() {
                               onClick={() => handleEditClick(manager)}
                               className="h-8 px-2 hover:bg-muted text-xs flex gap-1 font-bold"
                             >
-                              <Edit className="h-3.5 w-3.5" /> Edit
+                              <Edit className="h-3.5 w-3.5" /> {t("showroom_managers.edit")}
                             </Button>
                             <Button 
                               size="sm" 
@@ -294,7 +296,7 @@ export default function ShowroomManagersPage() {
                               onClick={() => handleRevokeRole(manager._id)}
                               className="h-8 px-2 text-destructive hover:bg-destructive/10 text-xs flex gap-1 font-bold"
                             >
-                              <Trash2 className="h-3.5 w-3.5" /> Revoke
+                              <Trash2 className="h-3.5 w-3.5" /> {t("showroom_managers.revoke")}
                             </Button>
                           </div>
                         </TableCell>
@@ -314,10 +316,10 @@ export default function ShowroomManagersPage() {
           <Card className="w-full max-w-md shadow-2xl border-muted max-h-[90vh] flex flex-col">
             <CardHeader className="pb-4 border-b shrink-0">
               <CardTitle className="text-xl font-bold">
-                {editingManager ? 'Edit Manager Details' : 'Add Showroom Manager'}
+                {editingManager ? t("showroom_managers.edit_details") : t("showroom_managers.add_details")}
               </CardTitle>
               <CardDescription>
-                {editingManager ? 'Update the details for this manager.' : 'Fill in the details to register a new manager.'}
+                {editingManager ? t("showroom_managers.edit_desc") : t("showroom_managers.add_desc")}
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleAddOrUpdateManager} className="flex flex-col flex-1 overflow-hidden">
@@ -326,11 +328,11 @@ export default function ShowroomManagersPage() {
                   aspect="circle" 
                   value={formImage} 
                   onUpload={setFormImage} 
-                  label="Profile Photo"
+                  label={t("showroom_managers.profile_photo")}
                 />
 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">{t("showroom_managers.full_name")}</Label>
                   <Input 
                     id="name" 
                     value={formName} 
@@ -343,7 +345,7 @@ export default function ShowroomManagersPage() {
                 {!editingManager && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">{t("showroom_managers.email_address")}</Label>
                       <Input 
                         id="email" 
                         type="email" 
@@ -354,7 +356,7 @@ export default function ShowroomManagersPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{t("showroom_managers.password")}</Label>
                       <Input 
                         id="password" 
                         type="password" 
@@ -368,7 +370,7 @@ export default function ShowroomManagersPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number (Optional)</Label>
+                  <Label htmlFor="phone">{t("showroom_managers.phone_optional")}</Label>
                   <Input 
                     id="phone" 
                     value={formPhone} 
@@ -383,13 +385,13 @@ export default function ShowroomManagersPage() {
                   variant="outline" 
                   onClick={() => setShowAddModal(false)}
                 >
-                  Cancel
+                  {t("showroom_managers.cancel")}
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
                 >
-                  {editingManager ? 'Update Details' : 'Add Manager'}
+                  {editingManager ? t("showroom_managers.update_details") : t("showroom_managers.add_manager_btn")}
                 </Button>
               </div>
             </form>

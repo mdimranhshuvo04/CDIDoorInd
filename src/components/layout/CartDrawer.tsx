@@ -17,15 +17,17 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function CartDrawer({ children }: { children: React.ReactElement }) {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const { items, totalAmount, totalQuantity } = useAppSelector((state) => state.cart);
 
   const handleUpdateQuantity = (item: any, delta: number) => {
       if (item.quantity + delta === 0) {
           dispatch(removeFromCart({ productId: item.productId, color: item.color, size: item.size }));
-          toast.info(`${item.name} removed from cart`);
+          toast.info(`${item.name} ${t('store.cart.removed_from_cart') || 'removed from cart'}`);
       } else {
           dispatch(addToCart({ ...item, quantity: delta }));
       }
@@ -41,8 +43,8 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
           <div className="flex items-center justify-between">
             <SheetTitle className="text-2xl font-bold flex items-center gap-2">
                 <ShoppingCart className="h-6 w-6 text-primary" />
-                Your Cart 
-                <span className="text-sm font-normal text-muted-foreground ml-2">({totalQuantity} items)</span>
+                {t('store.cart.title') || 'Your Cart'} 
+                <span className="text-sm font-normal text-muted-foreground ml-2">({totalQuantity} {t('store.cart.items') || 'items'})</span>
             </SheetTitle>
           </div>
         </SheetHeader>
@@ -53,11 +55,11 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
               <div className="bg-muted p-6 rounded-full inline-block">
                 <ShoppingCart className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-bold">Your cart is empty</h3>
-              <p className="text-muted-foreground text-sm max-w-[200px]">Looks like you haven&apos;t added anything to your cart yet.</p>
+              <h3 className="text-xl font-bold">{t('store.cart.empty') || 'Your cart is empty'}</h3>
+              <p className="text-muted-foreground text-sm max-w-[200px]">{t('store.cart.empty_desc') || "Looks like you haven't added anything to your cart yet."}</p>
               <SheetClose
                 nativeButton={false}
-                render={<Link href="/shop" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">Start Shopping</Link>}
+                render={<Link href="/shop" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">{t('store.cart.start_shopping') || 'Start Shopping'}</Link>}
               />
             </div>
           ) : (
@@ -80,12 +82,12 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
                         <div className="flex flex-wrap gap-2 mt-1">
                           {item.color && (
                             <span className="text-[10px] bg-muted px-2 py-0.5 rounded text-muted-foreground font-medium uppercase tracking-tighter">
-                              Color: {item.color}
+                              {t('store.product.color') || 'Color'}: {item.color}
                             </span>
                           )}
                           {item.size && (
                             <span className="text-[10px] bg-muted px-2 py-0.5 rounded text-muted-foreground font-medium uppercase tracking-tighter">
-                              Size: {item.size}
+                              {t('store.product.size') || 'Size'}: {item.size}
                             </span>
                           )}
                         </div>
@@ -97,7 +99,7 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
                         className="h-6 w-6 text-muted-foreground hover:text-destructive"
                         onClick={() => {
                             dispatch(removeFromCart({ productId: item.productId, color: item.color, size: item.size }));
-                            toast.info(`${item.name} removed from cart`);
+                            toast.info(`${item.name} ${t('store.cart.removed_from_cart') || 'removed from cart'}`);
                         }}
                         aria-label={`Remove ${[item.name, item.color, item.size].filter(Boolean).join(' - ')} from cart`}
                     >
@@ -138,7 +140,7 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
           <SheetFooter className="mt-auto pt-6 border-t flex-col gap-4">
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center justify-between text-lg font-extrabold tracking-tight">
-                <span>Total Amount</span>
+                <span>{t('store.cart.total') || 'Total Amount'}</span>
                 <span className="text-primary">৳{Math.round(totalAmount)}</span>
               </div>
             </div>
@@ -147,7 +149,7 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
                   <Button 
                       className="w-full h-12 rounded-full font-bold uppercase tracking-widest text-xs group"
                       nativeButton={false}
-                      render={<Link href="/checkout">Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" /></Link>}
+                      render={<Link href="/checkout">{t('store.cart.proceed_checkout') || 'Proceed to Checkout'} <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" /></Link>}
                   />
                 } />
                 <Button 
@@ -156,10 +158,10 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
                     className="text-xs text-muted-foreground hover:text-destructive"
                     onClick={() => {
                         dispatch(clearCart());
-                        toast.info('Cart cleared');
+                        toast.info(t('store.cart.cleared') as string || 'Cart cleared');
                     }}
                 >
-                    Clear All Items
+                    {t('store.cart.clear_all') || 'Clear All Items'}
                 </Button>
             </div>
           </SheetFooter>

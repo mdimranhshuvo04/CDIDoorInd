@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Banner {
   _id?: string;
@@ -29,6 +30,7 @@ interface HeroSliderProps {
 const AUTOPLAY_DELAY = 5500;
 
 export default function HeroV1({ banners, layout }: HeroSliderProps) {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const slides = banners && banners.length > 0 ? banners : null;
 
@@ -50,7 +52,8 @@ export default function HeroV1({ banners, layout }: HeroSliderProps) {
   useEffect(() => {
     if (!emblaApi) return;
     
-    const timer = setTimeout(() => {
+    // Defer the initial selection update to avoid synchronous setState during render/effect phase
+    const timeoutId = setTimeout(() => {
       onSelect();
     }, 0);
 
@@ -58,7 +61,7 @@ export default function HeroV1({ banners, layout }: HeroSliderProps) {
     emblaApi.on('reInit', onSelect);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timeoutId);
       emblaApi.off('select', onSelect);
       emblaApi.off('reInit', onSelect);
     };
@@ -113,7 +116,7 @@ export default function HeroV1({ banners, layout }: HeroSliderProps) {
         <div className="flex h-full w-full">
           {slides.map((banner, index) => {
             const primaryHref = banner.primaryBtnLink || banner.link || '/shop';
-            const primaryText = banner.primaryBtnText || 'Shop Now';
+            const primaryText = banner.primaryBtnText || (t('store.hero.shop_now') as string) || 'Shop Now';
             const secondaryHref = banner.secondaryBtnLink || '/categories';
             const secondaryText = banner.secondaryBtnText;
             const isActive = index === activeIndex;

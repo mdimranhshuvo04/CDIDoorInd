@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import Link from "next/link"
@@ -45,85 +45,103 @@ const data = {
   navMain: [
     {
       title: "Overview",
+      tKey: "sidebar.overview",
       url: "/admin/dashboard",
       icon: LayoutDashboard,
       isActive: true,
       items: [
         {
           title: "Dashboard",
+          tKey: "sidebar.dashboard",
           url: "/admin/dashboard",
         }
       ],
     },
     {
       title: "Showrooms",
+      tKey: "sidebar.showrooms",
       url: "#",
       icon: Store,
       items: [
         {
           title: "Showrooms",
+          tKey: "sidebar.showrooms",
           url: "/admin/showrooms",
         }
       ],
     },
     {
       title: "Product Management",
+      tKey: "sidebar.product_management",
       url: "#",
       icon: ShoppingBag,
       items: [
         {
           title: "All Products",
+          tKey: "sidebar.all_products",
           url: "/admin/products",
         },
         {
           title: "Add Product",
+          tKey: "sidebar.add_product",
           url: "/admin/products/new",
         },
         {
           title: "Categories",
+          tKey: "sidebar.categories",
           url: "/admin/categories",
         },
       ],
     },
     {
       title: "Sales & Orders",
+      tKey: "sidebar.sales_orders",
       url: "#",
       icon: FileText,
       items: [
         {
           title: "All Orders",
+          tKey: "sidebar.all_orders",
           url: "/admin/orders",
         },
         {
           title: "Abandoned Carts",
+          tKey: "sidebar.abandoned_carts",
           url: "/admin/abandoned-carts",
         },
         {
           title: "Offers / Quotations",
+          tKey: "sidebar.offers_quotations",
           url: "/admin/offers",
         },
         {
           title: "Delivery Challans",
+          tKey: "sidebar.delivery_challans",
           url: "/admin/chalans",
         },
         {
           title: "Client Bills",
+          tKey: "sidebar.client_bills",
           url: "/admin/bills",
         },
         {
           title: "Suppliers / Vendors",
+          tKey: "sidebar.suppliers_vendors",
           url: "/admin/suppliers",
         },
         {
           title: "Supplier Bills",
+          tKey: "sidebar.supplier_bills",
           url: "/admin/supplier-bills",
         },
         {
           title: "Expenses & Incomes",
+          tKey: "sidebar.expenses_incomes",
           url: "/admin/expenses-incomes",
         },
         {
           title: "Accounts Ledger",
+          tKey: "sidebar.accounts_ledger",
           url: "/admin/ledger",
           superOnly: true
         },
@@ -131,90 +149,109 @@ const data = {
     },
     {
       title: "User Management",
+      tKey: "sidebar.user_management",
       url: "#",
       icon: Users,
       items: [
         {
           title: "All Users",
+          tKey: "sidebar.all_users",
           url: "/admin/users",
           superOnly: true
         },
         {
           title: "Employees",
+          tKey: "sidebar.employees",
           url: "/admin/employees",
         },
         {
           title: "Task Management",
+          tKey: "sidebar.task_management",
           url: "/admin/task-management",
         },
         {
           title: "Showroom Managers",
+          tKey: "sidebar.showroom_managers",
           url: "/admin/showroom-managers",
         },
         {
           title: "Wholesalers",
+          tKey: "sidebar.wholesalers",
           url: "/admin/wholesalers",
         },
       ],
     },
     {
       title: "CMS Manager",
+      tKey: "sidebar.cms_manager",
       url: "#",
       icon: ImageIcon,
       items: [
         {
           title: "Banners",
+          tKey: "sidebar.banners",
           url: "/admin/cms/banners",
         },
         {
           title: "Testimonials",
+          tKey: "sidebar.testimonials",
           url: "/admin/cms/testimonials",
         },
         {
           title: "FAQs",
+          tKey: "sidebar.faqs",
           url: "/admin/cms/faqs",
         },
       ],
     },
     {
       title: "Blogs",
+      tKey: "sidebar.blogs",
       url: "#",
       icon: FileText,
       items: [
         {
           title: "Manage Blog",
+          tKey: "sidebar.manage_blog",
           url: "/admin/blogs",
         },
         {
           title: "Add New Blog",
+          tKey: "sidebar.add_new_blog",
           url: "/admin/blogs/new",
         },
       ],
     },
     {
       title: "System Settings",
+      tKey: "sidebar.system_settings",
       url: "#",
       icon: Settings,
       items: [
         {
           title: "Coupons",
+          tKey: "sidebar.coupons",
           url: "/admin/coupons",
         },
         {
           title: "General Settings",
+          tKey: "sidebar.general_settings",
           url: "/admin/settings",
         },
         {
           title: "Marketing Settings",
+          tKey: "sidebar.marketing_settings",
           url: "/admin/marketing",
         },
         {
           title: "Subscribers",
+          tKey: "sidebar.subscribers",
           url: "/admin/subscribers",
           icon: Mail,
         },
         {
           title: "Infrastructure & Marketing",
+          tKey: "sidebar.infrastructure_marketing",
           url: "/admin/system-design",
           superOnly: true
         },
@@ -225,9 +262,11 @@ const data = {
 
 
 import { useSession } from "next-auth/react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathname: string; role?: string }) {
   const { setOpenMobile, isMobile } = useSidebar()
+  const { t } = useLanguage()
 
   // Filter items based on role
   const filteredItems = items.map(item => ({
@@ -275,9 +314,9 @@ function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathna
               className="group/collapsible"
             >
               <SidebarMenuItem>
-                <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isParentActive} />}>
+                <CollapsibleTrigger render={<SidebarMenuButton tooltip={t(item.tKey as string) || item.title} isActive={isParentActive} />}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span>{t(item.tKey as string) || item.title}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90 group-[[data-state=open]]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -299,7 +338,7 @@ function NavMain({ items, pathname, role }: { items: typeof data.navMain; pathna
                               ))
                           }
                         >
-                          <span>{subItem.title}</span>
+                          <span>{t(subItem.tKey as string) || subItem.title}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}

@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { fbEvent } from '@/lib/fpixel';
 import { ttEvent } from '@/lib/tiktok';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 
 
@@ -61,6 +62,7 @@ const checkoutSchema = z.object({
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
 function CheckoutContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { items, totalAmount, isHydrated } = useAppSelector((state) => state.cart);
@@ -600,16 +602,16 @@ function CheckoutContent() {
         <ShoppingBag className="w-12 h-12 text-muted-foreground" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black tracking-tight">আপনার কার্ট খালি!</h2>
+        <h2 className="text-2xl font-black tracking-tight">{t('store.cart.empty') || 'আপনার কার্ট খালি!'}</h2>
         <p className="text-muted-foreground text-sm max-w-xs">
-          চেকআউট করতে আগে কিছু পণ্য কার্টে যোগ করুন।
+          {t('store.cart.empty_desc') || 'চেকআউট করতে আগে কিছু পণ্য কার্টে যোগ করুন।'}
         </p>
       </div>
       <Button
         onClick={() => router.push('/shop')}
         className="rounded-full px-8 h-11 font-bold"
       >
-        শপে যান <ArrowRight className="ml-2 h-4 w-4" />
+        {t('store.cart.start_shopping') || 'শপে যান'} <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
     </div>
   );
@@ -621,8 +623,8 @@ function CheckoutContent() {
         <div className="hidden lg:block sticky top-24 self-start space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Your Items</CardTitle>
-              <CardDescription>Items you are about to purchase.</CardDescription>
+              <CardTitle>{t('store.checkout.your_items') || 'Your Items'}</CardTitle>
+              <CardDescription>{t('store.checkout.items_desc') || 'Items you are about to purchase.'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-[500px] overflow-y-auto space-y-4 pr-2 -mr-2">
@@ -718,8 +720,8 @@ function CheckoutContent() {
         {/* Right Side: Delivery & Payment */}
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
-            <p className="text-muted-foreground mt-2">Complete your order by filling in the details below.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('store.checkout.title') || 'Checkout'}</h1>
+            <p className="text-muted-foreground mt-2">{t('store.checkout.subtitle') || 'Complete your order by filling in the details below.'}</p>
           </div>
 
           <Form {...form}>
@@ -728,7 +730,7 @@ function CheckoutContent() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <Truck className="h-6 w-6 text-primary" />
-                    ডেলিভারি তথ্য
+                    {t('store.checkout.delivery_info') || 'ডেলিভারি তথ্য'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -737,9 +739,9 @@ function CheckoutContent() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>পূর্ণ নাম</FormLabel>
+                        <FormLabel>{t('store.checkout.full_name') || 'পূর্ণ নাম'}</FormLabel>
                         <FormControl>
-                          <Input placeholder="আপনার পূর্ণ নাম লিখুন" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder={t('store.checkout.full_name_placeholder') || 'আপনার পূর্ণ নাম লিখুন'} {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -750,9 +752,9 @@ function CheckoutContent() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>মোবাইল নম্বর</FormLabel>
+                        <FormLabel>{t('store.checkout.phone') || 'মোবাইল নম্বর'}</FormLabel>
                         <FormControl>
-                          <Input placeholder="যেমন: 017XXXXXXXX" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder={t('store.checkout.phone_placeholder') || 'যেমন: 017XXXXXXXX'} {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -763,7 +765,7 @@ function CheckoutContent() {
                     name="deliveryArea"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
-                        <FormLabel className="font-bold">ডেলিভারি এলাকা</FormLabel>
+                        <FormLabel className="font-bold">{t('store.checkout.delivery_area') || 'ডেলিভারি এলাকা'}</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -775,7 +777,7 @@ function CheckoutContent() {
                                 <RadioGroupItem value="inside" />
                               </FormControl>
                               <FormLabel className="font-medium cursor-pointer text-sm">
-                                ঢাকার ভিতরে
+                                {t('store.checkout.inside_dhaka') || 'ঢাকার ভিতরে'}
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-2 space-y-0 cursor-pointer">
@@ -783,7 +785,7 @@ function CheckoutContent() {
                                 <RadioGroupItem value="outside" />
                               </FormControl>
                               <FormLabel className="font-medium cursor-pointer text-sm">
-                                ঢাকার বাইরে
+                                {t('store.checkout.outside_dhaka') || 'ঢাকার বাইরে'}
                               </FormLabel>
                             </FormItem>
                           </RadioGroup>
@@ -797,9 +799,9 @@ function CheckoutContent() {
                     name="street"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>সম্পূর্ণ ঠিকানা</FormLabel>
+                        <FormLabel>{t('store.checkout.address') || 'সম্পূর্ণ ঠিকানা'}</FormLabel>
                         <FormControl>
-                          <Input placeholder="গ্রাম/বাসা নং, রোড নং, এলাকা, থানা, জেলা" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder={t('store.checkout.address_placeholder') || 'গ্রাম/বাসা নং, রোড নং, এলাকা, থানা, জেলা'} {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -811,14 +813,14 @@ function CheckoutContent() {
               {/* Detailed Summary Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Order Details</CardTitle>
+                  <CardTitle className="text-lg">{t('store.checkout.order_details') || 'Order Details'}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Coupon Section */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <Input
-                        placeholder="Coupon Code"
+                        placeholder={t('store.checkout.coupon_code') || 'Coupon Code'}
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         disabled={!!appliedCoupon || applyingCoupon}
@@ -832,7 +834,7 @@ function CheckoutContent() {
                           onClick={removeCoupon}
                           className="h-10 px-3"
                         >
-                          Remove
+                          {t('store.checkout.remove') || 'Remove'}
                         </Button>
                       ) : (
                         <Button
@@ -842,13 +844,13 @@ function CheckoutContent() {
                           disabled={applyingCoupon || !couponCode}
                           className="h-10 px-4"
                         >
-                          {applyingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Apply'}
+                          {applyingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : (t('store.checkout.apply') || 'Apply')}
                         </Button>
                       )}
                     </div>
                     {appliedCoupon && (
                       <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> Coupon "{appliedCoupon}" active!
+                        <CheckCircle2 className="h-3 w-3" /> Coupon "{appliedCoupon}" {t('store.checkout.active') || 'active!'}
                       </p>
                     )}
                   </div>
@@ -857,21 +859,21 @@ function CheckoutContent() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-muted-foreground">{t('store.checkout.subtotal') || 'Subtotal'}</span>
                       <span>৳{Math.round(totalAmount + totalProductDiscount)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-600">
-                      <span>Product Discount</span>
+                      <span>{t('store.checkout.product_discount') || 'Product Discount'}</span>
                       <span>- ৳{Math.round(totalProductDiscount)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Coupon Discount</span>
+                      <span className="text-muted-foreground">{t('store.checkout.coupon_discount') || 'Coupon Discount'}</span>
                       <span className={couponDiscount > 0 ? "text-green-600 font-bold" : ""}>
                         - ৳{Math.round(couponDiscount)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
+                      <span className="text-muted-foreground">{t('store.checkout.shipping') || 'Shipping'}</span>
                       <span className={isFreeDelivery ? "text-green-600 font-black" : "text-primary font-bold"}>
                         {isFreeDelivery ? 'FREE' : `৳${deliveryCharge}`}
                       </span>
@@ -882,20 +884,20 @@ function CheckoutContent() {
                       </p>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Loyalty Discount</span>
+                      <span className="text-muted-foreground">{t('store.checkout.loyalty_discount') || 'Loyalty Discount'}</span>
                       <span className={walletAmountToUse > 0 ? "text-primary font-bold" : ""}>
                         - ৳{Math.round(walletAmountToUse)}
                       </span>
                     </div>
                     <Separator className="mt-4" />
                     <div className="flex justify-between text-lg font-black pt-2">
-                      <span>Final Total</span>
+                      <span>{t('store.checkout.final_total') || 'Final Total'}</span>
                       <span className="text-primary">৳{Math.round(finalTotal)}</span>
                     </div>
                     {potentialReward > 0 && (
                       <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Loyalty Perk</p>
-                        <p className="text-xs font-bold">You will earn <span className="text-primary">৳{potentialReward}</span> tokens from this order!</p>
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{t('store.checkout.loyalty_perk') || 'Loyalty Perk'}</p>
+                        <p className="text-xs font-bold">{t('store.checkout.you_will_earn') || 'You will earn'} <span className="text-primary">৳{potentialReward}</span> {t('store.checkout.tokens_from_order') || 'tokens from this order!'}</p>
                       </div>
                     )}
                   </div>
@@ -906,7 +908,7 @@ function CheckoutContent() {
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-primary" />
-                    Payment Method
+                    {t('store.checkout.payment_method') || 'Payment Method'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -927,16 +929,16 @@ function CheckoutContent() {
                         />
                         <div className="flex-1">
                           <label htmlFor="is-credit-order" className="font-bold cursor-pointer text-sm text-foreground">
-                            বাকিতে অর্ডার করুন (Order on Credit)
+                            {t('store.checkout.credit_order_title') || 'বাকিতে অর্ডার করুন (Order on Credit)'}
                             <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                              পাইকারি ক্রেতাদের জন্য বাকিতে পণ্য ক্রয়ের বিশেষ সুবিধা।
+                              {t('store.checkout.credit_order_desc') || 'পাইকারি ক্রেতাদের জন্য বাকিতে পণ্য ক্রয়ের বিশেষ সুবিধা।'}
                             </p>
                           </label>
 
                           {isCreditOrder && (
                             <div className="mt-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
                               <Label htmlFor="expected-payment-date" className="text-xs font-bold">
-                                টাকা পরিশোধের সম্ভাব্য তারিখ (Expected Payment Date) <span className="text-destructive">*</span>
+                                {t('store.checkout.expected_payment_date') || 'টাকা পরিশোধের সম্ভাব্য তারিখ (Expected Payment Date)'} <span className="text-destructive">*</span>
                               </Label>
                               <Input
                                 type="date"
@@ -972,8 +974,8 @@ function CheckoutContent() {
                                 <RadioGroupItem value="COD" />
                               </FormControl>
                               <FormLabel className="font-bold flex-1 cursor-pointer">
-                                Cash on Delivery (COD)
-                                <p className="text-xs font-normal text-muted-foreground mt-1">Pay when you receive the product.</p>
+                                {t('store.checkout.cod') || 'Cash on Delivery (COD)'}
+                                <p className="text-xs font-normal text-muted-foreground mt-1">{t('store.checkout.cod_desc') || 'Pay when you receive the product.'}</p>
                               </FormLabel>
                             </FormItem>
                             {settings?.paymentConfig?.activeMethod === 'sslcommerz' && (
@@ -982,9 +984,9 @@ function CheckoutContent() {
                                   <RadioGroupItem value="Online" />
                                 </FormControl>
                                 <FormLabel className="font-bold flex-1 cursor-pointer">
-                                  Online Payment (SSLCommerz)
-                                  <p className="text-xs font-normal text-muted-foreground mt-1">Pay securely via Credit Card, bKash, or Rocket.</p>
-                                  <Badge variant="secondary" className="mt-2 text-[10px]">Recommended</Badge>
+                                  {t('store.checkout.online_payment') || 'Online Payment (SSLCommerz)'}
+                                  <p className="text-xs font-normal text-muted-foreground mt-1">{t('store.checkout.online_payment_desc') || 'Pay securely via Credit Card, bKash, or Rocket.'}</p>
+                                  <Badge variant="secondary" className="mt-2 text-[10px]">{t('store.checkout.recommended') || 'Recommended'}</Badge>
                                 </FormLabel>
                               </FormItem>
                             )}
@@ -998,8 +1000,8 @@ function CheckoutContent() {
                                     <RadioGroupItem value="Manual" />
                                   </FormControl>
                                   <FormLabel className="font-bold flex-1 cursor-pointer">
-                                    Manual Payment (MFS / Bangla QR)
-                                    <p className="text-xs font-normal text-muted-foreground mt-1">Send money manually or scan QR to pay.</p>
+                                    {t('store.checkout.manual_payment') || 'Manual Payment (MFS / Bangla QR)'}
+                                    <p className="text-xs font-normal text-muted-foreground mt-1">{t('store.checkout.manual_payment_desc') || 'Send money manually or scan QR to pay.'}</p>
                                   </FormLabel>
                                 </FormItem>
                               )}
@@ -1073,8 +1075,8 @@ function CheckoutContent() {
                             className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
                           />
                           <label htmlFor="use-wallet" className="font-bold cursor-pointer">
-                            Use Token Balance
-                            <p className="text-xs font-normal text-muted-foreground">Available: ৳{profile.walletBalance}</p>
+                            {t('store.checkout.use_wallet') || 'Use Token Balance'}
+                            <p className="text-xs font-normal text-muted-foreground">{t('store.checkout.wallet_available') || 'Available:'} ৳{profile.walletBalance}</p>
                           </label>
                         </div>
                         {useWallet && <span className="text-sm font-black text-primary">-৳{walletAmountToUse}</span>}
@@ -1092,11 +1094,11 @@ function CheckoutContent() {
                     disabled={loading || !isFormValid || syncData?.hasInsufficientStock || isPendingOrderBlocked}
                   >
                     {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
-                    {isPendingOrderBlocked ? 'পেন্ডিং অর্ডার রয়েছে' : syncData?.hasInsufficientStock ? 'পর্যাপ্ত স্টক নেই' : 'অর্ডার নিশ্চিত করুন'}
+                    {isPendingOrderBlocked ? (t('store.checkout.pending_order_exists') || 'পেন্ডিং অর্ডার রয়েছে') : syncData?.hasInsufficientStock ? (t('store.checkout.insufficient_stock') || 'পর্যাপ্ত স্টক নেই') : (t('store.checkout.confirm_order') || 'অর্ডার নিশ্চিত করুন')}
                   </Button>
                   {!isFormValid && (
                     <p className="text-[10px] font-bold text-muted-foreground text-center w-full uppercase tracking-widest">
-                      অর্ডার সম্পন্ন করতে ডেলিভারি তথ্য পূরণ করুন
+                      {t('store.checkout.fill_details_to_complete') || 'অর্ডার সম্পন্ন করতে ডেলিভারি তথ্য পূরণ করুন'}
                     </p>
                   )}
                 </CardFooter>
@@ -1120,7 +1122,7 @@ function CheckoutContent() {
               </div>
               <div className="text-left">
                 <DialogTitle className="text-base md:text-lg font-black uppercase tracking-tight">
-                  {selectedMethod?.id === 'banglaQr' ? 'Pay via Bangla QR' : `Pay via ${selectedMethod?.id}`}
+                  {selectedMethod?.id === 'banglaQr' ? (t('store.checkout.pay_via_banglaqr') || 'Pay via Bangla QR') : `${t('store.checkout.pay_via') || 'Pay via'} ${selectedMethod?.id}`}
                 </DialogTitle>
               </div>
             </div>
@@ -1133,8 +1135,8 @@ function CheckoutContent() {
               {selectedMethod?.id !== 'banglaQr' && (
                 <>
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Send Money To</span>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold text-[9px] py-0.5 px-1.5">Personal Number</Badge>
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50">{t('store.checkout.send_money_to') || 'Send Money To'}</span>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold text-[9px] py-0.5 px-1.5">{t('store.checkout.personal_number') || 'Personal Number'}</Badge>
                   </div>
                   <div className="flex items-center justify-between gap-3 mt-1">
                     <p className="text-lg font-black tracking-widest text-slate-900 dark:text-zinc-50 bg-white dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-primary/10 flex-1 text-center select-all">
@@ -1146,10 +1148,10 @@ function CheckoutContent() {
                       className="h-9 rounded-lg text-[10px] font-bold border hover:bg-primary hover:text-white transition-all shrink-0"
                       onClick={() => {
                         navigator.clipboard.writeText(selectedMethod?.number);
-                        toast.success('Number copied to clipboard!');
+                        toast.success(t('store.checkout.number_copied') as string || 'Number copied to clipboard!');
                       }}
                     >
-                      Copy
+                      {t('store.checkout.copy') || 'Copy'}
                     </Button>
                   </div>
                 </>
@@ -1157,7 +1159,7 @@ function CheckoutContent() {
 
               {(selectedMethod?.qrCode || selectedMethod?.id === 'banglaQr') && (
                 <div className="flex flex-col items-center gap-1.5 pt-2 border-t border-primary/10">
-                  <p className="text-[9px] font-bold uppercase opacity-40">Scan QR Code to Pay</p>
+                  <p className="text-[9px] font-bold uppercase opacity-40">{t('store.checkout.scan_qr_to_pay') || 'Scan QR Code to Pay'}</p>
                   <div className="p-1.5 bg-white rounded-lg shadow-sm border border-primary/10">
                     <Image src={selectedMethod?.qrCode || '/assets/placeholder-qr.png'} alt="QR" width={128} height={128} className="h-32 w-32 object-contain" />
                   </div>
@@ -1190,7 +1192,7 @@ function CheckoutContent() {
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'
                   }`}
               >
-                {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} নম্বর দিয়ে
+                {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} {t('store.checkout.tab_phone') || 'নম্বর দিয়ে'}
               </button>
               <button
                 type="button"
@@ -1200,7 +1202,7 @@ function CheckoutContent() {
                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'
                   }`}
               >
-                ট্রানজেকশন আইডি (TrxID) দিয়ে
+                {t('store.checkout.tab_trx') || 'ট্রানজেকশন আইডি (TrxID) দিয়ে'}
               </button>
             </div>
 
@@ -1208,7 +1210,7 @@ function CheckoutContent() {
             <div className="space-y-3 pt-1">
               {paymentDetailTab === 'phone' ? (
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase opacity-60">আপনার {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} নম্বর</Label>
+                  <Label className="text-[10px] font-black uppercase opacity-60">{t('store.checkout.your') || 'আপনার'} {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} {t('store.checkout.number') || 'নম্বর'}</Label>
                   <Input
                     placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন (যেমন: 017XXXXXXXX)"
                     value={manualDetails.senderNumber}
@@ -1218,7 +1220,7 @@ function CheckoutContent() {
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase opacity-60">ট্রানজেকশন আইডি (TrxID)</Label>
+                  <Label className="text-[10px] font-black uppercase opacity-60">{t('store.checkout.transaction_id') || 'ট্রানজেকশন আইডি (TrxID)'}</Label>
                   <Input
                     placeholder="যেমন: 8N7A6D5C"
                     value={manualDetails.transactionId}
@@ -1239,7 +1241,7 @@ function CheckoutContent() {
           </div>
 
           <DialogFooter className="p-4 bg-muted/20 border-t flex flex-row gap-3 shrink-0">
-            <Button variant="outline" onClick={() => setShowPaymentModal(false)} className="rounded-full h-10 flex-1 font-bold text-xs bg-background">বাতিল করুন</Button>
+            <Button variant="outline" onClick={() => setShowPaymentModal(false)} className="rounded-full h-10 flex-1 font-bold text-xs bg-background">{t('store.checkout.cancel') || 'বাতিল করুন'}</Button>
             <Button
               disabled={
                 paymentDetailTab === 'phone'
@@ -1259,7 +1261,7 @@ function CheckoutContent() {
               }}
               className="rounded-full h-10 flex-1 font-black uppercase tracking-widest text-xs shadow-md shadow-primary/10"
             >
-              পেমেন্ট নিশ্চিত করুন
+              {t('store.checkout.confirm_payment') || 'পেমেন্ট নিশ্চিত করুন'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1281,9 +1283,9 @@ function CheckoutContent() {
 
             {/* Text */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight">অর্ডার সফল হয়েছে!</h2>
+              <h2 className="text-2xl font-black tracking-tight">{t('store.checkout.order_success_title') || 'অর্ডার সফল হয়েছে!'}</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।
+                {t('store.checkout.order_success_desc') || 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।'}
               </p>
               {successOrderId && (
                 <p className="text-xs font-mono bg-muted px-3 py-1.5 rounded-full inline-block text-muted-foreground">
@@ -1299,14 +1301,14 @@ function CheckoutContent() {
                 className="w-full h-11 rounded-full font-bold shadow-lg shadow-primary/20"
               >
                 <ShoppingBag className="w-4 h-4 mr-2" />
-                শপিং চালিয়ে যান
+                {t('store.checkout.continue_shopping') || 'শপিং চালিয়ে যান'}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => { setShowSuccessModal(false); router.push('/dashboard'); }}
                 className="w-full h-11 rounded-full font-bold"
               >
-                আমার অর্ডার দেখুন
+                {t('store.checkout.view_order') || 'আমার অর্ডার দেখুন'}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -1325,9 +1327,9 @@ function CheckoutContent() {
 
             {/* Text */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-destructive">পেমেন্ট ব্যর্থ হয়েছে</h2>
+              <h2 className="text-2xl font-black tracking-tight text-destructive">{t('store.checkout.payment_failed_title') || 'পেমেন্ট ব্যর্থ হয়েছে'}</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                আপনার পেমেন্ট সম্পন্ন হয়নি। পুনরায় চেষ্টা করুন অথবা COD পেমেন্ট বেছে নিন।
+                {t('store.checkout.payment_failed_desc') || 'আপনার পেমেন্ট সম্পন্ন হয়নি। পুনরায় চেষ্টা করুন অথবা COD পেমেন্ট বেছে নিন।'}
               </p>
             </div>
 
@@ -1337,14 +1339,14 @@ function CheckoutContent() {
                 onClick={() => setShowFailModal(false)}
                 className="w-full h-11 rounded-full font-bold"
               >
-                পুনরায় চেষ্টা করুন
+                {t('store.checkout.try_again') || 'পুনরায় চেষ্টা করুন'}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => { setShowFailModal(false); router.push('/shop'); }}
                 className="w-full h-11 rounded-full font-bold"
               >
-                শপে ফিরে যান
+                {t('store.checkout.back_to_shop') || 'শপে ফিরে যান'}
               </Button>
             </div>
           </div>

@@ -27,8 +27,8 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Wholesaler {
   _id: string;
@@ -43,6 +43,7 @@ interface Wholesaler {
 }
 
 export default function AdminWholesalersPage() {
+  const { t } = useLanguage();
   const [wholesalers, setWholesalers] = useState<Wholesaler[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -285,15 +286,15 @@ export default function AdminWholesalersPage() {
     <div className="space-y-6 px-0 py-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">Wholesalers Directory</h1>
-          <p className="text-xs md:text-sm text-zinc-500 mt-1">Manage wholesale buyers, adjust profile parameters, and grant or revoke wholesale purchasing rights.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">{t("wholesalers.title")}</h1>
+          <p className="text-xs md:text-sm text-zinc-500 mt-1">{t("wholesalers.subtitle")}</p>
         </div>
         <div>
           <Button 
             onClick={() => setShowAddModal(true)}
             className="bg-primary text-primary-foreground font-bold flex items-center gap-1.5 h-10 text-xs md:text-sm md:h-11 px-4 rounded-full w-full sm:w-auto justify-center"
           >
-            <UserPlus className="h-4 w-4" /> Register Wholesaler
+            <UserPlus className="h-4 w-4" /> {t("wholesalers.register_wholesaler")}
           </Button>
         </div>
       </div>
@@ -304,7 +305,7 @@ export default function AdminWholesalersPage() {
               <div className="relative w-full md:w-72">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
                 <Input
-                  placeholder="Search name, phone or email..."
+                  placeholder={t("wholesalers.search_placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 w-full bg-white border-zinc-200 text-xs md:text-sm"
@@ -319,7 +320,7 @@ export default function AdminWholesalersPage() {
                       onClick={() => setStatusFilter(filter as any)}
                       className="capitalize font-bold h-9 text-xs"
                     >
-                      {filter}
+                      {t(`wholesalers.${filter}`)}
                     </Button>
                   ))}
                 </div>
@@ -332,7 +333,7 @@ export default function AdminWholesalersPage() {
                     value={dateFilter.from}
                     onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
                   />
-                  <span className="text-zinc-400 text-[10px]">to</span>
+                  <span className="text-zinc-400 text-[10px]">{t("wholesalers.to")}</span>
                   <Input
                     type="date"
                     aria-label="End date"
@@ -347,19 +348,19 @@ export default function AdminWholesalersPage() {
               {filteredWholesalers.length === 0 ? (
                 <div className="text-center py-16 text-zinc-400">
                   <Users className="h-12 w-12 mx-auto mb-3 opacity-60" />
-                  <p className="font-medium">No wholesalers found.</p>
+                  <p className="font-medium">{t("wholesalers.no_wholesalers_found")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto md:overflow-visible">
                   <table className="w-full text-left border-collapse text-sm block md:table">
                     <thead className="hidden md:table-header-group">
                       <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
-                        <th className="p-4">Name</th>
-                        <th className="p-4">Contact Information</th>
-                        <th className="p-4">Joined Date</th>
-                        <th className="p-4">Order Info</th>
-                        <th className="p-4">Total Due</th>
-                        <th className="p-4 text-right">Actions</th>
+                        <th className="p-4">{t("wholesalers.name")}</th>
+                        <th className="p-4">{t("wholesalers.contact_information")}</th>
+                        <th className="p-4">{t("wholesalers.joined_date")}</th>
+                        <th className="p-4">{t("wholesalers.order_info")}</th>
+                        <th className="p-4">{t("wholesalers.total_due")}</th>
+                        <th className="p-4 text-right">{t("wholesalers.actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -403,7 +404,7 @@ export default function AdminWholesalersPage() {
                             ৳{Math.round(w.totalOrderValue || 0).toLocaleString()}
                           </span>
                           <span className="text-xs text-zinc-500 font-medium ml-1 md:block md:ml-0">
-                            ({w.orderCount || 0} {w.orderCount === 1 ? 'order' : 'orders'})
+                            ({w.orderCount || 0} {w.orderCount === 1 ? t("wholesalers.order") : t("wholesalers.orders")})
                           </span>
                         </td>
                         <td className="p-2 md:p-4 block md:table-cell text-left">
@@ -431,7 +432,7 @@ export default function AdminWholesalersPage() {
                                 }}
                                 className="flex items-center gap-2 cursor-pointer text-zinc-700 hover:bg-zinc-50 p-2 text-xs rounded transition-colors"
                               >
-                                <Edit className="h-3.5 w-3.5" /> Edit Profile
+                                <Edit className="h-3.5 w-3.5" /> {t("wholesalers.edit_profile")}
                               </DropdownMenuItem>
                               {(w.totalDue || 0) > 0 && (
                                 <DropdownMenuItem 
@@ -442,14 +443,14 @@ export default function AdminWholesalersPage() {
                                   }}
                                   className={`flex items-center gap-2 cursor-pointer text-green-600 hover:bg-green-50 p-2 text-xs rounded transition-colors font-semibold border-t border-zinc-100/50 ${collectingId ? 'opacity-50 pointer-events-none' : ''}`}
                                 >
-                                  <CreditCard className="h-3.5 w-3.5" /> {collectingId === w._id ? 'Collecting...' : 'Collect Cash'}
+                                  <CreditCard className="h-3.5 w-3.5" /> {collectingId === w._id ? t("wholesalers.collecting") : t("wholesalers.collect_cash")}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem 
                                 onClick={() => handleRevokeWholesaler(w._id, w.name)}
                                 className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 p-2 text-xs rounded transition-colors border-t border-zinc-100/50"
                               >
-                                <Trash2 className="h-3.5 w-3.5" /> Revoke Privilege
+                                <Trash2 className="h-3.5 w-3.5" /> {t("wholesalers.revoke_privilege")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -470,7 +471,7 @@ export default function AdminWholesalersPage() {
           <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in duration-200">
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-black text-zinc-900">Register Wholesaler</CardTitle>
+                <CardTitle className="text-lg font-black text-zinc-900">{t("wholesalers.register_title")}</CardTitle>
                 <button 
                   onClick={() => setShowAddModal(false)}
                   className="text-zinc-400 hover:text-zinc-600 p-1"
@@ -485,10 +486,10 @@ export default function AdminWholesalersPage() {
                   aspect="circle" 
                   value={formImage} 
                   onUpload={setFormImage} 
-                  label="Profile Photo"
+                  label={t("wholesalers.profile_photo")}
                 />
                 <div className="space-y-1.5">
-                  <Label htmlFor="wName">Full Name</Label>
+                  <Label htmlFor="wName">{t("wholesalers.full_name")}</Label>
                   <Input 
                     id="wName"
                     required
@@ -498,7 +499,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="wEmail">Email Address</Label>
+                  <Label htmlFor="wEmail">{t("wholesalers.email_address")}</Label>
                   <Input 
                     id="wEmail"
                     type="email"
@@ -509,7 +510,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="wPass">Password</Label>
+                  <Label htmlFor="wPass">{t("wholesalers.password")}</Label>
                   <Input 
                     id="wPass"
                     type="password"
@@ -520,7 +521,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="wPhone">Phone Number</Label>
+                  <Label htmlFor="wPhone">{t("wholesalers.phone_number")}</Label>
                   <Input 
                     id="wPhone"
                     value={formPhone} 
@@ -530,8 +531,8 @@ export default function AdminWholesalersPage() {
                 </div>
               </CardContent>
               <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
-                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Register Wholesaler</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>{t("wholesalers.cancel")}</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground font-bold">{t("wholesalers.register_btn")}</Button>
               </div>
             </form>
           </Card>
@@ -543,7 +544,7 @@ export default function AdminWholesalersPage() {
           <Card className="w-full max-w-md bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in duration-200">
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-black text-zinc-900">Edit Wholesaler Profile</CardTitle>
+                <CardTitle className="text-lg font-black text-zinc-900">{t("wholesalers.edit_title")}</CardTitle>
                 <button 
                   onClick={() => {
                     setShowEditModal(false);
@@ -561,10 +562,10 @@ export default function AdminWholesalersPage() {
                   aspect="circle" 
                   value={editImage} 
                   onUpload={setEditImage} 
-                  label="Profile Photo"
+                  label={t("wholesalers.profile_photo")}
                 />
                 <div className="space-y-1.5">
-                  <Label htmlFor="editWName">Full Name</Label>
+                  <Label htmlFor="editWName">{t("wholesalers.full_name")}</Label>
                   <Input 
                     id="editWName"
                     required
@@ -574,7 +575,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="editWEmail">Email Address</Label>
+                  <Label htmlFor="editWEmail">{t("wholesalers.email_address")}</Label>
                   <Input 
                     id="editWEmail"
                     type="email"
@@ -585,7 +586,7 @@ export default function AdminWholesalersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="editWPhone">Phone Number</Label>
+                  <Label htmlFor="editWPhone">{t("wholesalers.phone_number")}</Label>
                   <Input 
                     id="editWPhone"
                     value={editPhone} 
@@ -598,8 +599,8 @@ export default function AdminWholesalersPage() {
                 <Button type="button" variant="ghost" onClick={() => {
                   setShowEditModal(false);
                   setEditingWholesaler(null);
-                }}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Save Changes</Button>
+                }}>{t("wholesalers.cancel")}</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground font-bold">{t("wholesalers.save_changes")}</Button>
               </div>
             </form>
           </Card>

@@ -18,8 +18,10 @@ import { Pagination } from '@/components/ui/pagination';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function AbandonedCartsContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -81,7 +83,7 @@ function AbandonedCartsContent() {
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to load abandoned carts');
+      toast.error(error.message || (t("abandoned_carts.failed_load") as string));
     } finally {
       setLoading(false);
     }
@@ -104,32 +106,32 @@ function AbandonedCartsContent() {
 
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
-      title: 'Remove Abandoned Cart?',
-      text: 'Are you sure you want to delete this abandoned cart session?',
+      title: t("abandoned_carts.remove_title"),
+      text: t("abandoned_carts.remove_desc"),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: t("abandoned_carts.yes_delete")
     });
 
     if (!result.isConfirmed) return;
     try {
       const res = await fetch(`/api/cart/abandoned?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success('Abandoned cart removed');
+        toast.success(t("abandoned_carts.cart_removed") as string);
         fetchCarts(currentPage);
       } else {
         const err = await res.json().catch(() => ({}));
-        toast.error(err.message || 'Failed to delete abandoned cart');
+        toast.error(err.message || (t("abandoned_carts.failed_delete") as string));
       }
     } catch (error) {
-      toast.error('Failed to delete abandoned cart');
+      toast.error(t("abandoned_carts.failed_delete") as string);
     }
   };
 
   const exportToCSV = async () => {
     try {
-      toast.info('Preparing data for export...');
+      toast.info(t("abandoned_carts.preparing_export") as string);
       const queryParams = new URLSearchParams({
         limit: 'all',
         search: debouncedSearch,
@@ -143,7 +145,7 @@ function AbandonedCartsContent() {
       const allCarts = data.carts || [];
 
       if (allCarts.length === 0) {
-        toast.error('No abandoned carts to export');
+        toast.error(t("abandoned_carts.no_carts_export") as string);
         return;
       }
 
@@ -170,9 +172,9 @@ function AbandonedCartsContent() {
           format(new Date(c.createdAt), 'yyyy-MM-dd HH:mm'),
           c.fullName,
           c.phone,
-          c.email || 'N/A',
-          c.street || 'N/A',
-          c.deliveryArea === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka',
+          c.email || (t("abandoned_carts.na") as string),
+          c.street || (t("abandoned_carts.na") as string),
+          c.deliveryArea === 'inside' ? (t("abandoned_carts.inside_dhaka") as string) : (t("abandoned_carts.outside_dhaka") as string),
           itemsText,
           c.totalAmount
         ];
@@ -193,10 +195,10 @@ function AbandonedCartsContent() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success('Excel/CSV export completed');
+      toast.success(t("abandoned_carts.export_completed") as string);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to export data');
+      toast.error(t("abandoned_carts.failed_export") as string);
     }
   };
 
@@ -204,17 +206,17 @@ function AbandonedCartsContent() {
     <div className="space-y-6 p-1">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Abandoned Carts</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("abandoned_carts.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Track visitors who filled checkout info but left without completing order.
+            {t("abandoned_carts.desc")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => fetchCarts(currentPage)} className="h-9">
-            <RefreshCw className="mr-2 h-4 w-4" /> Reload
+            <RefreshCw className="mr-2 h-4 w-4" /> {t("abandoned_carts.reload")}
           </Button>
           <Button variant="default" size="sm" onClick={exportToCSV} className="h-9 bg-primary text-primary-foreground hover:bg-primary/95">
-            <Download className="mr-2 h-4 w-4" /> Export CSV
+            <Download className="mr-2 h-4 w-4" /> {t("abandoned_carts.export_csv")}
           </Button>
         </div>
       </div>
@@ -224,11 +226,11 @@ function AbandonedCartsContent() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1.5 col-span-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-muted-foreground">Search</label>
+              <label className="text-xs font-semibold text-muted-foreground">{t("abandoned_carts.search")}</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name or phone..."
+                  placeholder={t("abandoned_carts.search_placeholder") as string}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 h-10"
@@ -236,7 +238,7 @@ function AbandonedCartsContent() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">From Date</label>
+              <label className="text-xs font-semibold text-muted-foreground">{t("abandoned_carts.from_date")}</label>
               <Input
                 type="date"
                 value={dateFilter.from}
@@ -245,7 +247,7 @@ function AbandonedCartsContent() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">To Date</label>
+              <label className="text-xs font-semibold text-muted-foreground">{t("abandoned_carts.to_date")}</label>
               <Input
                 type="date"
                 value={dateFilter.to}
@@ -259,20 +261,20 @@ function AbandonedCartsContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Cart Sessions</CardTitle>
+          <CardTitle>{t("abandoned_carts.cart_sessions")}</CardTitle>
           <CardDescription>
-            Showing {carts.length} of {totalCount} active abandoned cart sessions.
+            {t("abandoned_carts.showing_sessions")}{carts.length}{t("abandoned_carts.showing_of")}{totalCount}{t("abandoned_carts.showing_active")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="py-12 flex justify-center items-center text-muted-foreground gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              Loading abandoned carts...
+              {t("abandoned_carts.loading")}
             </div>
           ) : carts.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
-              No abandoned carts found.
+              {t("abandoned_carts.no_carts_found")}
             </div>
           ) : (
             <div className="space-y-4">
@@ -280,11 +282,11 @@ function AbandonedCartsContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Customer Details</TableHead>
-                      <TableHead>Cart Items</TableHead>
-                      <TableHead>Total Amount</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t("abandoned_carts.customer_details")}</TableHead>
+                      <TableHead>{t("abandoned_carts.cart_items")}</TableHead>
+                      <TableHead>{t("abandoned_carts.total_amount")}</TableHead>
+                      <TableHead>{t("abandoned_carts.time")}</TableHead>
+                      <TableHead className="text-right">{t("abandoned_carts.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -311,7 +313,7 @@ function AbandonedCartsContent() {
                               <div className="text-xs text-muted-foreground flex items-start gap-1 mt-1 max-w-[220px] whitespace-normal">
                                 <MapPin className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
                                 <span>
-                                  {cart.street} {cart.deliveryArea && `(${cart.deliveryArea === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka'})`}
+                                  {cart.street} {cart.deliveryArea && `(${cart.deliveryArea === 'inside' ? t("abandoned_carts.inside_dhaka") : t("abandoned_carts.outside_dhaka")})`}
                                 </span>
                               </div>
                             )}
@@ -331,9 +333,9 @@ function AbandonedCartsContent() {
                                 <div className="min-w-0 flex-1">
                                   <p className="font-medium text-foreground truncate">{item.name}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {item.color && `Color: ${item.color} `}
-                                    {item.size && `Size: ${item.size} `}
-                                    Qty: {item.quantity} × ৳{item.price}
+                                    {item.color && `${t("abandoned_carts.color")}${item.color} `}
+                                    {item.size && `${t("abandoned_carts.size")}${item.size} `}
+                                    {t("abandoned_carts.qty")}{item.quantity} × ৳{item.price}
                                   </p>
                                 </div>
                               </div>

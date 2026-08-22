@@ -17,25 +17,15 @@ import {
   Settings,
   Package,
   Truck,
-  HelpCircle,
-  ChevronDown,
-  Plus
+
 } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ModeToggle } from '@/components/mode-toggle';
 import { useAppSelector } from '@/store/hooks';
 import { CartDrawer } from '@/components/layout/CartDrawer';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { TransactionForm } from '@/components/admin/TransactionForm';
 import { CategoryNav } from '@/components/layout/CategoryNav';
 import { AIChatbot } from '@/components/layout/AIChatbot';
 import { Logo } from '@/components/ui/logo';
@@ -56,19 +46,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Swal from 'sweetalert2';
-
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/shop', label: 'Shop' },
-  { href: '/showrooms', label: 'Showrooms' },
-  { href: '/blog', label: 'Blogs' },
-  { href: '/contact', label: 'Contact' },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Navbar() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const navItems = [
+    { href: '/', label: t('store.nav.home') },
+    { href: '/shop', label: t('store.nav.shop') },
+    { href: '/blog', label: t('store.nav.blogs') },
+    { href: '/contact', label: t('store.nav.contact') },
+  ];
   const [isListening, setIsListening] = useState(false);
   const [liveResults, setLiveResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -81,7 +72,6 @@ export default function Navbar() {
   const { totalQuantity: cartCount, totalAmount } = useAppSelector((state) => state.cart);
   const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
   const settings = useSettings();
-  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
@@ -109,36 +99,35 @@ export default function Navbar() {
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    let timer: NodeJS.Timeout;
 
     if (status === 'authenticated') {
-      fetch('/api/user/profile', { signal: controller.signal })
-        .then(res => {
-          if (!res.ok) return null;
-          return res.json();
-        })
-        .then(data => {
-          if (isMounted && data) setProfile(data);
-        })
-        .catch(err => {
-          if (err.name !== 'AbortError') {
-            console.warn('Could not load user profile data');
-          }
-        });
+      if (!profile) {
+        fetch('/api/user/profile', { signal: controller.signal })
+          .then(res => {
+            if (!res.ok) return null;
+            return res.json();
+          })
+          .then(data => {
+            if (isMounted && data) setProfile(data);
+          })
+          .catch(err => {
+            if (err.name !== 'AbortError') {
+              console.warn('Could not load user profile data');
+            }
+          });
+      }
     } else {
-      timer = setTimeout(() => {
-        if (isMounted) {
-          setProfile(null);
-        }
-      }, 0);
+      if (profile !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProfile(null);
+      }
     }
 
     return () => {
       isMounted = false;
       controller.abort();
-      if (timer) clearTimeout(timer);
     };
-  }, [status]);
+  }, [status, profile]);
 
   // Voice Search Cleanup
   useEffect(() => {
@@ -163,23 +152,46 @@ export default function Navbar() {
 
   // Live search debounce
   useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = searchTerm.trim();
     if (!trimmed) {
-      Promise.resolve().then(() => {
-        setLiveResults([]);
-        setShowDropdown(false);
-      });
-      return;
+      debounceRef.current = setTimeout(() => {
+        if (active) {
+          setLiveResults([]);
+          setShowDropdown(false);
+          setIsSearching(false);
+        }
+      }, 0);
+    } else {
+      debounceRef.current = setTimeout(async () => {
+        if (!active) return;
+        setIsSearching(true);
+        try {
+          const res = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=6`, {
+            signal: controller.signal
+          });
+          if (res.ok && active) {
+            const data = await res.json();
+            setLiveResults(data.products || []);
+            setShowDropdown(true);
+          }
+        } catch {
+          /* silent */
+        } finally {
+          if (active) {
+            setIsSearching(false);
+          }
+        }
+      }, 400);
     }
-    debounceRef.current = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=6`);
-        if (res.ok) { const data = await res.json(); setLiveResults(data.products || []); setShowDropdown(true); }
-      } catch { /* silent */ } finally { setIsSearching(false); }
-    }, 400);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      active = false;
+      controller.abort();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [searchTerm]);
 
   useEffect(() => {
@@ -267,7 +279,7 @@ export default function Navbar() {
                 <input
                   id="navbar-search"
                   type="text"
-                  placeholder={isListening ? 'Listening...' : 'Search products...'}
+                  placeholder={isListening ? (t('store.nav.listening') as string) : (t('store.nav.search_placeholder') as string)}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onFocus={() => { if (liveResults.length > 0) setShowDropdown(true); }}
@@ -289,7 +301,7 @@ export default function Navbar() {
                 <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
                   {isSearching ? (
                     <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground text-xs">
-                      <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" /> Searching...
+                      <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" /> {t('store.nav.searching')}
                     </div>
                   ) : liveResults.length > 0 ? (
                     <>
@@ -320,13 +332,13 @@ export default function Navbar() {
                       </ul>
                       <div className="border-t border-border/50 px-4 py-2.5">
                         <Link href={`/shop?search=${encodeURIComponent(searchTerm.trim())}`} onClick={handleResultClick} className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                          <Search className="h-3 w-3" /> See all results for &ldquo;{searchTerm}&rdquo;
+                          <Search className="h-3 w-3" /> {t('store.nav.see_all_results')} &ldquo;{searchTerm}&rdquo;
                         </Link>
                       </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center py-6 text-muted-foreground text-xs gap-1">
-                      <Search className="h-5 w-5 mb-1 opacity-40" /> No results found for &ldquo;{searchTerm}&rdquo;
+                      <Search className="h-5 w-5 mb-1 opacity-40" /> {t('store.nav.no_results')} &ldquo;{searchTerm}&rdquo;
                     </div>
                   )}
                 </div>
@@ -362,7 +374,7 @@ export default function Navbar() {
                             {index === 0 && (
                               <Accordion type="single" collapsible>
                                 <AccordionItem value="cats" className="border-none">
-                                  <AccordionTrigger className="py-2 hover:no-underline uppercase text-[12px] font-bold tracking-[0.2em] text-left">Categories</AccordionTrigger>
+                                  <AccordionTrigger className="py-2 hover:no-underline uppercase text-[12px] font-bold tracking-[0.2em] text-left">{t('store.nav.categories')}</AccordionTrigger>
                                   <AccordionContent className="pt-2 pl-4 flex flex-col gap-3">
                                     {mainCategories.map(cat => (
                                       <Link
@@ -389,9 +401,9 @@ export default function Navbar() {
 
             {/* Logo (Centered in desktop, Left-ish in mobile) */}
             <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center">
-              <Logo 
-                imageClassName="md:size-16" 
-                textClassName="text-lg md:text-3xl whitespace-nowrap" 
+              <Logo
+                imageClassName="md:size-16"
+                textClassName="text-lg md:text-3xl whitespace-nowrap"
                 sizes="(max-width: 768px) 24px, 64px"
               />
             </div>
@@ -399,8 +411,8 @@ export default function Navbar() {
             {/* Icons/Action Row (Right) */}
             <div className="flex items-center justify-end gap-1 flex-1 max-w-[320px]">
 
-              {/* Theme Toggle */}
-              <div className="flex">
+              {/* Theme Toggle (Left of group) */}
+              <div className="hidden sm:block">
                 <ModeToggle />
               </div>
 
@@ -483,7 +495,7 @@ export default function Navbar() {
                             {profile && (
                               <div className="mt-1.5 flex items-center gap-1.5 bg-primary/10 px-2 py-0.5 rounded-full w-fit border border-primary/20">
                                 <Package className="h-3 w-3 text-primary" />
-                                <span className="text-[10px] font-bold text-primary">৳{profile.walletBalance || 0} Tokens</span>
+                                <span className="text-[10px] font-bold text-primary">৳{profile.walletBalance || 0} {t('store.nav.tokens')}</span>
                               </div>
                             )}
                           </div>
@@ -495,12 +507,12 @@ export default function Navbar() {
                           <>
                             <DropdownMenuItem asChild>
                               <Link href="/admin/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Admin Dashboard
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> {t('store.nav.admin_dashboard')}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href="/admin/system-design" className="cursor-pointer">
-                                <Settings className="mr-2 h-4 w-4" /> Infrastructure & Marketing
+                                <Settings className="mr-2 h-4 w-4" /> {t('store.nav.infrastructure')}
                               </Link>
                             </DropdownMenuItem>
                           </>
@@ -510,12 +522,12 @@ export default function Navbar() {
                           <>
                             <DropdownMenuItem asChild>
                               <Link href="/admin/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Admin Dashboard
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> {t('store.nav.admin_dashboard')}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href="/admin/orders" className="cursor-pointer">
-                                <Truck className="mr-2 h-4 w-4" /> Manage Orders
+                                <Truck className="mr-2 h-4 w-4" /> {t('store.nav.manage_orders')}
                               </Link>
                             </DropdownMenuItem>
                           </>
@@ -525,60 +537,20 @@ export default function Navbar() {
                           <>
                             <DropdownMenuItem asChild>
                               <Link href="/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> {t('store.nav.dashboard')}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href="/track-order" className="cursor-pointer">
-                                <Truck className="mr-2 h-4 w-4" /> Track Order
+                                <Truck className="mr-2 h-4 w-4" /> {t('store.nav.track_order')}
                               </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {(session.user as any)?.role === 'showroom_manager' && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href="/showroom/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Showroom Dashboard
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {(session.user as any)?.role === 'wholesaler' && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href="/wholesaler/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Wholesaler Dashboard
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {(session.user as any)?.role === 'employee' && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href="/employee/dashboard" className="cursor-pointer">
-                                <LayoutDashboard className="mr-2 h-4 w-4" /> Employee Dashboard
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {['admin', 'super_admin', 'showroom_manager'].includes((session.user as any)?.role) && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setIsTransactionDialogOpen(true)} className="cursor-pointer">
-                              <Plus className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                              <span className="font-semibold text-emerald-700 dark:text-emerald-500">Add Transaction</span>
                             </DropdownMenuItem>
                           </>
                         )}
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => signOut({ callbackUrl: window.location.origin })} className="text-destructive cursor-pointer">
-                        <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                        <LogOut className="mr-2 h-4 w-4" /> {t('store.nav.sign_out')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -597,21 +569,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-
-      <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
-        <DialogContent className="max-w-md w-full bg-background border shadow-lg rounded-xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Add Transaction</DialogTitle>
-          </DialogHeader>
-          <TransactionForm onSuccess={() => {
-            setIsTransactionDialogOpen(false);
-            router.refresh();
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new Event('refresh-dashboard'));
-            }
-          }} />
-        </DialogContent>
-      </Dialog>
 
       {/* ΓöÇΓöÇ Bottom Navigation Row ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {/* Siblings with <header> so sticky works relative to the viewport,      */}

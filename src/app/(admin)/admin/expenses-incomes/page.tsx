@@ -42,10 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function ExpensesIncomesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const { data: session } = useSession();
 
   const userRole = (session?.user as any)?.role;
@@ -260,17 +262,17 @@ function ExpensesIncomesContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-heading">Expenses & Incomes</h1>
-          <p className="text-muted-foreground text-xs md:text-sm">Track ads, rent, salary, sales, investments, and other costs or revenues.</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-heading">{t("expenses.title")}</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">{t("expenses.subtitle")}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} className="h-9 w-9 p-0 md:h-10 md:w-auto md:px-4 shrink-0" />}>
             <Plus className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Add Record</span>
+            <span className="hidden md:inline">{t("expenses.add_record")}</span>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[480px] w-full animate-in fade-in duration-200 max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingTransaction ? 'Edit' : 'Add'} Transaction</DialogTitle>
+              <DialogTitle>{editingTransaction ? t("expenses.edit_transaction") : t("expenses.add_transaction")}</DialogTitle>
             </DialogHeader>
             <TransactionForm
               initialData={editingTransaction}
@@ -295,13 +297,13 @@ function ExpensesIncomesContent() {
               <ArrowDownCircle className="h-5 w-5 md:h-6 md:w-6" />
             </div>
             <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
-              Total Income
+              {t("expenses.total_income")}
             </span>
             <span className="text-xs md:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
               ৳{Math.round(totalIncome)}
             </span>
             <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
-              {isFiltered ? 'Filtered inflow' : 'Approved total'}
+              {isFiltered ? t("expenses.filtered_inflow") : t("expenses.approved_total")}
             </span>
           </div>
 
@@ -311,13 +313,13 @@ function ExpensesIncomesContent() {
               <ArrowUpCircle className="h-5 w-5 md:h-6 md:w-6" />
             </div>
             <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
-              Total Expense
+              {t("expenses.total_expense")}
             </span>
             <span className="text-xs md:text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5">
               ৳{Math.round(totalExpense)}
             </span>
             <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
-              {isFiltered ? 'Filtered outflow' : 'Approved total'}
+              {isFiltered ? t("expenses.filtered_outflow") : t("expenses.approved_total")}
             </span>
           </div>
 
@@ -327,13 +329,13 @@ function ExpensesIncomesContent() {
               <Clock className="h-5 w-5 md:h-6 md:w-6" />
             </div>
             <span className="text-[9px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-full">
-              Pending
+              {t("expenses.pending")}
             </span>
             <span className="text-xs md:text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-              {pendingCount} Records
+              {pendingCount} {t("expenses.records")}
             </span>
             <span className="text-[7px] md:text-[9px] text-muted-foreground mt-1 truncate max-w-full">
-              ৳{Math.round(pendingAmount)} pending
+              ৳{Math.round(pendingAmount)} {t("expenses.pending_small")}
             </span>
           </div>
         </div>
@@ -342,7 +344,7 @@ function ExpensesIncomesContent() {
       <Card className="border-none md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
         <CardHeader className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 px-0 md:px-6">
           <div className="flex items-center justify-between w-full lg:w-auto">
-            <CardTitle>All Transactions</CardTitle>
+            <CardTitle>{t("expenses.all_transactions")}</CardTitle>
             {/* Mobile Filter Toggle Button */}
             <div className="block lg:hidden">
               <Button
@@ -352,7 +354,7 @@ function ExpensesIncomesContent() {
                 className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4" />
-                Filters
+                {t("expenses.filters")}
                 {isFiltered && (
                   <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                 )}
@@ -370,7 +372,7 @@ function ExpensesIncomesContent() {
               <div className="relative w-full lg:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search title, showroom..."
+                  placeholder={t("expenses.search_placeholder") as string}
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -380,24 +382,24 @@ function ExpensesIncomesContent() {
               <div className="grid grid-cols-2 lg:flex items-center gap-2 w-full lg:w-auto">
                 <Select value={typeFilter} onValueChange={(val: any) => setTypeFilter(val)}>
                   <SelectTrigger className="w-full lg:w-36">
-                    <SelectValue placeholder="All Types" />
+                    <SelectValue placeholder={t("expenses.all_types")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
-                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="all">{t("expenses.all_types")}</SelectItem>
+                    <SelectItem value="expense">{t("expenses.expense")}</SelectItem>
+                    <SelectItem value="income">{t("expenses.income")}</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
                   <SelectTrigger className="w-full lg:w-36">
-                    <SelectValue placeholder="All Statuses" />
+                    <SelectValue placeholder={t("expenses.all_statuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
+                    <SelectItem value="all">{t("expenses.all_statuses")}</SelectItem>
+                    <SelectItem value="Approved">{t("expenses.approved")}</SelectItem>
+                    <SelectItem value="Pending">{t("expenses.pending")}</SelectItem>
+                    <SelectItem value="Rejected">{t("expenses.rejected")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -411,7 +413,7 @@ function ExpensesIncomesContent() {
                       onChange={(e) => setFilterByDate(e.target.checked)}
                       className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
                     />
-                    Filter by Date
+                    {t("expenses.filter_by_date")}
                   </label>
 
                   <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -422,7 +424,7 @@ function ExpensesIncomesContent() {
                       onChange={(e) => setDateFilter((prev: any) => ({ ...prev, from: e.target.value }))}
                       disabled={!filterByDate}
                     />
-                    <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                    <span className="text-muted-foreground text-[10px] shrink-0 font-medium">{t("expenses.to")}</span>
                     <Input
                       type="date"
                       className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
@@ -452,7 +454,7 @@ function ExpensesIncomesContent() {
                     }}
                     className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
                   >
-                    Clear
+                    {t("expenses.clear")}
                   </Button>
                 )}
               </div>
@@ -480,7 +482,7 @@ function ExpensesIncomesContent() {
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
-              <p>No transactions found.</p>
+              <p>{t("expenses.no_transactions")}</p>
             </div>
           ) : (
             <>
@@ -489,13 +491,13 @@ function ExpensesIncomesContent() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Showroom / Origin</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Amount (Tk)</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t("expenses.date")}</TableHead>
+                      <TableHead>{t("expenses.title_col")}</TableHead>
+                      <TableHead>{t("expenses.showroom_origin")}</TableHead>
+                      <TableHead>{t("expenses.type")}</TableHead>
+                      <TableHead>{t("expenses.status")}</TableHead>
+                      <TableHead className="text-right">{t("expenses.amount")}</TableHead>
+                      <TableHead className="text-right">{t("expenses.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -519,35 +521,35 @@ function ExpensesIncomesContent() {
                               </span>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">
-                                Head Office
+                                {t("expenses.head_office")}
                               </span>
                             )}
                           </TableCell>
                           <TableCell>
                             {isExpense ? (
                               <span className="px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/30">
-                                Expense
+                                {t("expenses.expense")}
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30">
-                                Income
+                                {t("expenses.income")}
                               </span>
                             )}
                           </TableCell>
                           <TableCell>
                             {(tx.status === 'Approved' || !tx.status) && (
                               <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30">
-                                Approved
+                                {t("expenses.approved")}
                               </span>
                             )}
                             {tx.status === 'Pending' && (
                               <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30">
-                                Pending
+                                {t("expenses.pending")}
                               </span>
                             )}
                             {tx.status === 'Rejected' && (
                               <span className="px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/30">
-                                Rejected
+                                {t("expenses.rejected")}
                               </span>
                             )}
                           </TableCell>
@@ -568,13 +570,13 @@ function ExpensesIncomesContent() {
                                       className="text-emerald-600 focus:text-emerald-600 font-bold"
                                       onClick={() => handleUpdateStatus(tx._id, 'Approved')}
                                     >
-                                      <Check className="mr-2 h-4 w-4" /> Approve
+                                      <Check className="mr-2 h-4 w-4" /> {t("expenses.approve_action")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       className="text-rose-600 focus:text-rose-600 font-bold"
                                       onClick={() => handleUpdateStatus(tx._id, 'Rejected')}
                                     >
-                                      <X className="mr-2 h-4 w-4" /> Reject
+                                      <X className="mr-2 h-4 w-4" /> {t("expenses.reject_action")}
                                     </DropdownMenuItem>
                                   </>
                                 )}
@@ -586,13 +588,13 @@ function ExpensesIncomesContent() {
                                         setIsDialogOpen(true);
                                       }}
                                     >
-                                      <Edit className="mr-2 h-4 w-4" /> Edit
+                                      <Edit className="mr-2 h-4 w-4" /> {t("expenses.edit_action")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       className="text-destructive focus:text-destructive"
                                       onClick={() => handleDelete(tx._id)}
                                     >
-                                      <Trash className="mr-2 h-4 w-4" /> Delete
+                                      <Trash className="mr-2 h-4 w-4" /> {t("expenses.delete_action")}
                                     </DropdownMenuItem>
                                   </>
                                 )}
@@ -623,7 +625,7 @@ function ExpensesIncomesContent() {
                               </span>
                             ) : (
                               <span className="text-[10px] italic text-muted-foreground">
-                                Head Office
+                                {t("expenses.head_office")}
                               </span>
                             )}
                              {tx.status && (
@@ -633,7 +635,7 @@ function ExpensesIncomesContent() {
                                     ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400'
                                     : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400'
                                 }`}>
-                                {tx.status}
+                                {tx.status === 'Approved' ? t("expenses.approved") : tx.status === 'Pending' ? t("expenses.pending") : t("expenses.rejected")}
                               </span>
                             )}
                           </div>
@@ -668,13 +670,13 @@ function ExpensesIncomesContent() {
                                   className="text-emerald-600 focus:text-emerald-600 font-bold"
                                   onClick={() => handleUpdateStatus(tx._id, 'Approved')}
                                 >
-                                  <Check className="mr-2 h-4 w-4" /> Approve
+                                  <Check className="mr-2 h-4 w-4" /> {t("expenses.approve_action")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="text-rose-600 focus:text-rose-600 font-bold"
                                   onClick={() => handleUpdateStatus(tx._id, 'Rejected')}
                                 >
-                                  <X className="mr-2 h-4 w-4" /> Reject
+                                  <X className="mr-2 h-4 w-4" /> {t("expenses.reject_action")}
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -686,13 +688,13 @@ function ExpensesIncomesContent() {
                                     setIsDialogOpen(true);
                                   }}
                                 >
-                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                  <Edit className="mr-2 h-4 w-4" /> {t("expenses.edit_action")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
                                   onClick={() => handleDelete(tx._id)}
                                 >
-                                  <Trash className="mr-2 h-4 w-4" /> Delete
+                                  <Trash className="mr-2 h-4 w-4" /> {t("expenses.delete_action")}
                                 </DropdownMenuItem>
                               </>
                             )}

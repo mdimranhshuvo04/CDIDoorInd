@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   DollarSign, CalendarOff, CheckSquare, Clock,
   Loader2, AlertTriangle, ArrowRight, Briefcase, CheckCircle2
@@ -54,6 +55,7 @@ function StatCard({ title, value, sub, icon: Icon, href }: {
 }
 
 export default function EmployeeDashboard() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -93,19 +95,19 @@ export default function EmployeeDashboard() {
         <div>
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
-            <h2 className="text-2xl font-bold tracking-tight">স্বাগতম, {session?.user?.name}!</h2>
+            <h2 className="text-2xl font-bold tracking-tight">{t('store.employee.welcome') || 'স্বাগতম,'} {session?.user?.name}!</h2>
           </div>
           <p className="text-muted-foreground text-sm mt-1">
-            আপনার কর্মক্ষেত্রের সামগ্রিক তথ্য এখানে দেখুন।
+            {t('store.employee.dashboard_desc') || 'আপনার কর্মক্ষেত্রের সামগ্রিক তথ্য এখানে দেখুন।'}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Badge variant="outline" className="text-xs">
-            {isMonthly ? 'মাসিক কর্মী' : 'চুক্তিভিত্তিক কর্মী'}
+            {isMonthly ? '{t('store.employee.monthly_staff') || 'মাসিক কর্মী'}' : '{t('store.employee.contractual_staff') || 'চুক্তিভিত্তিক কর্মী'}'}
           </Badge>
           {data?.profile?.joinedDate && (
             <Badge variant="secondary" className="text-xs">
-              যোগদান: {format(new Date(data.profile.joinedDate), 'dd MMM yyyy')}
+              {t('store.employee.joined') || 'যোগদান: '} {format(new Date(data.profile.joinedDate), 'dd MMM yyyy')}
             </Badge>
           )}
         </div>
@@ -115,22 +117,22 @@ export default function EmployeeDashboard() {
       {isMonthly ? (
         <div className="grid gap-2 sm:gap-4 grid-cols-3">
           <StatCard
-            title="এই মাসের বেতন"
+            title=t('store.employee.this_month_salary') || 'এই মাসের বেতন'
             value={fmt(data?.salary?.thisMonth || 0)}
-            sub={`বেস স্যালারি: ${fmt(data?.profile?.baseSalary || 0)}`}
+            sub={`{t('store.employee.base_salary') || 'বেস স্যালারি: '} ${fmt(data?.profile?.baseSalary || 0)}`}
             icon={DollarSign}
             href="/employee/salary"
           />
           <StatCard
-            title="এই মাসের উপস্থিতি"
+            title=t('store.employee.this_month_attendance') || 'এই মাসের উপস্থিতি'
             value={`${data?.attendance?.presentThisMonth || 0} দিন`}
-            sub="চলতি মাসে মোট উপস্থিতি"
+            sub=t('store.employee.total_attendance_this_month') || 'চলতি মাসে মোট উপস্থিতি'
             icon={CheckCircle2}
           />
           <StatCard
-            title="লিভ স্ট্যাটাস"
+            title=t('store.employee.leave_status') || 'লিভ স্ট্যাটাস'
             value={`${data?.leaves?.approved || 0}টি`}
-            sub={`পেন্ডিং: ${data?.leaves?.pending || 0}টি`}
+            sub={`{t('store.employee.pending') || 'পেন্ডিং: '} ${data?.leaves?.pending || 0}টি`}
             icon={CalendarOff}
             href="/employee/leaves"
           />
@@ -138,30 +140,30 @@ export default function EmployeeDashboard() {
       ) : (
         <div className="grid gap-2 sm:gap-4 grid-cols-2 md:grid-cols-4">
           <StatCard
-            title="মোট অর্জিত মজুরি"
+            title=t('store.employee.total_earned_wages') || 'মোট অর্জিত মজুরি'
             value={fmt(data?.tasks?.totalEarnings || 0)}
-            sub="সম্পন্ন কাজের মোট মজুরি"
+            sub=t('store.employee.total_completed_wages') || 'সম্পন্ন কাজের মোট মজুরি'
             icon={DollarSign}
             href="/employee/tasks"
           />
           <StatCard
-            title="পরিশোধিত অর্থ"
+            title=t('store.employee.paid_amount') || 'পরিশোধিত অর্থ'
             value={fmt(data?.salary?.thisMonth || 0)}
-            sub="চলতি মাসে প্রাপ্ত"
+            sub=t('store.employee.received_this_month') || 'চলতি মাসে প্রাপ্ত'
             icon={CheckCircle2}
             href="/employee/salary"
           />
           <StatCard
-            title="পেন্ডিং টাস্ক"
+            title=t('store.employee.pending_tasks') || 'পেন্ডিং টাস্ক'
             value={`${data?.tasks?.pending || 0}`}
-            sub="চলমান কাজ"
+            sub=t('store.employee.ongoing_work') || 'চলমান কাজ'
             icon={Clock}
             href="/employee/tasks"
           />
           <StatCard
-            title="সম্পন্ন কাজ"
+            title=t('store.employee.completed_work') || 'সম্পন্ন কাজ'
             value={fmt(data?.tasks?.pendingPayout || 0)}
-            sub="পেমেন্ট প্রক্রিয়াধীন"
+            sub=t('store.employee.payment_processing') || 'পেমেন্ট প্রক্রিয়াধীন'
             icon={CheckSquare}
             href="/employee/tasks"
           />
@@ -175,18 +177,18 @@ export default function EmployeeDashboard() {
           <Card className="shadow-sm border">
             <CardHeader className="p-4 sm:p-6 border-b bg-muted/20 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base font-bold">সাম্প্রতিক টাস্ক ও কাজের অগ্রগতি</CardTitle>
-                <CardDescription className="text-xs">আপনাকে অ্যাসাইন করা চুক্তিভিত্তিক কাজের তালিকা</CardDescription>
+                <CardTitle className="text-base font-bold">{t('store.employee.recent_tasks_progress') || 'সাম্প্রতিক টাস্ক ও কাজের অগ্রগতি'}</CardTitle>
+                <CardDescription className="text-xs">{t('store.employee.assigned_contractual_tasks') || 'আপনাকে অ্যাসাইন করা চুক্তিভিত্তিক কাজের তালিকা'}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="h-8 text-xs font-semibold">
-                <Link href="/employee/tasks">সব দেখুন <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                <Link href="/employee/tasks">{t('store.employee.see_all') || 'সব দেখুন'} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               {data?.tasks?.recent?.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground">
                   <CheckSquare className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm font-medium">কোনো টাস্ক অ্যাসাইন করা নেই</p>
+                  <p className="text-sm font-medium">{t('store.employee.no_tasks_assigned') || 'কোনো টাস্ক অ্যাসাইন করা নেই'}</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -218,7 +220,7 @@ export default function EmployeeDashboard() {
                         variant={task.status === 'Paid' ? 'default' : task.status === 'Completed' ? 'secondary' : 'outline'}
                         className="text-xs font-semibold"
                       >
-                        {task.status === 'Paid' ? 'পরিশোধিত' : task.status === 'Completed' ? 'সম্পন্ন' : 'চলমান'}
+                        {task.status === 'Paid' ? t('store.employee.paid') || 'পরিশোধিত' : task.status === 'Completed' ? t('store.employee.completed') || 'সম্পন্ন' : t('store.employee.ongoing') || 'চলমান'}
                       </Badge>
                     </div>
                   ))}
@@ -233,18 +235,18 @@ export default function EmployeeDashboard() {
           <Card className="shadow-sm border">
             <CardHeader className="p-4 sm:p-6 border-b bg-muted/20 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base font-bold">লিভ রিকোয়েস্ট</CardTitle>
-                <CardDescription className="text-xs">আপনার সাম্প্রতিক ছুটির আবেদনসমূহ</CardDescription>
+                <CardTitle className="text-base font-bold">{t('store.employee.leave_request') || 'লিভ রিকোয়েস্ট'}</CardTitle>
+                <CardDescription className="text-xs">{t('store.employee.recent_leave_applications') || 'আপনার সাম্প্রতিক ছুটির আবেদনসমূহ'}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="h-8 text-xs font-semibold">
-                <Link href="/employee/leaves">সব দেখুন <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                <Link href="/employee/leaves">{t('store.employee.see_all') || 'সব দেখুন'} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               {data?.leaves?.recent?.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground">
                   <CalendarOff className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm font-medium">কোনো লিভ রিকোয়েস্ট নেই</p>
+                  <p className="text-sm font-medium">কোনো {t('store.employee.leave_request') || 'লিভ রিকোয়েস্ট'} নেই</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -260,7 +262,7 @@ export default function EmployeeDashboard() {
                         variant={leave.status === 'Approved' ? 'default' : leave.status === 'Rejected' ? 'destructive' : 'secondary'}
                         className="text-xs font-semibold"
                       >
-                        {leave.status === 'Approved' ? 'অনুমোদিত' : leave.status === 'Rejected' ? 'প্রত্যাখ্যাত' : 'পেন্ডিং'}
+                        {leave.status === 'Approved' ? t('store.employee.approved') || 'অনুমোদিত' : leave.status === 'Rejected' ? t('store.employee.rejected') || 'প্রত্যাখ্যাত' : t('store.employee.pending') || 'পেন্ডিং'}
                       </Badge>
                     </div>
                   ))}

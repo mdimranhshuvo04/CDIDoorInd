@@ -58,6 +58,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Pagination } from '@/components/ui/pagination';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -80,6 +81,7 @@ interface BillItemInput {
 function ClientBillsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   const [bills, setBills] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -508,11 +510,11 @@ function ClientBillsContent() {
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Client Billing Manager</h2>
-          <p className="text-muted-foreground text-xs sm:text-sm">Create bills, offer discounts, manage collections & track receivables.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("bills.title")}</h2>
+          <p className="text-muted-foreground text-xs sm:text-sm">{t("bills.subtitle")}</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto font-bold bg-primary text-primary-foreground">
-          <Plus className="mr-2 h-4 w-4 shrink-0" /> Create Bill
+          <Plus className="mr-2 h-4 w-4 shrink-0" /> {t("bills.create_bill")}
         </Button>
       </div>
 
@@ -520,32 +522,32 @@ function ClientBillsContent() {
       <div className="grid gap-2 sm:gap-4 grid-cols-3">
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Total Billed</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("bills.total_billed")}</CardTitle>
             <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold">৳{totalBilled.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Client invoicing</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("bills.client_invoicing")}</p>
           </CardContent>
         </Card>
         <Card className="bg-green-500/5 border-green-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Collected</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("bills.collected")}</CardTitle>
             <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold text-green-700">৳{totalCollected.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Payments received</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("bills.payments_received")}</p>
           </CardContent>
         </Card>
         <Card className="bg-orange-500/5 border-orange-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Receivable</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("bills.receivable")}</CardTitle>
             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600 shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold text-orange-700">৳{accountsReceivable.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Outstanding due</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("bills.outstanding_due")}</p>
           </CardContent>
         </Card>
       </div>
@@ -553,7 +555,7 @@ function ClientBillsContent() {
       {/* Filter and Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
         <div className="flex items-center justify-between w-full md:w-auto">
-          <h3 className="font-semibold text-lg tracking-tight text-foreground md:hidden">All Invoices</h3>
+          <h3 className="font-semibold text-lg tracking-tight text-foreground md:hidden">{t("bills.all_invoices")}</h3>
           {/* Mobile Filter Toggle Button */}
           <div className="block md:hidden">
             <Button
@@ -563,7 +565,7 @@ function ClientBillsContent() {
               className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
             >
               <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Filters
+              {t("bills.filters")}
               {isFiltered && (
                 <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               )}
@@ -584,7 +586,7 @@ function ClientBillsContent() {
               <div className="relative w-full md:w-52">
                 <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Search name, phone or bill..."
+                  placeholder={t("bills.search_placeholder") as string}
                   className="pl-8 h-8 text-xs"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -600,7 +602,7 @@ function ClientBillsContent() {
                     onChange={(e) => setFilterByDate(e.target.checked)}
                     className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
                   />
-                  Filter by Date
+                  {t("bills.filter_by_date")}
                 </label>
 
                 <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -611,7 +613,7 @@ function ClientBillsContent() {
                     onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
                     disabled={!filterByDate}
                   />
-                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">{t("bills.to")}</span>
                   <Input
                     type="date"
                     className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
@@ -637,7 +639,7 @@ function ClientBillsContent() {
                       : 'bg-background hover:bg-muted border-border text-foreground'
                   }`}
                 >
-                  All
+                  {t("bills.all")}
                 </Button>
                 <Button
                   variant={statusFilter === 'Paid' ? 'default' : 'outline'}
@@ -649,7 +651,7 @@ function ClientBillsContent() {
                       : 'bg-background hover:bg-muted border-border text-foreground'
                   }`}
                 >
-                  Paid
+                  {t("bills.paid")}
                 </Button>
                 <Button
                   variant={statusFilter === 'Due' ? 'default' : 'outline'}
@@ -661,7 +663,7 @@ function ClientBillsContent() {
                       : 'bg-background hover:bg-muted border-border text-foreground'
                   }`}
                 >
-                  Due
+                  {t("bills.due")}
                 </Button>
               </div>
 
@@ -683,7 +685,7 @@ function ClientBillsContent() {
                   }}
                   className="text-xs h-7 text-muted-foreground hover:text-primary shrink-0 font-bold px-2"
                 >
-                  Clear
+                  {t("bills.clear")}
                 </Button>
               )}
             </div>
@@ -714,7 +716,7 @@ function ClientBillsContent() {
         ) : filteredBills.length === 0 ? (
           <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
             <FileText className="h-10 w-10 mb-2 stroke-1" />
-            <p>No bills found</p>
+            <p>{t("bills.no_bills_found")}</p>
           </div>
         ) : (
           <>
@@ -723,15 +725,15 @@ function ClientBillsContent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Bill No</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Client Details</TableHead>
-                    <TableHead className="text-right">Grand Total</TableHead>
-                    <TableHead className="text-right">Paid (Cash-in)</TableHead>
-                    <TableHead className="text-right">Due</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Expected Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("bills.bill_no")}</TableHead>
+                    <TableHead>{t("bills.date")}</TableHead>
+                    <TableHead>{t("bills.client_details")}</TableHead>
+                    <TableHead className="text-right">{t("bills.grand_total")}</TableHead>
+                    <TableHead className="text-right">{t("bills.paid_cash_in")}</TableHead>
+                    <TableHead className="text-right">{t("bills.due")}</TableHead>
+                    <TableHead className="text-center">{t("bills.status")}</TableHead>
+                    <TableHead className="text-center">{t("bills.expected_date")}</TableHead>
+                    <TableHead className="text-right">{t("bills.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -824,7 +826,7 @@ function ClientBillsContent() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => setSelectedBill(bill)}>
-                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                <Eye className="mr-2 h-4 w-4" /> {t("bills.view_details")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
@@ -843,27 +845,27 @@ function ClientBillsContent() {
                                   setIsCreateOpen(true);
                                 }}
                               >
-                                <Edit className="mr-2 h-4 w-4" /> Edit Bill
+                                <Edit className="mr-2 h-4 w-4" /> {t("bills.edit_bill")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'download')}>
-                                <Download className="mr-2 h-4 w-4 text-blue-600" /> Download PDF
+                                <Download className="mr-2 h-4 w-4 text-blue-600" /> {t("bills.download_pdf")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'print')}>
-                                <Printer className="mr-2 h-4 w-4 text-teal-600" /> Print Bill
+                                <Printer className="mr-2 h-4 w-4 text-teal-600" /> {t("bills.print_bill")}
                               </DropdownMenuItem>
                               {bill.status === 'Due' && (
                                 <DropdownMenuItem onClick={() => handleUpdateStatus(bill._id, bill.currentBillDue)}>
-                                  <CreditCard className="mr-2 h-4 w-4 text-green-600" /> Collect Cash
+                                  <CreditCard className="mr-2 h-4 w-4 text-green-600" /> {t("bills.collect_cash")}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem onClick={() => handleCopyLink(bill.invoiceNo)}>
-                                <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Link
+                                <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> {t("bills.copy_link")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => handleDeleteBill(bill._id)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                <Trash2 className="mr-2 h-4 w-4" /> {t("bills.delete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -892,11 +894,11 @@ function ClientBillsContent() {
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Client:</span>
+                      <span className="text-muted-foreground">{t("bills.client")}:</span>
                       <span className="font-semibold text-foreground">{bill.clientName}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Phone:</span>
+                      <span className="text-muted-foreground">{t("bills.phone")}:</span>
                       <div className="flex items-center gap-1.5 font-medium text-foreground">
                         <span>{bill.clientPhone}</span>
                         {bill.clientPhone && (
@@ -930,11 +932,11 @@ function ClientBillsContent() {
                       </div>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date:</span>
+                      <span className="text-muted-foreground">{t("bills.date")}:</span>
                       <span className="text-foreground">{format(new Date(bill.date), 'dd MMM yyyy')}</span>
                     </div>
                     <div className="flex justify-between pt-1 border-t">
-                      <span className="text-muted-foreground">Total:</span>
+                      <span className="text-muted-foreground">{t("bills.total")}:</span>
                       <span className="font-bold text-foreground">৳{bill.gTotal}</span>
                     </div>
                     <div className="flex justify-between text-green-600">
@@ -953,7 +955,7 @@ function ClientBillsContent() {
                       className="h-8 text-teal-600 hover:text-teal-700 text-xs px-2.5"
                       onClick={() => generateBillPDF(bill, settings, 'print')}
                     >
-                      <Printer className="h-3.5 w-3.5 mr-1" /> Print
+                      <Printer className="h-3.5 w-3.5 mr-1" /> {t("bills.print")}
                     </Button>
                     {bill.status === 'Due' && (
                       <Button
@@ -973,7 +975,7 @@ function ClientBillsContent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setSelectedBill(bill)}>
-                          <Eye className="mr-2 h-4 w-4" /> View Details
+                          <Eye className="mr-2 h-4 w-4" /> {t("bills.view_details")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
@@ -992,22 +994,22 @@ function ClientBillsContent() {
                             setIsCreateOpen(true);
                           }}
                         >
-                          <Edit className="mr-2 h-4 w-4" /> Edit Bill
+                          <Edit className="mr-2 h-4 w-4" /> {t("bills.edit_bill")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'download')}>
-                          <Download className="mr-2 h-4 w-4 text-blue-600" /> Download PDF
+                          <Download className="mr-2 h-4 w-4 text-blue-600" /> {t("bills.download_pdf")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'print')}>
-                          <Printer className="mr-2 h-4 w-4 text-teal-600" /> Print Bill
+                          <Printer className="mr-2 h-4 w-4 text-teal-600" /> {t("bills.print_bill")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleCopyLink(bill.invoiceNo)}>
-                          <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> Copy Link
+                          <Share2 className="mr-2 h-4 w-4 text-indigo-600" /> {t("bills.copy_link")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => handleDeleteBill(bill._id)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> {t("bills.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1032,13 +1034,13 @@ function ClientBillsContent() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingBill ? 'Edit' : 'Generate'} Client Bill</DialogTitle>
+            <DialogTitle>{editingBill ? t("bills.edit_bill_title") : t("bills.generate_bill")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Client Info */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="clientName" className="text-sm font-semibold">Client Name *</Label>
+                <Label htmlFor="clientName" className="text-sm font-semibold">{t("bills.client_name")}</Label>
                 <Input
                   id="clientName"
                   value={clientName}
@@ -1049,7 +1051,7 @@ function ClientBillsContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="clientPhone" className="text-sm font-semibold">Client Phone *</Label>
+                <Label htmlFor="clientPhone" className="text-sm font-semibold">{t("bills.client_phone")}</Label>
                 <Input
                   id="clientPhone"
                   value={clientPhone}
@@ -1065,7 +1067,7 @@ function ClientBillsContent() {
                 {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="clientAddress" className="text-sm font-semibold">Client Address *</Label>
+                <Label htmlFor="clientAddress" className="text-sm font-semibold">{t("bills.client_address")}</Label>
                 <Input
                   id="clientAddress"
                   value={clientAddress}
@@ -1080,7 +1082,7 @@ function ClientBillsContent() {
             {/* Bill Items header with Product Selection Button */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h4 className="font-bold text-sm">Bill Items</h4>
+                <h4 className="font-bold text-sm">{t("bills.bill_items")}</h4>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
@@ -1089,10 +1091,10 @@ function ClientBillsContent() {
                     onClick={() => setProductPickerOpen(true)}
                     className="font-bold"
                   >
-                    <Plus className="mr-1 h-3.5 w-3.5" /> Select Products
+                    <Plus className="mr-1 h-3.5 w-3.5" /> {t("bills.select_products")}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddItemRow} className="font-bold">
-                    <Plus className="h-3 w-3 mr-1" /> Add Custom Item
+                    <Plus className="h-3 w-3 mr-1" /> {t("bills.add_custom_item")}
                   </Button>
                 </div>
               </div>
@@ -1100,7 +1102,7 @@ function ClientBillsContent() {
                 {billItems.map((item, index) => (
                   <div key={index} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center border p-2 sm:p-0 sm:border-none rounded-md">
                     <Input
-                      placeholder="Item Description"
+                      placeholder={t("bills.item_description") as string}
                       value={item.name}
                       onChange={(e) => handleItemChange(index, 'name', e.target.value)}
                       className="flex-1"
@@ -1109,7 +1111,7 @@ function ClientBillsContent() {
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <Input
                         type="number"
-                        placeholder="Qty"
+                        placeholder={t("bills.qty") as string}
                         value={item.quantity}
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                         className="flex-1 sm:w-20"
@@ -1118,7 +1120,7 @@ function ClientBillsContent() {
                       />
                       <Input
                         type="number"
-                        placeholder="Rate"
+                        placeholder={t("bills.rate") as string}
                         value={item.price || ''}
                         onChange={(e) => handleItemChange(index, 'price', e.target.value)}
                         className="flex-1 sm:w-28"
@@ -1145,7 +1147,7 @@ function ClientBillsContent() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="deliveryCharge">Delivery Charge (৳)</Label>
+                    <Label htmlFor="deliveryCharge">{t("bills.delivery_charge")}</Label>
                     <Input
                       id="deliveryCharge"
                       type="number"
@@ -1154,7 +1156,7 @@ function ClientBillsContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prevDue">Previous Due (৳)</Label>
+                    <Label htmlFor="prevDue">{t("bills.previous_due")}</Label>
                     <Input
                       id="prevDue"
                       type="number"
@@ -1165,7 +1167,7 @@ function ClientBillsContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serviceFee">Service Fee (৳) <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
+                  <Label htmlFor="serviceFee">{t("bills.service_fee")} <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
                   <Input
                     id="serviceFee"
                     type="number"
@@ -1177,19 +1179,19 @@ function ClientBillsContent() {
 
                 <div className="grid grid-cols-3 gap-2 items-end">
                   <div className="space-y-2 col-span-1">
-                    <Label>Discount Type</Label>
+                    <Label>{t("bills.discount_type")}</Label>
                     <Select value={discountType} onValueChange={(val: any) => { setDiscountType(val); setDiscountValue(0); }}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fixed">Fixed (৳)</SelectItem>
-                        <SelectItem value="percentage">Percent (%)</SelectItem>
+                        <SelectItem value="fixed">{t("bills.fixed")}</SelectItem>
+                        <SelectItem value="percentage">{t("bills.percent")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label>Discount Value</Label>
+                    <Label>{t("bills.discount_value")}</Label>
                     <Input
                       type="number"
                       value={discountValue || ''}
@@ -1201,7 +1203,7 @@ function ClientBillsContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cashIn">Cash-in (Paid) (৳)</Label>
+                    <Label htmlFor="cashIn">{t("bills.cash_in_label_input")}</Label>
                     <Input
                       id="cashIn"
                       type="number"
@@ -1210,7 +1212,7 @@ function ClientBillsContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Status</Label>
+                    <Label>{t("bills.status")}</Label>
                     <div className="pt-2">
                       <Badge variant={calculatedStatus === 'Paid' ? 'default' : 'destructive'} className={calculatedStatus === 'Paid' ? 'bg-green-600 text-white border-none' : ''}>
                         {calculatedStatus}
@@ -1221,7 +1223,7 @@ function ClientBillsContent() {
 
                 {calculatedStatus === 'Due' && (
                   <div className="space-y-2">
-                    <Label htmlFor="expectedReceivableDate">Expected Date of Receivable *</Label>
+                    <Label htmlFor="expectedReceivableDate">{t("bills.expected_receivable_date")}</Label>
                     <Input
                       id="expectedReceivableDate"
                       type="date"
@@ -1235,58 +1237,58 @@ function ClientBillsContent() {
 
               {/* Summary calculations view */}
               <div className="bg-muted/40 p-4 rounded-lg space-y-3 border h-fit text-sm">
-                <h4 className="font-bold border-b pb-2 mb-2 text-base">Bill Summary</h4>
+                <h4 className="font-bold border-b pb-2 mb-2 text-base">{t("bills.bill_summary")}</h4>
                 <div className="flex justify-between">
-                  <span>Subtotal:</span>
+                  <span>{t("bills.subtotal_label")}:</span>
                   <span className="font-semibold">৳{subtotal.toLocaleString()}</span>
                 </div>
                 {deliveryCharge > 0 && (
                   <div className="flex justify-between">
-                    <span>Delivery Charge:</span>
+                    <span>{t("bills.delivery_charge_label")}:</span>
                     <span>+ ৳{deliveryCharge.toLocaleString()}</span>
                   </div>
                 )}
                 {serviceFee > 0 && (
                   <div className="flex justify-between">
-                    <span>Service Fee:</span>
+                    <span>{t("bills.service_fee_label")}:</span>
                     <span>+ ৳{serviceFee.toLocaleString()}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600 font-medium">
-                    <span>Discount {discountType === 'percentage' && `(${discountValue}%)`}:</span>
+                    <span>{t("bills.discount")} {discountType === 'percentage' && `(${discountValue}%)`}:</span>
                     <span>- ৳{discount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold text-base">
-                  <span>Total Bill:</span>
+                  <span>{t("bills.total_bill_label")}:</span>
                   <span>৳{total.toLocaleString()}</span>
                 </div>
                 {prevDue > 0 && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Previous Due:</span>
+                    <span>{t("bills.previous_due_label")}:</span>
                     <span>+ ৳{prevDue.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold text-lg text-primary">
-                  <span>Grand Total:</span>
+                  <span>{t("bills.grand_total_label")}:</span>
                   <span>৳{gTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-green-700 border-t pt-2">
-                  <span>Cash-in:</span>
+                  <span>{t("bills.cash_in_label")}:</span>
                   <span>৳{cashIn.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2 font-bold text-base text-destructive">
-                  <span>Remaining Due:</span>
+                  <span>{t("bills.remaining_due_label")}:</span>
                   <span>৳{currentBillDue.toLocaleString()}</span>
                 </div>
               </div>
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>{t("bills.cancel")}</Button>
               <Button type="submit" disabled={formLoading} className="font-bold">
-                {formLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (editingBill ? 'Update Bill' : 'Generate Bill')}
+                {formLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (editingBill ? t("bills.update_bill_button") : t("bills.generate_bill_button"))}
               </Button>
             </DialogFooter>
           </form>
@@ -1387,7 +1389,7 @@ function ClientBillsContent() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-xl">
                   <FileText className="h-5 w-5 text-primary" />
-                  Bill Invoice
+                  {t("bills.bill_invoice")}
                   <span className="text-primary font-black">#{selectedBill.invoiceNo}</span>
                   <Badge
                     variant={selectedBill.status === 'Paid' ? 'default' : 'destructive'}
@@ -1402,7 +1404,7 @@ function ClientBillsContent() {
                 {/* Client + Bill Meta */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-muted/40 rounded-lg p-4 space-y-2.5 border">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Client Details</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("bills.client_details")}</p>
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-primary shrink-0" />
                       <span className="font-semibold">{selectedBill.clientName}</span>
@@ -1447,7 +1449,7 @@ function ClientBillsContent() {
                     </div>
                   </div>
                   <div className="bg-muted/40 rounded-lg p-4 space-y-2.5 border">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Bill Info</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("bills.bill_info")}</p>
                     <div className="flex items-center gap-2 text-sm">
                       <Hash className="h-4 w-4 text-primary shrink-0" />
                       <span className="font-mono font-bold">{selectedBill.invoiceNo}</span>
@@ -1459,7 +1461,7 @@ function ClientBillsContent() {
                     {selectedBill.expectedReceivableDate && (
                       <div className="flex items-center gap-2 text-sm">
                         <CalendarDays className="h-4 w-4 text-orange-500 shrink-0" />
-                        <span className="text-orange-600">Due by: {format(new Date(selectedBill.expectedReceivableDate), 'dd MMM yyyy')}</span>
+                        <span className="text-orange-600">{t("bills.due_by")}: {format(new Date(selectedBill.expectedReceivableDate), 'dd MMM yyyy')}</span>
                       </div>
                     )}
                   </div>
@@ -1469,16 +1471,16 @@ function ClientBillsContent() {
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-primary px-4 py-2.5 flex items-center gap-2">
                     <Package className="h-4 w-4 text-primary-foreground" />
-                    <span className="text-sm font-bold text-primary-foreground">Order Items</span>
+                    <span className="text-sm font-bold text-primary-foreground">{t("bills.order_items")}</span>
                   </div>
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/60 border-b">
                         <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">#</th>
-                        <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Product / Description</th>
-                        <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">Qty</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Rate (৳)</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Amount (৳)</th>
+                        <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">{t("bills.product_description")}</th>
+                        <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">{t("bills.qty")}</th>
+                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">{t("bills.rate")} (৳)</th>
+                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">{t("bills.amount")} (৳)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -1497,27 +1499,27 @@ function ClientBillsContent() {
 
                 {/* Financial Summary */}
                 <div className="bg-muted/30 border rounded-lg p-4 space-y-2 text-sm">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Financial Summary</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t("bills.financial_summary")}</p>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-muted-foreground">{t("bills.subtotal_label")}</span>
                     <span>৳{Math.round(selectedBill.subtotal || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.deliveryCharge > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Delivery Charge</span>
+                      <span className="text-muted-foreground">{t("bills.delivery_charge_label")}</span>
                       <span>+ ৳{Math.round(selectedBill.deliveryCharge).toLocaleString()}</span>
                     </div>
                   )}
                   {selectedBill.serviceFee > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Service Fee</span>
+                      <span className="text-muted-foreground">{t("bills.service_fee_label")}</span>
                       <span>+ ৳{Math.round(selectedBill.serviceFee).toLocaleString()}</span>
                     </div>
                   )}
                   {selectedBill.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>
-                        Discount
+                        {t("bills.discount")}
                         {selectedBill.discountType === 'percentage'
                           ? ` (${selectedBill.discountValue}%)`
                           : ''}
@@ -1526,26 +1528,26 @@ function ClientBillsContent() {
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2">
-                    <span className="font-semibold">Total Bill</span>
+                    <span className="font-semibold">{t("bills.total_bill_label")}</span>
                     <span className="font-semibold">৳{Math.round(selectedBill.total || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.prevDue > 0 && (
                     <div className="flex justify-between text-muted-foreground">
-                      <span>Previous Due</span>
+                      <span>{t("bills.previous_due_label")}</span>
                       <span>+ ৳{Math.round(selectedBill.prevDue).toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2">
-                    <span className="font-bold text-base">Grand Total</span>
+                    <span className="font-bold text-base">{t("bills.grand_total_label")}</span>
                     <span className="font-bold text-base text-primary">৳{Math.round(selectedBill.gTotal || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-green-700">
-                    <span>Cash Received</span>
+                    <span>{t("bills.cash_received")}</span>
                     <span className="font-semibold">৳{Math.round(selectedBill.cashIn || 0).toLocaleString()}</span>
                   </div>
                   <div className={`flex justify-between border-t pt-2 font-bold text-base ${selectedBill.currentBillDue > 0 ? 'text-destructive' : 'text-green-600'
                     }`}>
-                    <span>Remaining Due</span>
+                    <span>{t("bills.remaining_due")}</span>
                     <span>৳{Math.round(selectedBill.currentBillDue || 0).toLocaleString()}</span>
                   </div>
                 </div>
@@ -1556,14 +1558,14 @@ function ClientBillsContent() {
                     className="flex-1 font-bold"
                     onClick={() => generateBillPDF(selectedBill, settings, 'download')}
                   >
-                    <Download className="h-4 w-4 mr-2" /> Download PDF
+                    <Download className="h-4 w-4 mr-2" /> {t("bills.download_pdf")}
                   </Button>
                   <Button
                     variant="outline"
                     className="flex-1 font-bold"
                     onClick={() => generateBillPDF(selectedBill, settings, 'print')}
                   >
-                    <Printer className="h-4 w-4 mr-2" /> Print
+                    <Printer className="h-4 w-4 mr-2" /> {t("bills.print")}
                   </Button>
                 </div>
               </div>

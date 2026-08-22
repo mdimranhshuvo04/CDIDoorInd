@@ -40,6 +40,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 function ShowroomExpensesContent() {
+  const { t } = useLanguage();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -200,7 +201,7 @@ function ShowroomExpensesContent() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={<Button onClick={() => setEditingTransaction(null)} className="h-9 w-9 p-0 md:h-10 md:w-auto md:px-4 shrink-0" />}>
             <Plus className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Add Expense/Income</span>
+            <span className="hidden md:inline">{t('store.showroom.add_expense') || 'Add Expense'}/Income</span>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader>
@@ -356,7 +357,7 @@ function ShowroomExpensesContent() {
                       onChange={(e) => setFilterByDate(e.target.checked)}
                       className="h-3.5 w-3.5 rounded border-muted-foreground/30 text-primary accent-primary cursor-pointer"
                     />
-                    <span>Filter by Date</span>
+                    <span>{t('store.showroom.filter_by_date') || 'Filter by Date'}</span>
                   </label>
                   <Input
                     type="date"
@@ -402,7 +403,7 @@ function ShowroomExpensesContent() {
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-10 space-y-2">
-              <p className="text-muted-foreground text-sm">কোনো লেনদেন পাওয়া যায়নি।</p>
+              <p className="text-muted-foreground text-sm">{t('store.showroom.no_transactions') || 'কোনো লেনদেন পাওয়া যায়নি।'}</p>
             </div>
           ) : (
             <>
@@ -411,13 +412,13 @@ function ShowroomExpensesContent() {
                 <Table className="block md:table">
                   <TableHeader className="hidden md:table-header-group">
                     <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-                      <TableHead>তারিখ</TableHead>
-                      <TableHead>বিবরণ</TableHead>
-                      <TableHead>ক্যাটাগরি</TableHead>
-                      <TableHead>টাইপ</TableHead>
-                      <TableHead className="text-right">পরিমাণ</TableHead>
-                      <TableHead>অবস্থা (Status)</TableHead>
-                      <TableHead className="text-right">অ্যাকশন</TableHead>
+                      <TableHead>{t('store.showroom.date') || 'তারিখ'}</TableHead>
+                      <TableHead>{t('store.showroom.description') || 'বিবরণ'}</TableHead>
+                      <TableHead>{t('store.showroom.category') || 'ক্যাটাগরি'}</TableHead>
+                      <TableHead>{t('store.showroom.type') || 'টাইপ'}</TableHead>
+                      <TableHead className="text-right">{t('store.showroom.amount') || 'পরিমাণ'}</TableHead>
+                      <TableHead>{t('store.showroom.status') || 'অবস্থা (Status)'}</TableHead>
+                      <TableHead className="text-right">{t('store.showroom.action') || 'অ্যাকশন'}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -442,7 +443,7 @@ function ShowroomExpensesContent() {
                             variant={tx.type === 'income' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
-                            {tx.type === 'income' ? 'আয় (Income)' : 'খরচ (Expense)'}
+                            {tx.type === 'income' ? t('store.showroom.income') || 'আয় (Income)' : t('store.showroom.expense') || 'খরচ (Expense)'}
                           </Badge>
                         </TableCell>
                         <TableCell className={`block md:table-cell py-1.5 md:py-4 text-left text-right font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -570,6 +571,7 @@ function ShowroomExpensesContent() {
 }
 
 export default function ShowroomExpensesPage() {
+  const { t } = useLanguage();
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center">

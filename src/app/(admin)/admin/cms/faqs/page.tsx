@@ -10,14 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function FAQsPage() {
+  const { t } = useLanguage();
   const [faqs, setFaqs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,13 +27,13 @@ export default function FAQsPage() {
     try {
       const response = await fetch('/api/admin/faqs');
       if (!response.ok) {
-        toast.error(`Failed to fetch FAQs: ${response.status} ${response.statusText}`);
+        toast.error(`${t("faqs.failed_fetch")} ${response.status} ${response.statusText}`);
         return;
       }
       const data = await response.json();
       setFaqs(data);
     } catch (error) {
-      toast.error('Failed to fetch FAQs');
+      toast.error(t("faqs.failed_fetch") as string);
     } finally {
       setLoading(false);
     }
@@ -43,13 +45,13 @@ export default function FAQsPage() {
 
   const handleDelete = async (id: string, question: string) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to delete the FAQ: "${question}". This action cannot be undone!`,
+      title: t("faqs.delete_title"),
+      text: `${t("faqs.delete_desc")} "${question}"${t("faqs.delete_desc_2")}`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#00D1B2',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: t("faqs.yes_delete"),
       background: '#fff',
       customClass: {
         popup: 'rounded-xl',
@@ -65,13 +67,13 @@ export default function FAQsPage() {
         });
 
         if (response.ok) {
-          toast.success('FAQ deleted successfully');
+          toast.success(t("faqs.deleted") as string);
           fetchFaqs();
         } else {
-          toast.error('Failed to delete FAQ');
+          toast.error(t("faqs.failed_delete") as string);
         }
       } catch (error) {
-        toast.error('Error deleting FAQ');
+        toast.error(t("faqs.error_delete") as string);
       }
     }
   };
@@ -85,13 +87,13 @@ export default function FAQsPage() {
       });
 
       if (response.ok) {
-        toast.success(`FAQ ${!currentStatus ? 'activated' : 'deactivated'}`);
+        toast.success(`FAQ ${!currentStatus ? t("faqs.active") : t("faqs.inactive")}`);
         fetchFaqs();
       } else {
-        toast.error('Failed to update status');
+        toast.error(t("faqs.failed_update") as string);
       }
     } catch (error) {
-      toast.error('Error updating status');
+      toast.error(t("faqs.error_update") as string);
     }
   };
 
@@ -99,12 +101,12 @@ export default function FAQsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">FAQ Management</h1>
-          <p className="text-muted-foreground text-sm">Manage frequently asked questions for the storefront</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("faqs.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("faqs.desc")}</p>
         </div>
         <Link href="/admin/cms/faqs/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add FAQ
+            <Plus className="mr-2 h-4 w-4" /> {t("faqs.add_faq")}
           </Button>
         </Link>
       </div>
@@ -113,10 +115,10 @@ export default function FAQsPage() {
         <Table className="block md:table">
           <TableHeader className="hidden md:table-header-group bg-muted/50">
             <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-              <TableHead className="w-[400px]">Question</TableHead>
-              <TableHead>Order</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[400px]">{t("faqs.question")}</TableHead>
+              <TableHead>{t("faqs.order")}</TableHead>
+              <TableHead>{t("faqs.status")}</TableHead>
+              <TableHead className="text-right">{t("faqs.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -144,10 +146,10 @@ export default function FAQsPage() {
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={4} className="block md:table-cell py-1.5 md:py-4 text-left h-40 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <p className="text-lg font-medium">No FAQs found</p>
-                    <p className="text-sm text-muted-foreground">Add your first FAQ to get started.</p>
+                    <p className="text-lg font-medium">{t("faqs.no_faqs")}</p>
+                    <p className="text-sm text-muted-foreground">{t("faqs.first_faq")}</p>
                     <Link href="/admin/cms/faqs/new" className="mt-2">
-                      <Button variant="outline" size="sm">Add FAQ</Button>
+                      <Button variant="outline" size="sm">{t("faqs.add_faq")}</Button>
                     </Link>
                   </div>
                 </TableCell>
@@ -164,30 +166,30 @@ export default function FAQsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
-                    <button 
+                    <button
                       onClick={() => toggleStatus(faq._id, faq.isActive)}
                       className="transition-opacity hover:opacity-80"
                     >
                       <Badge variant={faq.isActive ? 'default' : 'secondary'} className="cursor-pointer">
-                        {faq.isActive ? 'Active' : 'Inactive'}
+                        {faq.isActive ? t("faqs.active") : t("faqs.inactive")}
                       </Badge>
                     </button>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/cms/faqs/${faq._id}/edit`}>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 hover:text-primary hover:bg-primary/10"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleDelete(faq._id, faq.question)}
                       >
                         <Trash className="h-4 w-4" />

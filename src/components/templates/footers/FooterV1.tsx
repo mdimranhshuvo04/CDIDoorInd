@@ -16,6 +16,7 @@ import DeveloperLogo from '@/components/ui/developerlogo';
 import { useSettings } from '@/components/SettingsProvider';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const socialIconMap: Record<string, any> = {
   facebook: SocialIcons.Facebook || Circle,
@@ -38,6 +39,7 @@ const socialLabels: Record<string, string> = {
 };
 
 export default function FooterV1() {
+  const { t } = useLanguage();
   const settings = useSettings();
   const socialLinks = settings?.socialLinks || {};
   const hasSocialLinks = Object.values(socialLinks).some(v => v);
@@ -56,16 +58,11 @@ export default function FooterV1() {
       setIsStandalone(isStandaloneMode);
     };
 
-    // Detect iOS device
-    const detectIOS = () => {
-      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-      setIsIOS(isIOSDevice);
-    };
+    checkStandalone();
 
-    const timeoutId = setTimeout(() => {
-      checkStandalone();
-      detectIOS();
-    }, 0);
+    // Detect iOS device
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(isIOSDevice);
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -83,7 +80,6 @@ export default function FooterV1() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      clearTimeout(timeoutId);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -115,12 +111,12 @@ export default function FooterV1() {
   const rawFooterNav = settings?.footerNavigation && settings.footerNavigation.length > 0
     ? settings.footerNavigation
     : [
-      { label: 'Shop All', href: '/shop' },
-      { label: 'New Arrivals', href: '/shop?filter=new' },
-      { label: 'Order Tracking', href: '/track-order' },
-      { label: 'Contact Support', href: '/contact' }
+      { label: t('store.footer.shop_all'), href: '/shop' },
+      { label: t('store.footer.new_arrivals'), href: '/shop?filter=new' },
+      { label: t('store.footer.order_tracking'), href: '/track-order' },
+      { label: t('store.footer.contact_support'), href: '/contact' }
     ];
-  const footerNav = rawFooterNav.filter((link: any) => link.label !== 'Contact Support');
+  const footerNav = rawFooterNav.filter((link: any) => link.label !== 'Contact Support' && link.label !== t('store.footer.contact_support'));
 
   return (
     <footer className="border-t bg-background pt-12 mt-10">
@@ -129,7 +125,7 @@ export default function FooterV1() {
           <div className="flex flex-col items-center text-center md:items-start md:text-left gap-4 lg:col-span-2">
             <Logo textClassName="text-xl md:text-2xl whitespace-nowrap" />
             <p className="text-sm text-muted-foreground w-full md:w-4/5">
-              আমাদের স্বপ্ন হলো গ্রাহকদের জন্য সেরা মানের আধুনিক ও মজবুত কাঠের দরজা সরবরাহ করা।
+              {t('store.footer.description')}
             </p>
 
             {/* PWA Download App Button */}
@@ -146,7 +142,7 @@ export default function FooterV1() {
           </div>
 
           <div className="flex flex-col items-center text-center md:items-start md:text-left md:pt-3">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">Quick Links</h2>
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">{t('store.footer.quick_links')}</h2>
             <ul className="grid gap-2 text-sm text-muted-foreground">
               {footerNav.map((link: any) => (
                 <li key={link.label}>
@@ -157,26 +153,26 @@ export default function FooterV1() {
           </div>
 
           <div className="flex flex-col items-center text-center md:items-start md:text-left md:pt-3">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">Information</h2>
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">{t('store.footer.information')}</h2>
             <ul className="grid gap-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link>
+                <Link href="/contact" className="hover:text-primary transition-colors">{t('store.footer.contact_us')}</Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</Link>
+                <Link href="/terms" className="hover:text-primary transition-colors">{t('store.footer.terms')}</Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+                <Link href="/privacy" className="hover:text-primary transition-colors">{t('store.footer.privacy')}</Link>
               </li>
             </ul>
           </div>
 
           <div className="flex flex-col items-center text-center md:items-start md:text-left md:pt-3">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">Contact</h2>
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">{t('store.footer.contact')}</h2>
             <ul className="grid gap-3 text-sm text-muted-foreground">
               <li className="flex items-start justify-center md:justify-start gap-3">
                 <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                <span>{settings?.contact?.address || '১২৩ চিটাগাং ডোর এভিনিউ'}</span>
+                <span>{settings?.contact?.address || '123 Omor Auto Corner Avenue'}</span>
               </li>
               <li className="flex items-center justify-center md:justify-start gap-3">
                 <Phone size={16} className="text-primary shrink-0" />
@@ -184,7 +180,7 @@ export default function FooterV1() {
               </li>
               <li className="flex items-center justify-center md:justify-start gap-3">
                 <Mail size={16} className="text-primary shrink-0" />
-                <span>{settings?.contact?.email || 'support@cdidoorind.com'}</span>
+                <span>{settings?.contact?.email || 'support@omorautocorner.com'}</span>
               </li>
             </ul>
             {hasSocialLinks && (
@@ -228,7 +224,7 @@ export default function FooterV1() {
 
         <div className="mt-12 flex flex-col items-center justify-between border-t py-6 sm:flex-row text-sm text-muted-foreground gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <p>© {new Date().getFullYear()} {settings?.brandName || 'চিটাগাং ডোর'}। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p>© {new Date().getFullYear()} {settings?.brandName || 'Omor Auto Corner'}. {t('store.footer.all_rights_reserved')}</p>
           </div>
 
           <div className="flex items-center gap-6">

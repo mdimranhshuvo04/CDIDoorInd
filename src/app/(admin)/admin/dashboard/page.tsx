@@ -38,6 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   ChartContainer,
   type ChartConfig,
@@ -153,6 +154,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -354,7 +356,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col gap-3">
         {/* Title Row */}
         <div className="flex flex-row items-center justify-between gap-2">
-          <h2 className="text-xl md:text-3xl font-bold tracking-tight whitespace-nowrap">Dashboard Overview</h2>
+          <h2 className="text-xl md:text-3xl font-bold tracking-tight whitespace-nowrap">{t("dashboard.overview")}</h2>
           {/* Mobile buttons */}
           <div className="flex items-center gap-2 md:hidden">
             <Button variant="outline" size="sm" onClick={fetchStats} className="h-9 px-3">
@@ -529,12 +531,12 @@ export default function AdminDashboard() {
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Pending Orders</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.pending_orders")}</CardTitle>
                 <Clock className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="text-lg md:text-2xl font-extrabold text-primary">{stats?.pendingOrdersCount || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Requires attention</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{t("dashboard.requires_attention")}</p>
               </CardContent>
             </div>
           </Card>
@@ -551,18 +553,18 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Total Customers
+                {t("dashboard.total_customers")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Total Customers</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.total_customers")}</CardTitle>
                 <Users className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="text-lg md:text-2xl font-extrabold text-primary">{stats?.totalUsers || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Across all time</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{t("dashboard.across_all_time")}</p>
               </CardContent>
             </div>
           </Card>
@@ -579,13 +581,13 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Cash Balance
+                {t("dashboard.cash_balance")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Cash Balance</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.cash_balance")}</CardTitle>
                 <Wallet className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
@@ -593,7 +595,7 @@ export default function AdminDashboard() {
                   ৳{Math.round(stats?.cashBalance || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {selectedShowroom === 'all' ? 'Physical cash on hand' : selectedShowroom === 'online' ? 'Online/central cash flow' : 'Showroom net cash flow'}
+                  {selectedShowroom === 'all' ? t("dashboard.physical_cash_on_hand") : selectedShowroom === 'online' ? 'Online/central cash flow' : 'Showroom net cash flow'}
                 </p>
               </CardContent>
             </div>
@@ -611,13 +613,13 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Bank Balance
+                {t("dashboard.bank_balance")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Bank Balance</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.bank_balance")}</CardTitle>
                 <Landmark className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
@@ -625,7 +627,7 @@ export default function AdminDashboard() {
                   ৳{Math.round(stats?.bankBalance || 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {selectedShowroom === 'all' ? 'Liquid bank accounts' : selectedShowroom === 'online' ? 'Online/central bank flow' : 'Showroom net bank flow'}
+                  {selectedShowroom === 'all' ? t("dashboard.liquid_bank_accounts") : selectedShowroom === 'online' ? 'Online/central bank flow' : 'Showroom net bank flow'}
                 </p>
               </CardContent>
             </div>
@@ -646,13 +648,13 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Accounts Receivable
+                {t("dashboard.accounts_receivable")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Accounts Receivable</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.accounts_receivable")}</CardTitle>
                 <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
@@ -660,7 +662,7 @@ export default function AdminDashboard() {
                   ৳{Math.round(stats?.accountReceivable || 0).toLocaleString()}
                 </div>
                 <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-rose-600 truncate">
-                  <span>Matured: ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}</span>
+                  <span>{t("dashboard.matured")} ৳{Math.round(stats?.maturedReceivable || 0).toLocaleString()}</span>
                 </div>
               </CardContent>
             </div>
@@ -681,13 +683,13 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Accounts Payable
+                {t("dashboard.accounts_payable")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Accounts Payable</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.accounts_payable")}</CardTitle>
                 <ArrowDownLeft className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
@@ -695,7 +697,7 @@ export default function AdminDashboard() {
                   ৳{Math.round(stats?.supplierPayable || 0).toLocaleString()}
                 </div>
                 <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-red-600 truncate">
-                  <span>Matured: ৳{Math.round(stats?.maturedPayable || 0).toLocaleString()}</span>
+                  <span>{t("dashboard.matured")} ৳{Math.round(stats?.maturedPayable || 0).toLocaleString()}</span>
                 </div>
               </CardContent>
             </div>
@@ -713,20 +715,20 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Salary Payable
+                {t("dashboard.salary_payable")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Salary Payable</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.salary_payable")}</CardTitle>
                 <DollarSign className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.permanentSalaryPayable || 0).toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Monthly staff salaries</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{t("dashboard.monthly_staff_salaries")}</p>
               </CardContent>
             </div>
           </Card>
@@ -743,20 +745,20 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Wages Payable
+                {t("dashboard.wages_payable")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Wages Payable</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.wages_payable")}</CardTitle>
                 <Receipt className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="text-lg md:text-2xl font-extrabold text-primary">
                   ৳{Math.round(stats?.temporaryWagesPayable || 0).toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Completed tasks unpaid</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{t("dashboard.completed_tasks_unpaid")}</p>
               </CardContent>
             </div>
           </Card>
@@ -773,20 +775,20 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-600 leading-tight mt-auto">
-                Running Tasks
+                {t("dashboard.running_tasks")}
               </span>
             </div>
             {/* Desktop Layout */}
             <div className="hidden sm:block">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-                <CardTitle className="text-sm font-semibold leading-tight">Running Tasks</CardTitle>
+                <CardTitle className="text-sm font-semibold leading-tight">{t("dashboard.running_tasks")}</CardTitle>
                 <Briefcase className="h-4 w-4 text-primary shrink-0" />
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="text-lg md:text-2xl font-extrabold text-primary">
                   {stats?.runningAssignedTasks || 0}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">Active pending tasks</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{t("dashboard.active_pending_tasks")}</p>
               </CardContent>
             </div>
           </Card>
@@ -799,7 +801,7 @@ export default function AdminDashboard() {
           <Card className="col-span-full">
             <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
               <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-4 md:px-6 md:py-6">
-                <CardTitle className="text-lg md:text-xl">Performance Trends</CardTitle>
+                <CardTitle className="text-lg md:text-xl">{t("dashboard.performance_trends")}</CardTitle>
 
               </div>
               <div className="flex w-full border-t sm:border-t-0 sm:w-auto sm:ml-auto">
@@ -954,24 +956,24 @@ export default function AdminDashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
-                  Customer Insights
+                  {t("dashboard.customer_insights")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-around py-2 border-b">
                   <div className="text-center">
-                    <p className="text-[10px] uppercase text-muted-foreground font-bold">New</p>
+                    <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("dashboard.new")}</p>
                     <p className="text-xl font-black">{stats?.newUsersCount}</p>
                   </div>
                   <div className="h-8 w-px bg-border"></div>
                   <div className="text-center">
-                    <p className="text-[10px] uppercase text-muted-foreground font-bold">Returning</p>
+                    <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("dashboard.returning")}</p>
                     <p className="text-xl font-black">{stats?.returningUsersCount}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Top Spenders</p>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground">{t("dashboard.top_spenders")}</p>
                   {topCustomers && topCustomers.length > 0 ? (
                     topCustomers.map((customer: any, i: number) => (
                       <div key={i} className="flex items-center justify-between text-xs">
@@ -980,7 +982,7 @@ export default function AdminDashboard() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-[10px] text-muted-foreground italic py-2 text-center">No customers yet</p>
+                    <p className="text-[10px] text-muted-foreground italic py-2 text-center">{t("dashboard.no_customers_yet")}</p>
                   )}
                 </div>
               </CardContent>
@@ -990,11 +992,11 @@ export default function AdminDashboard() {
               <CardContent className="pt-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-xs opacity-70">Loyalty Members</p>
+                    <p className="text-xs opacity-70">{t("dashboard.loyalty_members")}</p>
                     <p className="text-xl font-bold">{stats?.activeSubscribers}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs opacity-70">Pending Orders</p>
+                    <p className="text-xs opacity-70">{t("dashboard.pending_orders")}</p>
                     <p className="text-xl font-bold">{stats?.pendingOrdersCount}</p>
                   </div>
                 </div>
@@ -1005,7 +1007,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-orange-600">
                   <Receipt className="h-4 w-4" />
-                  Wholesaler Dues (বকেয়া তালিকা)
+                  {t("dashboard.wholesaler_dues")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -1022,7 +1024,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                   {(!data?.wholesalersDueList || data.wholesalersDueList.length === 0) && (
-                    <p className="text-center py-4 text-xs text-muted-foreground italic">No outstanding wholesaler dues!</p>
+                    <p className="text-center py-4 text-xs text-muted-foreground italic">{t("dashboard.no_outstanding_wholesaler_dues")}</p>
                   )}
                 </div>
               </CardContent>
@@ -1032,7 +1034,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
                   <AlertTriangle className="h-4 w-4" />
-                  Low Stock Alerts
+                  {t("dashboard.low_stock_alerts")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -1041,15 +1043,15 @@ export default function AdminDashboard() {
                     <div key={product._id} className="flex items-center justify-between group">
                       <div className="space-y-0.5">
                         <p className="text-xs font-semibold group-hover:text-primary transition-colors">{product.name}</p>
-                        <p className="text-[10px] text-muted-foreground">Unit Price: ৳{product.price}</p>
+                        <p className="text-[10px] text-muted-foreground">{t("dashboard.unit_price")}{product.price}</p>
                       </div>
                       <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
-                        {product.stock} Left
+                        {product.stock} {t("dashboard.left")}
                       </Badge>
                     </div>
                   ))}
                   {(lowStockProducts?.length ?? 0) === 0 && (
-                    <p className="text-center py-4 text-xs text-muted-foreground italic">Inventory levels are healthy!</p>
+                    <p className="text-center py-4 text-xs text-muted-foreground italic">{t("dashboard.inventory_levels_healthy")}</p>
                   )}
                 </div>
               </CardContent>
@@ -1061,9 +1063,9 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                Top Products
+                {t("dashboard.top_products")}
               </CardTitle>
-              <CardDescription>Best performers by revenue</CardDescription>
+              <CardDescription>{t("dashboard.best_performers")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {topSellingProducts?.map((product: any, i: number) => (
@@ -1073,13 +1075,13 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex-1 space-y-0.5">
                     <p className="text-sm font-bold leading-none truncate max-w-[150px]">{product._id}</p>
-                    <p className="text-xs text-muted-foreground">{product.quantity} units sold</p>
+                    <p className="text-xs text-muted-foreground">{product.quantity} {t("dashboard.units_sold")}</p>
                   </div>
                   <div className="text-sm font-black">৳{Math.round(product.revenue).toLocaleString()}</div>
                 </div>
               ))}
               {(!topSellingProducts || topSellingProducts.length === 0) && (
-                <div className="text-center py-10 text-muted-foreground text-sm">No sales data available</div>
+                <div className="text-center py-10 text-muted-foreground text-sm">{t("dashboard.no_sales_data")}</div>
               )}
             </CardContent>
           </Card>
@@ -1089,11 +1091,11 @@ export default function AdminDashboard() {
             <CardHeader className="border-b bg-muted/30">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm sm:text-xl whitespace-nowrap">Recent Transactions</CardTitle>
-                  <CardDescription className="text-[10px] sm:text-xs">Latest orders across the shop</CardDescription>
+                  <CardTitle className="text-sm sm:text-xl whitespace-nowrap">{t("dashboard.recent_transactions")}</CardTitle>
+                  <CardDescription className="text-[10px] sm:text-xs">{t("dashboard.latest_orders")}</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" asChild className="h-8 text-xs px-2.5 sm:px-3 sm:h-9">
-                  <Link href="/admin/orders">All Orders</Link>
+                  <Link href="/admin/orders">{t("sidebar.all_orders")}</Link>
                 </Button>
               </div>
             </CardHeader>
@@ -1106,9 +1108,9 @@ export default function AdminDashboard() {
                         <ShoppingBag className="h-4 w-4" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-sm font-bold leading-none">Order #{order.slug}</p>
+                        <p className="text-sm font-bold leading-none">{t("dashboard.order_hash")}{order.slug}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{order.user?.name || 'Guest Customer'}</span>
+                          <span>{order.user?.name || t("dashboard.guest_customer")}</span>
                           <span>•</span>
                           <span>{order?.createdAt ? format(parseISO(order.createdAt), 'dd MMM, p') : '—'}</span>
                         </div>

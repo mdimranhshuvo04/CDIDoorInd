@@ -32,6 +32,7 @@ interface ProductStockItem {
 }
 
 function ShowroomStockContent() {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<ProductStockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -130,7 +131,7 @@ function ShowroomStockContent() {
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight">Showroom Stock</h2>
           <p className="text-muted-foreground text-xs md:text-sm">
-            আপনার শো-রুমের বর্তমান স্টক ও প্রোডাক্টের বিবরণ দেখুন।
+            {t('store.showroom.stock_desc') || 'আপনার শো-রুমের বর্তমান স্টক ও প্রোডাক্টের বিবরণ দেখুন।'}
           </p>
         </div>
       </div>
@@ -175,7 +176,7 @@ function ShowroomStockContent() {
                 <TableHead>SKU</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Showroom Stock</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t('store.showroom.th_status') || 'Status'}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -413,6 +414,7 @@ function ShowroomStockContent() {
 }
 
 export default function ShowroomStockPage() {
+  const { t } = useLanguage();
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center">

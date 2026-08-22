@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
@@ -9,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import type { JSONContent } from 'novel';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const NovelEditor = dynamic(() => import('@/components/editor/NovelEditor'), {
   ssr: false,
@@ -40,6 +41,7 @@ interface CompanyInfo {
 }
 
 export default function AdminCatalogPage() {
+  const { t } = useLanguage();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     about: '',
     capacity: '',
@@ -178,8 +180,8 @@ export default function AdminCatalogPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">Catalog Manager</h1>
-          <p className="text-sm text-muted-foreground">Manage the public-facing B2B product catalog page.</p>
+          <h1 className="text-2xl font-black tracking-tight">{t("catalog.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("catalog.subtitle")}</p>
         </div>
         <button
           onClick={handleSave}
@@ -187,7 +189,7 @@ export default function AdminCatalogPage() {
           className="flex items-center gap-2 bg-primary text-white font-bold px-6 py-2.5 rounded-xl shadow hover:bg-primary/90 transition-all disabled:opacity-60"
         >
           <Save className="h-4 w-4" />
-          {saving ? 'Saving...' : 'Save All Changes'}
+          {saving ? t("catalog.saving") : t("catalog.save_all")}
         </button>
       </div>
 
@@ -195,16 +197,16 @@ export default function AdminCatalogPage() {
       <div className="bg-card border rounded-2xl p-6 space-y-6">
         <h2 className="text-lg font-extrabold flex items-center gap-2">
           <Building2 className="h-5 w-5 text-primary" />
-          Company / Factory Info
+          {t("catalog.company_info_title")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { key: 'capacity', label: 'Production Capacity', placeholder: '5,00,000 pcs/m' },
-            { key: 'established', label: 'Established Year', placeholder: 'Since 2014' },
-            { key: 'certifications', label: 'Certifications', placeholder: 'ISO, BSCI Certified' },
-            { key: 'markets', label: 'Primary Markets', placeholder: 'EU, USA, Mid-East' },
-            { key: 'phone', label: 'Phone / WhatsApp', placeholder: '+880 1724-338581' },
-            { key: 'email', label: 'Factory Email', placeholder: 'info@cdidoorind.com' },
+            { key: 'capacity', label: t("catalog.production_capacity"), placeholder: '5,00,000 pcs/m' },
+            { key: 'established', label: t("catalog.established_year"), placeholder: 'Since 2014' },
+            { key: 'certifications', label: t("catalog.certifications"), placeholder: 'ISO, BSCI Certified' },
+            { key: 'markets', label: t("catalog.primary_markets"), placeholder: 'EU, USA, Mid-East' },
+            { key: 'phone', label: t("catalog.phone_whatsapp"), placeholder: '+880 1724-338581' },
+            { key: 'email', label: t("catalog.factory_email"), placeholder: 'info@cdidoorind.com' },
           ].map(({ key, label, placeholder }) => (
             <div key={key} className="space-y-1.5">
               <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{label}</label>
@@ -220,7 +222,7 @@ export default function AdminCatalogPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Factory Address</label>
+          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.factory_address")}</label>
           <input
             type="text"
             value={companyInfo.address || ''}
@@ -231,7 +233,7 @@ export default function AdminCatalogPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Corporate Presence</label>
+          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.corporate_presence")}</label>
           <input
             type="text"
             value={companyInfo.corporatePresence || ''}
@@ -242,12 +244,12 @@ export default function AdminCatalogPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">About / Company Description</label>
+          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.about_description")}</label>
           <textarea
             rows={4}
             value={companyInfo.about || ''}
             onChange={e => handleCompanyChange('about', e.target.value)}
-            placeholder="Write a brief description of the factory..."
+            placeholder={t("catalog.about_placeholder") as string}
             className="w-full p-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
           />
         </div>
@@ -258,30 +260,30 @@ export default function AdminCatalogPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-extrabold flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            Brand Categories & Products
+            {t("catalog.categories_products_title")}
           </h2>
           <button
             onClick={() => setShowNewCatForm(v => !v)}
             className="flex items-center gap-2 text-xs font-black bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg transition-all"
           >
             <Plus className="h-4 w-4" />
-            Add Category
+            {t("catalog.add_category")}
           </button>
         </div>
 
         {/* Add Category Form */}
         {showNewCatForm && (
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-bold">New Brand Category</h3>
+            <h3 className="text-sm font-bold">{t("catalog.new_category")}</h3>
             <input
               type="text"
               value={newCatName}
               onChange={e => setNewCatName(e.target.value)}
-              placeholder="Brand Name (e.g. Armani)"
+              placeholder={t("catalog.brand_name_placeholder") as string}
               className="w-full h-10 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <div className="space-y-1.5">
-              <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Specifications (bullet points, headings, etc.)</label>
+              <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.specifications")}</label>
               <NovelEditor
                 onChange={(val) => setNewCatDesc(val)}
               />
@@ -291,13 +293,13 @@ export default function AdminCatalogPage() {
                 onClick={handleAddCategory}
                 className="flex items-center gap-1 bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg"
               >
-                <Check className="h-3.5 w-3.5" /> Add
+                <Check className="h-3.5 w-3.5" /> {t("catalog.add_btn")}
               </button>
               <button
                 onClick={() => setShowNewCatForm(false)}
                 className="flex items-center gap-1 bg-muted text-muted-foreground text-xs font-bold px-4 py-2 rounded-lg"
               >
-                <X className="h-3.5 w-3.5" /> Cancel
+                <X className="h-3.5 w-3.5" /> {t("catalog.cancel_btn")}
               </button>
             </div>
           </div>
@@ -313,7 +315,7 @@ export default function AdminCatalogPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-black uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded">
-                    {cat.items.length} items
+                    {cat.items.length} {t("catalog.items")}
                   </span>
                   <span className="font-bold text-sm">{cat.name}</span>
                 </div>
@@ -337,7 +339,7 @@ export default function AdminCatalogPage() {
                   {/* Edit name & description */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Category Name</label>
+                      <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.category_name")}</label>
                       <input
                         type="text"
                         value={cat.name}
@@ -346,7 +348,7 @@ export default function AdminCatalogPage() {
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Specifications (use / for bullet points, bold, headings)</label>
+                      <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("catalog.specifications_desc")}</label>
                       <NovelEditor
                         initialValue={(() => {
                           try { return JSON.parse(cat.description); } catch { return undefined; }
@@ -358,7 +360,7 @@ export default function AdminCatalogPage() {
 
                   {/* Product Items */}
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3">Product Items</h4>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3">{t("catalog.product_items")}</h4>
                     <div className="space-y-2">
                       {cat.items.map((item, itemIdx) => (
                         <div key={itemIdx} className="flex items-center gap-3 bg-muted/30 p-2.5 rounded-lg">
@@ -370,14 +372,14 @@ export default function AdminCatalogPage() {
                             value={item.name}
                             onChange={e => handleUpdateItem(cat.id, itemIdx, 'name', e.target.value)}
                             className="flex-1 min-w-0 h-9 px-3 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            placeholder="Product name"
+                            placeholder={t("catalog.product_name_placeholder") as string}
                           />
                           <input
                             type="text"
                             value={item.image}
                             onChange={e => handleUpdateItem(cat.id, itemIdx, 'image', e.target.value)}
                             className="flex-1 min-w-0 h-9 px-3 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            placeholder="Image URL"
+                            placeholder={t("catalog.image_url_placeholder") as string}
                           />
                           <button
                             onClick={() => handleDeleteItem(cat.id, itemIdx)}
@@ -395,14 +397,14 @@ export default function AdminCatalogPage() {
                         type="text"
                         value={newItemName[cat.id] || ''}
                         onChange={e => setNewItemName(prev => ({ ...prev, [cat.id]: e.target.value }))}
-                        placeholder="New product name"
+                        placeholder={t("catalog.new_product_placeholder") as string}
                         className="flex-1 min-w-0 h-9 px-3 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                       <input
                         type="text"
                         value={newItemImage[cat.id] || ''}
                         onChange={e => setNewItemImage(prev => ({ ...prev, [cat.id]: e.target.value }))}
-                        placeholder="Image URL"
+                        placeholder={t("catalog.image_url_placeholder") as string}
                         className="flex-1 min-w-0 h-9 px-3 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                       <button
@@ -410,7 +412,7 @@ export default function AdminCatalogPage() {
                         className="shrink-0 flex items-center gap-1 bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg"
                       >
                         <Plus className="h-3.5 w-3.5" />
-                        Add
+                        {t("catalog.add_btn")}
                       </button>
                     </div>
                   </div>
@@ -421,7 +423,7 @@ export default function AdminCatalogPage() {
 
           {categories.length === 0 && (
             <div className="text-center py-12 text-muted-foreground text-sm">
-              No categories yet. Click "Add Category" to get started.
+              {t("catalog.no_categories")}
             </div>
           )}
         </div>
@@ -435,7 +437,7 @@ export default function AdminCatalogPage() {
           className="flex items-center gap-2 bg-primary text-white font-bold px-8 py-3 rounded-xl shadow hover:bg-primary/90 transition-all disabled:opacity-60"
         >
           <Save className="h-4 w-4" />
-          {saving ? 'Saving...' : 'Save All Changes'}
+          {saving ? t("catalog.saving") : t("catalog.save_all")}
         </button>
       </div>
     </div>

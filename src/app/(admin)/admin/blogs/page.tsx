@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import Image from 'next/image';
 import { Pagination } from '@/components/ui/pagination';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BlogListItem {
   _id: string;
@@ -42,6 +43,7 @@ interface BlogListItem {
 }
 
 function BlogsContent() {
+  const { t } = useLanguage();
   const [blogs, setBlogs] = useState<BlogListItem[]>([]);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
@@ -111,16 +113,16 @@ function BlogsContent() {
         <div>
           <h1 className="text-2xl font-black flex items-center gap-2">
             <Newspaper className="h-6 w-6 text-primary" />
-            Manage Blogs
+            {t("blogs.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Create, edit, and manage your store&apos;s blog posts.
+            {t("blogs.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/blogs/new">
             <Button className="font-bold">
-              <Plus className="mr-2 h-4 w-4" /> Create Blog
+              <Plus className="mr-2 h-4 w-4" /> {t("blogs.create_blog")}
             </Button>
           </Link>
         </div>
@@ -130,7 +132,7 @@ function BlogsContent() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search blogs..."
+            placeholder={t("blogs.search_blogs") as string}
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -142,12 +144,12 @@ function BlogsContent() {
         <Table className="block md:table">
           <TableHeader className="hidden md:table-header-group bg-muted/50">
             <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-              <TableHead className="font-bold">Thumbnail</TableHead>
-              <TableHead className="font-bold">Title</TableHead>
-              <TableHead className="font-bold">Views</TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="font-bold">Date</TableHead>
-              <TableHead className="text-right font-bold">Actions</TableHead>
+              <TableHead className="font-bold">{t("blogs.thumbnail")}</TableHead>
+              <TableHead className="font-bold">{t("blogs.blog_title")}</TableHead>
+              <TableHead className="font-bold">{t("blogs.views")}</TableHead>
+              <TableHead className="font-bold">{t("blogs.status")}</TableHead>
+              <TableHead className="font-bold">{t("blogs.date")}</TableHead>
+              <TableHead className="text-right font-bold">{t("blogs.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -181,7 +183,7 @@ function BlogsContent() {
             ) : filteredBlogs.length === 0 ? (
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={6} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
-                  No blogs found.
+                  {t("blogs.no_blogs")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -201,7 +203,7 @@ function BlogsContent() {
                           unoptimized
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full text-[10px] text-muted-foreground">No Img</div>
+                        <div className="flex items-center justify-center h-full text-[10px] text-muted-foreground">{t("blogs.no_img")}</div>
                       )}
                     </div>
                   </TableCell>
@@ -220,7 +222,7 @@ function BlogsContent() {
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant={blog.isPublished ? 'default' : 'secondary'}>
-                      {blog.isPublished ? 'Published' : 'Draft'}
+                      {blog.isPublished ? t("blogs.published") : t("blogs.draft")}
                     </Badge>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left text-xs">

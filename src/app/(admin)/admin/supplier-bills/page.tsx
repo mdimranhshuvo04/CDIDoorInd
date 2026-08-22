@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Table,
   TableBody,
@@ -44,6 +45,7 @@ interface BillItemInput {
 }
 
 function SupplierBillsContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -213,19 +215,19 @@ function SupplierBillsContent() {
 
   const handleDeleteBill = async (id: string) => {
     const result = await Swal.fire({
-      title: 'Delete Purchase Bill?',
-      text: 'Are you sure you want to delete this purchase bill record? This will adjust the supplier outstanding balance.',
+      title: t("supplier_bills.delete_title"),
+      text: t("supplier_bills.delete_text"),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: t("supplier_bills.yes_delete")
     });
 
     if (!result.isConfirmed) return;
     try {
       const res = await fetch(`/api/admin/supplier-bills/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success('Supplier Bill deleted');
+        toast.success(t("supplier_bills.bill_deleted") as string);
         fetchBills();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -239,13 +241,13 @@ function SupplierBillsContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSupplierId) {
-      toast.error('Please select a supplier.');
+      toast.error(t("supplier_bills.error_supplier") as string);
       return;
     }
 
     const invalidItem = billItems.find(item => !item.name || item.price <= 0);
     if (invalidItem) {
-      toast.error('Please complete all item names and positive prices.');
+      toast.error(t("supplier_bills.error_items") as string);
       return;
     }
 
@@ -274,7 +276,7 @@ function SupplierBillsContent() {
         throw new Error(err.message || 'Failed to save bill');
       }
 
-      toast.success(editingBill ? 'Supplier Bill updated successfully' : 'Supplier Bill generated successfully');
+      toast.success(editingBill ? (t("supplier_bills.bill_updated") as string) : (t("supplier_bills.bill_generated") as string));
       setIsCreateOpen(false);
       setEditingBill(null);
       fetchBills();
@@ -325,13 +327,13 @@ function SupplierBillsContent() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Supplier Bills & Purchases</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("supplier_bills.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Record raw material & goods purchases, manage supplier payables, and track dues.
+            {t("supplier_bills.subtitle")}
           </p>
         </div>
         <Button onClick={openCreateDialog} className="w-full sm:w-auto bg-primary text-primary-foreground">
-          <Plus className="mr-2 h-4 w-4" /> Record Purchase Bill
+          <Plus className="mr-2 h-4 w-4" /> {t("supplier_bills.record_bill")}
         </Button>
       </div>
 
@@ -339,32 +341,32 @@ function SupplierBillsContent() {
       <div className="grid gap-2 sm:gap-4 grid-cols-3">
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Total Purchases</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("supplier_bills.total_purchases")}</CardTitle>
             <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold">৳{totalBilled.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Raw materials & goods</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("supplier_bills.raw_materials")}</p>
           </CardContent>
         </Card>
         <Card className="bg-green-500/5 border-green-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Paid Out</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("supplier_bills.paid_out")}</CardTitle>
             <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold text-green-700">৳{totalPaid.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Payments made</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("supplier_bills.payments_made")}</p>
           </CardContent>
         </Card>
         <Card className="bg-orange-500/5 border-orange-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-6 pb-1 sm:pb-2">
-            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Payable</CardTitle>
+            <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">{t("supplier_bills.payable")}</CardTitle>
             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600 shrink-0" />
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
             <div className="text-xs sm:text-lg md:text-2xl font-bold text-orange-700">৳{accountsPayable.toLocaleString()}</div>
-            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">Outstanding due</p>
+            <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 truncate hidden xs:block">{t("supplier_bills.outstanding_due")}</p>
           </CardContent>
         </Card>
       </div>
@@ -372,7 +374,7 @@ function SupplierBillsContent() {
       {/* Filter and Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center justify-between w-full md:w-auto">
-          <h3 className="font-semibold text-lg tracking-tight text-foreground">All Purchases</h3>
+          <h3 className="font-semibold text-lg tracking-tight text-foreground">{t("supplier_bills.all_purchases")}</h3>
           {/* Mobile Filter Toggle Button */}
           <div className="block md:hidden">
             <Button
@@ -382,7 +384,7 @@ function SupplierBillsContent() {
               className={`h-9 px-3 ${showMobileFilters ? 'bg-primary/10 text-primary border-primary/20' : ''}`}
             >
               <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Filters
+              {t("supplier_bills.filters")}
               {isFiltered && (
                 <span className="ml-1.5 flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               )}
@@ -400,7 +402,7 @@ function SupplierBillsContent() {
             <div className="relative w-full md:w-56">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by bill or supplier..."
+                placeholder={t("supplier_bills.search_placeholder") as string}
                 className="pl-8 text-xs h-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -410,12 +412,12 @@ function SupplierBillsContent() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
               <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
                 <SelectTrigger className="w-full md:w-28 text-xs h-8">
-                  <SelectValue placeholder="All Statuses" />
+                  <SelectValue placeholder={t("supplier_bills.all_statuses") as string} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="due">Due</SelectItem>
+                  <SelectItem value="all">{t("supplier_bills.all_statuses")}</SelectItem>
+                  <SelectItem value="paid">{t("supplier_bills.paid")}</SelectItem>
+                  <SelectItem value="due">{t("supplier_bills.due")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -428,7 +430,7 @@ function SupplierBillsContent() {
                     onChange={(e) => setFilterByDate(e.target.checked)}
                     className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
                   />
-                  Filter by Date
+                  {t("supplier_bills.filter_by_date")}
                 </label>
 
                 <div className={`flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border w-full sm:w-auto transition-opacity duration-200 ${!filterByDate ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -439,7 +441,7 @@ function SupplierBillsContent() {
                     onChange={(e) => setDateFilter((prev: any) => ({ ...prev, from: e.target.value }))}
                     disabled={!filterByDate}
                   />
-                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">to</span>
+                  <span className="text-muted-foreground text-[10px] shrink-0 font-medium">{t("supplier_bills.to")}</span>
                   <Input
                     type="date"
                     className="h-7 border-none bg-transparent focus-visible:ring-0 p-0.5 text-xs md:w-28 font-medium"
@@ -468,7 +470,7 @@ function SupplierBillsContent() {
                   }}
                   className="text-xs text-muted-foreground hover:text-primary shrink-0 h-8"
                 >
-                  Clear
+                  {t("supplier_bills.clear")}
                 </Button>
               )}
             </div>
@@ -483,14 +485,14 @@ function SupplierBillsContent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Bill No</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right">Paid Amount</TableHead>
-                  <TableHead className="text-right">Due Amount</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("supplier_bills.bill_no")}</TableHead>
+                  <TableHead>{t("supplier_bills.supplier")}</TableHead>
+                  <TableHead>{t("supplier_bills.date")}</TableHead>
+                  <TableHead className="text-right">{t("supplier_bills.total_amount")}</TableHead>
+                  <TableHead className="text-right">{t("supplier_bills.paid_amount")}</TableHead>
+                  <TableHead className="text-right">{t("supplier_bills.due_amount")}</TableHead>
+                  <TableHead className="text-center">{t("supplier_bills.status")}</TableHead>
+                  <TableHead className="text-right">{t("supplier_bills.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -512,7 +514,7 @@ function SupplierBillsContent() {
                 ) : filteredBills.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                      No bills found.
+                      {t("supplier_bills.no_bills")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -528,7 +530,7 @@ function SupplierBillsContent() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">Deleted Supplier</span>
+                          <span className="text-muted-foreground">{t("supplier_bills.deleted_supplier")}</span>
                         )}
                       </TableCell>
                       <TableCell>{format(new Date(bill.date), 'dd MMM yyyy')}</TableCell>
@@ -544,7 +546,7 @@ function SupplierBillsContent() {
                           bill.status === 'Partially Paid' ? 'bg-amber-100 text-amber-800' :
                             'bg-rose-100 text-rose-800'
                           }`}>
-                          {bill.status}
+                          {bill.status === 'Paid' ? t("supplier_bills.paid") : bill.status === 'Partially Paid' ? t("supplier_bills.partially_paid") : t("supplier_bills.due")}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -554,7 +556,7 @@ function SupplierBillsContent() {
                             size="icon"
                             className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
                             onClick={() => generateBillPDF(bill, settings, 'print')}
-                            title="Print Purchase Bill"
+                            title={t("supplier_bills.print_bill") as string}
                           >
                             <Printer className="h-4 w-4" />
                           </Button>
@@ -566,7 +568,7 @@ function SupplierBillsContent() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => { setSelectedBill(bill); setIsDetailOpen(true); }}>
-                                <Eye className="mr-2 h-4 w-4 text-indigo-600" /> View Details
+                                <Eye className="mr-2 h-4 w-4 text-indigo-600" /> {t("supplier_bills.view_details")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
@@ -580,19 +582,19 @@ function SupplierBillsContent() {
                                   setIsCreateOpen(true);
                                 }}
                               >
-                                <Edit className="mr-2 h-4 w-4" /> Edit Bill
+                                <Edit className="mr-2 h-4 w-4" /> {t("supplier_bills.edit_bill")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'download')}>
-                                <Download className="mr-2 h-4 w-4 text-blue-600" /> Download PDF
+                                <Download className="mr-2 h-4 w-4 text-blue-600" /> {t("supplier_bills.download_pdf")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'print')}>
-                                <Printer className="mr-2 h-4 w-4 text-teal-600" /> Print Bill
+                                <Printer className="mr-2 h-4 w-4 text-teal-600" /> {t("supplier_bills.print_bill")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => handleDeleteBill(bill._id)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                <Trash2 className="mr-2 h-4 w-4" /> {t("supplier_bills.delete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -626,7 +628,7 @@ function SupplierBillsContent() {
                 ))}
               </div>
             ) : filteredBills.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground text-xs">No bills found.</div>
+              <div className="p-6 text-center text-muted-foreground text-xs">{t("supplier_bills.no_bills")}</div>
             ) : (
               paginatedBills.map((bill: any) => (
                 <div key={bill._id} className="p-2.5 border rounded-lg bg-background shadow-sm space-y-2">
@@ -636,36 +638,36 @@ function SupplierBillsContent() {
                       bill.status === 'Partially Paid' ? 'bg-amber-100 text-amber-800' :
                         'bg-rose-100 text-rose-800'
                       }`}>
-                      {bill.status}
+                      {bill.status === 'Paid' ? t("supplier_bills.paid") : bill.status === 'Partially Paid' ? t("supplier_bills.partially_paid") : t("supplier_bills.due")}
                     </span>
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Supplier:</span>
+                      <span className="text-muted-foreground">{t("supplier_bills.supplier")}:</span>
                       <span className="font-medium text-foreground">
-                        {bill.supplier ? bill.supplier.name : 'Deleted Supplier'}
+                        {bill.supplier ? bill.supplier.name : t("supplier_bills.deleted_supplier")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date:</span>
+                      <span className="text-muted-foreground">{t("supplier_bills.date")}:</span>
                       <span className="text-foreground">{format(new Date(bill.date), 'dd MMM yyyy')}</span>
                     </div>
                     <div className="flex justify-between pt-1 border-t">
-                      <span className="text-muted-foreground">Total:</span>
+                      <span className="text-muted-foreground">{t("supplier_bills.total")}:</span>
                       <span className="font-bold text-foreground">৳{(bill.total || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-emerald-600">
-                      <span>Paid:</span>
+                      <span>{t("supplier_bills.paid")}:</span>
                       <span>৳{(bill.paidAmount || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-rose-600 font-semibold">
-                      <span>Due:</span>
+                      <span>{t("supplier_bills.due")}:</span>
                       <span>৳{(bill.dueAmount || 0).toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t">
                     <Button variant="outline" size="sm" className="h-8 text-teal-600" onClick={() => generateBillPDF(bill, settings, 'print')}>
-                      <Printer className="h-4 w-4 mr-1" /> Print
+                      <Printer className="h-4 w-4 mr-1" /> {t("supplier_bills.print_bill")}
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -675,7 +677,7 @@ function SupplierBillsContent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => { setSelectedBill(bill); setIsDetailOpen(true); }}>
-                          <Eye className="mr-2 h-4 w-4 text-indigo-600" /> View Details
+                          <Eye className="mr-2 h-4 w-4 text-indigo-600" /> {t("supplier_bills.view_details")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
@@ -689,19 +691,19 @@ function SupplierBillsContent() {
                             setIsCreateOpen(true);
                           }}
                         >
-                          <Edit className="mr-2 h-4 w-4" /> Edit Bill
+                          <Edit className="mr-2 h-4 w-4" /> {t("supplier_bills.edit_bill")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'download')}>
-                          <Download className="mr-2 h-4 w-4 text-blue-600" /> Download PDF
+                          <Download className="mr-2 h-4 w-4 text-blue-600" /> {t("supplier_bills.download_pdf")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => generateBillPDF(bill, settings, 'print')}>
-                          <Printer className="mr-2 h-4 w-4 text-teal-600" /> Print Bill
+                          <Printer className="mr-2 h-4 w-4 text-teal-600" /> {t("supplier_bills.print_bill")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => handleDeleteBill(bill._id)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> {t("supplier_bills.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -726,13 +728,13 @@ function SupplierBillsContent() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingBill ? 'Edit' : 'Create New'} Supplier Purchase Bill</DialogTitle>
+            <DialogTitle>{editingBill ? t("supplier_bills.edit") : t("supplier_bills.create_new")}{t("supplier_bills.edit_create_title")}</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="supplierSelect">Supplier *</Label>
+                <Label htmlFor="supplierSelect">{t("supplier_bills.supplier_label")}</Label>
                 <select
                   id="supplierSelect"
                   value={selectedSupplierId}
@@ -741,12 +743,12 @@ function SupplierBillsContent() {
                   required
                 >
                   {suppliers.map(s => (
-                    <option key={s._id} value={s._id}>{s.name} ({s.companyName || 'No Company'})</option>
+                    <option key={s._id} value={s._id}>{s.name} ({s.companyName || t("supplier_bills.no_company")})</option>
                   ))}
                 </select>
               </div>
               <div>
-                <Label htmlFor="billDate">Bill Date</Label>
+                <Label htmlFor="billDate">{t("supplier_bills.bill_date")}</Label>
                 <Input
                   id="billDate"
                   type="date"
@@ -760,9 +762,9 @@ function SupplierBillsContent() {
             {/* Bill items input table */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Bill Items</Label>
+                <Label>{t("supplier_bills.bill_items")}</Label>
                 <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
-                  <Plus className="h-4 w-4 mr-1" /> Add Item
+                  <Plus className="h-4 w-4 mr-1" /> {t("supplier_bills.add_item")}
                 </Button>
               </div>
 
@@ -771,7 +773,7 @@ function SupplierBillsContent() {
                   <div key={idx} className="flex gap-2 items-center">
                     <div className="flex-1">
                       <Input
-                        placeholder="Item name / description"
+                        placeholder={t("supplier_bills.item_name_placeholder") as string}
                         value={item.name}
                         onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
                         className="bg-white"
@@ -781,7 +783,7 @@ function SupplierBillsContent() {
                     <div className="w-20">
                       <Input
                         type="number"
-                        placeholder="Qty"
+                        placeholder={t("supplier_bills.qty") as string}
                         value={item.quantity}
                         onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
                         className="bg-white text-center"
@@ -792,7 +794,7 @@ function SupplierBillsContent() {
                     <div className="w-32">
                       <Input
                         type="number"
-                        placeholder="Price"
+                        placeholder={t("supplier_bills.price") as string}
                         value={item.price || ''}
                         onChange={(e) => handleItemChange(idx, 'price', e.target.value)}
                         className="bg-white text-right"
@@ -819,25 +821,25 @@ function SupplierBillsContent() {
             <div className="grid grid-cols-2 gap-6 pt-4 border-t">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Label htmlFor="paymentMethod">{t("supplier_bills.payment_method")}</Label>
                   <select
                     id="paymentMethod"
                     value={paymentMethod}
                     onChange={(e: any) => setPaymentMethod(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="Cash">Cash</option>
-                    <option value="Bank">Bank</option>
+                    <option value="Cash">{t("supplier_bills.cash")}</option>
+                    <option value="Bank">{t("supplier_bills.bank")}</option>
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="paidAmount">Upfront Payment Amount (BDT)</Label>
+                  <Label htmlFor="paidAmount">{t("supplier_bills.upfront_payment")}</Label>
                   <Input
                     id="paidAmount"
                     type="number"
                     value={paidAmount || ''}
                     onChange={(e) => setPaidAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-                    placeholder="Amount paid now"
+                    placeholder={t("supplier_bills.amount_paid_now") as string}
                     className="font-medium text-emerald-600"
                   />
                 </div>
@@ -845,11 +847,11 @@ function SupplierBillsContent() {
 
               <div className="space-y-2 bg-slate-50 p-4 rounded-md text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal:</span>
+                  <span className="text-muted-foreground">{t("supplier_bills.subtotal")}</span>
                   <span className="font-medium">৳{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center gap-2">
-                  <span className="text-muted-foreground">Discount (fixed):</span>
+                  <span className="text-muted-foreground">{t("supplier_bills.discount_fixed")}</span>
                   <Input
                     type="number"
                     value={discountValue || ''}
@@ -858,11 +860,11 @@ function SupplierBillsContent() {
                   />
                 </div>
                 <div className="flex justify-between border-t pt-2 font-semibold text-base">
-                  <span>Total Bill:</span>
+                  <span>{t("supplier_bills.total_bill")}</span>
                   <span>৳{total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-rose-600 font-semibold">
-                  <span>Due to Supplier:</span>
+                  <span>{t("supplier_bills.due_to_supplier")}</span>
                   <span>৳{dueAmount.toLocaleString()}</span>
                 </div>
               </div>
@@ -870,10 +872,10 @@ function SupplierBillsContent() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} disabled={formLoading}>
-                Cancel
+                {t("supplier_bills.cancel")}
               </Button>
               <Button type="submit" disabled={formLoading}>
-                {formLoading ? 'Saving...' : (editingBill ? 'Update Purchase Bill' : 'Create Purchase Bill')}
+                {formLoading ? t("supplier_bills.saving") : (editingBill ? t("supplier_bills.update_bill") : t("supplier_bills.create_bill"))}
               </Button>
             </DialogFooter>
           </form>
@@ -884,7 +886,7 @@ function SupplierBillsContent() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Supplier Purchase Bill Details</DialogTitle>
+            <DialogTitle>{t("supplier_bills.bill_details_title")}</DialogTitle>
           </DialogHeader>
 
           {selectedBill && (
@@ -901,13 +903,13 @@ function SupplierBillsContent() {
                     selectedBill.status === 'Partially Paid' ? 'bg-amber-100 text-amber-800' :
                       'bg-rose-100 text-rose-800'
                     }`}>
-                    {selectedBill.status}
+                    {selectedBill.status === 'Paid' ? t("supplier_bills.paid") : selectedBill.status === 'Partially Paid' ? t("supplier_bills.partially_paid") : t("supplier_bills.due")}
                   </span>
                 </div>
               </div>
 
               <div>
-                <Label className="text-xs uppercase text-muted-foreground">Supplier Details</Label>
+                <Label className="text-xs uppercase text-muted-foreground">{t("supplier_bills.supplier_details")}</Label>
                 <div className="mt-1 font-semibold text-foreground">
                   {selectedBill.supplier?.name}
                   {selectedBill.supplier?.companyName && (
@@ -920,15 +922,15 @@ function SupplierBillsContent() {
               </div>
 
               <div>
-                <Label className="text-xs uppercase text-muted-foreground">Purchased Items</Label>
+                <Label className="text-xs uppercase text-muted-foreground">{t("supplier_bills.purchased_items")}</Label>
                 <div className="border rounded-md mt-2">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50/50">
-                        <TableHead>Item Name</TableHead>
-                        <TableHead className="text-center">Quantity</TableHead>
-                        <TableHead className="text-right">Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead>{t("supplier_bills.item_name")}</TableHead>
+                        <TableHead className="text-center">{t("supplier_bills.quantity")}</TableHead>
+                        <TableHead className="text-right">{t("supplier_bills.price")}</TableHead>
+                        <TableHead className="text-right">{t("supplier_bills.total")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -947,23 +949,23 @@ function SupplierBillsContent() {
 
               <div className="border-t pt-4 space-y-2 text-sm max-w-xs ml-auto">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal:</span>
+                  <span>{t("supplier_bills.subtotal")}</span>
                   <span>৳{(selectedBill.subtotal || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Discount:</span>
+                  <span>{t("supplier_bills.discount")}</span>
                   <span>-৳{(selectedBill.discount || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2 font-bold text-base">
-                  <span>Total Amount:</span>
+                  <span>{t("supplier_bills.total_amount")}:</span>
                   <span>৳{(selectedBill.total || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-emerald-600 font-semibold">
-                  <span>Paid Amount:</span>
+                  <span>{t("supplier_bills.paid_amount")}:</span>
                   <span>৳{(selectedBill.paidAmount || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-rose-600 font-bold border-t pt-1">
-                  <span>Remaining Due:</span>
+                  <span>{t("supplier_bills.remaining_due")}</span>
                   <span>৳{(selectedBill.dueAmount || 0).toLocaleString()}</span>
                 </div>
               </div>

@@ -37,8 +37,10 @@ import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { EmployeeTabs } from '@/components/admin/EmployeeTabs';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminEmployeesPage() {
+  const { t } = useLanguage();
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -290,14 +292,14 @@ export default function AdminEmployeesPage() {
     <div className="space-y-4 px-0 py-1 md:space-y-6 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">Employee Directory</h1>
-          <p className="text-xs md:text-sm text-zinc-500 mt-1">Manage staff registry, salary structures, contract types, and joined dates.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-950">{t("employees.title")}</h1>
+          <p className="text-xs md:text-sm text-zinc-500 mt-1">{t("employees.subtitle")}</p>
         </div>
         <Button 
           onClick={() => setShowAddModal(true)}
           className="bg-primary text-primary-foreground font-bold flex items-center gap-2 h-10 text-xs md:text-sm md:h-11 px-4 rounded-full"
         >
-          <UserPlus className="h-4 w-4" /> Add Employee
+          <UserPlus className="h-4 w-4" /> {t("employees.add_employee")}
         </Button>
       </div>
 
@@ -324,7 +326,7 @@ export default function AdminEmployeesPage() {
       ) : employees.length === 0 ? (
         <div className="text-center py-16 text-zinc-400">
           <Users className="h-12 w-12 mx-auto mb-3 opacity-60" />
-          <p className="font-medium">No employees found.</p>
+          <p className="font-medium">{t("employees.no_employees_found")}</p>
         </div>
       ) : (
         <>
@@ -336,12 +338,12 @@ export default function AdminEmployeesPage() {
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
                       <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold">
-                        <th className="p-4">Name</th>
-                        <th className="p-4">Type</th>
-                        <th className="p-4">Compensation</th>
-                        <th className="p-4">Joined Date</th>
-                        <th className="p-4">Appointment Letter</th>
-                        <th className="p-4 text-right">Actions</th>
+                        <th className="p-4">{t("employees.name")}</th>
+                        <th className="p-4">{t("employees.type")}</th>
+                        <th className="p-4">{t("employees.compensation")}</th>
+                        <th className="p-4">{t("employees.joined_date")}</th>
+                        <th className="p-4">{t("employees.appointment_letter")}</th>
+                        <th className="p-4 text-right">{t("employees.actions")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -366,15 +368,15 @@ export default function AdminEmployeesPage() {
                           <td className="p-4">
                             <div className="flex flex-col gap-1">
                               <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold w-fit">
-                                {emp.employeeType === 'monthly' ? 'Permanent' : 'Contractual'}
+                                {emp.employeeType === 'monthly' ? t("employees.permanent") : t("employees.contractual")}
                               </Badge>
                               {emp.status === 'discontinued' ? (
                                 <Badge variant="destructive" className="font-bold text-[10px] w-fit">
-                                  Discontinued
+                                  {t("employees.discontinued")}
                                 </Badge>
                               ) : (
                                 <Badge className="font-bold text-[10px] bg-green-600 hover:bg-green-700 text-white w-fit">
-                                  Active
+                                  {t("employees.active")}
                                 </Badge>
                               )}
                             </div>
@@ -383,12 +385,12 @@ export default function AdminEmployeesPage() {
                             {emp.employeeType === 'monthly' ? (
                               <div>
                                 <div>৳{emp.baseSalary?.toLocaleString()} / mo</div>
-                                <div className="text-[11px] text-zinc-500 font-normal mt-0.5">Paid: ৳{emp.totalEarned?.toLocaleString() || 0}</div>
+                                <div className="text-[11px] text-zinc-500 font-normal mt-0.5">{t("employees.paid")}: ৳{emp.totalEarned?.toLocaleString() || 0}</div>
                               </div>
                             ) : (
                               <div>
-                                <span className="font-bold text-zinc-500 text-xs block">Task-based commission</span>
-                                <span className="text-[11px] text-zinc-500 font-normal mt-0.5 block">Paid: ৳{emp.totalEarned?.toLocaleString() || 0}</span>
+                                <span className="font-bold text-zinc-500 text-xs block">{t("employees.task_based")}</span>
+                                <span className="text-[11px] text-zinc-500 font-normal mt-0.5 block">{t("employees.paid")}: ৳{emp.totalEarned?.toLocaleString() || 0}</span>
                               </div>
                             )}
                           </td>
@@ -402,7 +404,7 @@ export default function AdminEmployeesPage() {
                               rel="noreferrer"
                               className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-xs"
                             >
-                              <FileText className="h-3.5 w-3.5" /> View Letter
+                              <FileText className="h-3.5 w-3.5" /> {t("employees.view_letter")}
                             </a>
                           </td>
                           <td className="p-4 text-right">
@@ -414,15 +416,15 @@ export default function AdminEmployeesPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => openEditModal(emp)} className="cursor-pointer">
-                                  <Edit className="h-4 w-4 mr-2" /> Edit Details
+                                  <Edit className="h-4 w-4 mr-2" /> {t("employees.edit_details")}
                                 </DropdownMenuItem>
                                 {emp.status !== 'discontinued' ? (
                                   <DropdownMenuItem onClick={() => handleDiscontinueEmployee(emp._id)} className="text-red-600 hover:text-red-700 cursor-pointer">
-                                    <Trash2 className="h-4 w-4 mr-2" /> Discontinue Staff
+                                    <Trash2 className="h-4 w-4 mr-2" /> {t("employees.discontinue_staff")}
                                   </DropdownMenuItem>
                                 ) : (
                                   <DropdownMenuItem onClick={() => handleReAppointEmployee(emp._id)} className="text-green-600 hover:text-green-700 cursor-pointer">
-                                    <UserPlus className="h-4 w-4 mr-2" /> Re-appoint Staff
+                                    <UserPlus className="h-4 w-4 mr-2" /> {t("employees.reappoint_staff")}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -451,15 +453,15 @@ export default function AdminEmployeesPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openEditModal(emp)} className="cursor-pointer">
-                        <Edit className="h-4 w-4 mr-2" /> Edit Details
+                        <Edit className="h-4 w-4 mr-2" /> {t("employees.edit_details")}
                       </DropdownMenuItem>
                       {emp.status !== 'discontinued' ? (
                         <DropdownMenuItem onClick={() => handleDiscontinueEmployee(emp._id)} className="text-red-600 hover:text-red-700 cursor-pointer">
-                          <Trash2 className="h-4 w-4 mr-2" /> Discontinue Staff
+                          <Trash2 className="h-4 w-4 mr-2" /> {t("employees.discontinue_staff")}
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem onClick={() => handleReAppointEmployee(emp._id)} className="text-green-600 hover:text-green-700 cursor-pointer">
-                          <UserPlus className="h-4 w-4 mr-2" /> Re-appoint Staff
+                          <UserPlus className="h-4 w-4 mr-2" /> {t("employees.reappoint_staff")}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -485,42 +487,42 @@ export default function AdminEmployeesPage() {
                 {/* Detail Rows */}
                 <div className="space-y-1.5 text-xs pt-1 border-t border-zinc-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Employment Type:</span>
+                    <span className="text-zinc-500">{t("employees.employment_type")}:</span>
                     <Badge variant={emp.employeeType === 'monthly' ? 'default' : 'secondary'} className="font-bold text-[10px] px-2 py-0">
-                      {emp.employeeType === 'monthly' ? 'Permanent' : 'Contractual'}
+                      {emp.employeeType === 'monthly' ? t("employees.permanent") : t("employees.contractual")}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Status:</span>
+                    <span className="text-zinc-500">{t("employees.status")}:</span>
                     <Badge variant={emp.status === 'discontinued' ? 'destructive' : 'default'} className="font-bold text-[10px] px-2 py-0">
-                      {emp.status === 'discontinued' ? 'Discontinued' : 'Active'}
+                      {emp.status === 'discontinued' ? t("employees.discontinued") : t("employees.active")}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Compensation:</span>
+                    <span className="text-zinc-500">{t("employees.compensation")}:</span>
                     <span className="font-black text-zinc-900">
-                      {emp.employeeType === 'monthly' ? `৳${emp.baseSalary?.toLocaleString()} / mo` : 'Task-based commission'}
+                      {emp.employeeType === 'monthly' ? `৳${emp.baseSalary?.toLocaleString()} / mo` : t("employees.task_based")}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Total Paid:</span>
+                    <span className="text-zinc-500">{t("employees.total_paid")}:</span>
                     <span className="font-bold text-zinc-700">
                       ৳{emp.totalEarned?.toLocaleString() || 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Joined Date:</span>
+                    <span className="text-zinc-500">{t("employees.joined_date")}:</span>
                     <span className="text-zinc-700 font-medium">{new Date(emp.joinedDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Appointment Letter:</span>
+                    <span className="text-zinc-500">{t("employees.appointment_letter")}:</span>
                     <a 
                       href={`/appointment-letter/${emp._id}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-primary font-bold hover:underline inline-flex items-center gap-1 text-[11px]"
                     >
-                      <FileText className="h-3.5 w-3.5" /> View Letter
+                      <FileText className="h-3.5 w-3.5" /> {t("employees.view_letter")}
                     </a>
                   </div>
                 </div>
@@ -537,8 +539,8 @@ export default function AdminEmployeesPage() {
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-black text-zinc-900">Register New Staff Member</CardTitle>
-                  <CardDescription className="text-xs text-zinc-500">Create login credentials and setup compensations.</CardDescription>
+                  <CardTitle className="text-lg font-black text-zinc-900">{t("employees.register_new_staff")}</CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">{t("employees.register_subtitle")}</CardDescription>
                 </div>
                 <button 
                   onClick={() => setShowAddModal(false)}
@@ -552,7 +554,7 @@ export default function AdminEmployeesPage() {
               <CardContent className="p-5 space-y-4 flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="empName">Full Name *</Label>
+                    <Label htmlFor="empName">{t("employees.full_name")}</Label>
                     <Input 
                       id="empName"
                       required
@@ -562,7 +564,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="empEmail">Email Address *</Label>
+                    <Label htmlFor="empEmail">{t("employees.email_address")}</Label>
                     <Input 
                       id="empEmail"
                       type="email"
@@ -573,7 +575,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="empPassword">Password *</Label>
+                    <Label htmlFor="empPassword">{t("employees.password")}</Label>
                     <Input 
                       id="empPassword"
                       type="password"
@@ -584,7 +586,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="empPhone">Phone Number</Label>
+                    <Label htmlFor="empPhone">{t("employees.phone_number")}</Label>
                     <Input 
                       id="empPhone"
                       value={formPhone}
@@ -600,7 +602,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2">
-                    <Label htmlFor="empType">Employment Type</Label>
+                    <Label htmlFor="empType">{t("employees.employment_type")}</Label>
                     <Select 
                       onValueChange={(val: any) => setFormType(val)} 
                       value={formType}
@@ -621,13 +623,13 @@ export default function AdminEmployeesPage() {
                     <div className="bg-emerald-50/50 p-3.5 rounded-lg border border-emerald-100 flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-emerald-800 shrink-0 mt-0.5" />
                       <div className="text-xs text-emerald-950 leading-relaxed">
-                        <strong>Permanent Employee Rules:</strong> Absent deductions, allowed leaves, and monthly basic structures can be customized below.
+                        <strong>{t("employees.permanent_rules")}</strong> {t("employees.permanent_rules_desc")}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="allowedAbsents">Allowed Monthly Absents *</Label>
+                        <Label htmlFor="allowedAbsents">{t("employees.allowed_monthly_absents")}</Label>
                         <Input
                           id="allowedAbsents"
                           type="number"
@@ -638,7 +640,7 @@ export default function AdminEmployeesPage() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="deductionRate">Absent Deduction Rate (৳/day) *</Label>
+                        <Label htmlFor="deductionRate">{t("employees.absent_deduction_rate")}</Label>
                         <Input
                           id="deductionRate"
                           type="number"
@@ -651,10 +653,10 @@ export default function AdminEmployeesPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-850">Salary Structure</Label>
+                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-850">{t("employees.salary_structure")}</Label>
                       <div className="grid grid-cols-3 gap-3 bg-zinc-50/50 p-3 rounded-lg border border-zinc-200">
                         <div className="space-y-1">
-                          <Label htmlFor="basicSal" className="text-[11px] text-zinc-500">Basic (৳) *</Label>
+                          <Label htmlFor="basicSal" className="text-[11px] text-zinc-500">{t("employees.basic")}</Label>
                           <Input
                             id="basicSal"
                             type="number"
@@ -665,7 +667,7 @@ export default function AdminEmployeesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor="allowanceSal" className="text-[11px] text-zinc-500">Allowance (৳)</Label>
+                          <Label htmlFor="allowanceSal" className="text-[11px] text-zinc-500">{t("employees.allowance")}</Label>
                           <Input
                             id="allowanceSal"
                             type="number"
@@ -675,7 +677,7 @@ export default function AdminEmployeesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor="deductionSal" className="text-[11px] text-zinc-500">Deduction (৳)</Label>
+                          <Label htmlFor="deductionSal" className="text-[11px] text-zinc-500">{t("employees.deduction")}</Label>
                           <Input
                             id="deductionSal"
                             type="number"
@@ -687,7 +689,7 @@ export default function AdminEmployeesPage() {
                       </div>
                       {computedBaseSalary > 0 && (
                         <p className="text-xs font-bold text-zinc-700 text-right mt-1.5">
-                          Calculated Base Salary: <span className="text-emerald-700 font-extrabold">৳{computedBaseSalary.toLocaleString()}</span>
+                          {t("employees.calculated_base_salary")} <span className="text-emerald-700 font-extrabold">৳{computedBaseSalary.toLocaleString()}</span>
                         </p>
                       )}
                     </div>
@@ -695,8 +697,8 @@ export default function AdminEmployeesPage() {
                 )}
               </CardContent>
               <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
-                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Register Employee</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>{t("employees.cancel")}</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground font-bold">{t("employees.register_employee")}</Button>
               </div>
             </form>
           </Card>
@@ -710,8 +712,8 @@ export default function AdminEmployeesPage() {
             <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-black text-zinc-900">Edit Staff Details</CardTitle>
-                  <CardDescription className="text-xs text-zinc-500">Update employee details and compensation structure.</CardDescription>
+                  <CardTitle className="text-lg font-black text-zinc-900">{t("employees.edit_staff_details")}</CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">{t("employees.edit_staff_subtitle")}</CardDescription>
                 </div>
                 <button 
                   onClick={() => setShowEditModal(false)}
@@ -725,7 +727,7 @@ export default function AdminEmployeesPage() {
               <CardContent className="p-5 space-y-4 flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="editEmpName">Full Name *</Label>
+                    <Label htmlFor="editEmpName">{t("employees.full_name")}</Label>
                     <Input 
                       id="editEmpName"
                       required
@@ -735,7 +737,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="editEmpEmail">Email Address (Read Only)</Label>
+                    <Label htmlFor="editEmpEmail">{t("employees.email_read_only")}</Label>
                     <Input 
                       id="editEmpEmail"
                       type="email"
@@ -745,7 +747,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="editEmpPhone">Phone Number</Label>
+                    <Label htmlFor="editEmpPhone">{t("employees.phone_number")}</Label>
                     <Input 
                       id="editEmpPhone"
                       value={formPhone}
@@ -754,7 +756,7 @@ export default function AdminEmployeesPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="editEmpType">Employment Type</Label>
+                    <Label htmlFor="editEmpType">{t("employees.employment_type")}</Label>
                     <Select 
                       onValueChange={(val: any) => setFormType(val)} 
                       value={formType}
@@ -763,13 +765,13 @@ export default function AdminEmployeesPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monthly">Permanent (Monthly Salary)</SelectItem>
-                        <SelectItem value="task-based">Contractual (Task Commission)</SelectItem>
+                        <SelectItem value="monthly">{t("employees.permanent_monthly")}</SelectItem>
+                        <SelectItem value="task-based">{t("employees.contractual_task")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5 col-span-2">
-                    <Label>Profile Picture</Label>
+                    <Label>{t("employees.profile_picture")}</Label>
                     <ImageUpload 
                       value={formImage} 
                       onUpload={setFormImage} 
@@ -782,13 +784,13 @@ export default function AdminEmployeesPage() {
                     <div className="bg-emerald-50/50 p-3.5 rounded-lg border border-emerald-100 flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-emerald-800 shrink-0 mt-0.5" />
                       <div className="text-xs text-emerald-950 leading-relaxed">
-                        <strong>Permanent Employee Rules:</strong> Absent deductions, allowed leaves, and monthly basic structures can be customized below.
+                        <strong>{t("employees.permanent_rules")}</strong> {t("employees.permanent_rules_desc")}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="editAllowedAbsents">Allowed Monthly Absents *</Label>
+                        <Label htmlFor="editAllowedAbsents">{t("employees.allowed_monthly_absents")}</Label>
                         <Input
                           id="editAllowedAbsents"
                           type="number"
@@ -799,7 +801,7 @@ export default function AdminEmployeesPage() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="editDeductionRate">Absent Deduction Rate (৳/day) *</Label>
+                        <Label htmlFor="editDeductionRate">{t("employees.absent_deduction_rate")}</Label>
                         <Input
                           id="editDeductionRate"
                           type="number"
@@ -812,10 +814,10 @@ export default function AdminEmployeesPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-850">Salary Structure</Label>
+                      <Label className="text-xs font-bold uppercase tracking-wider text-emerald-850">{t("employees.salary_structure")}</Label>
                       <div className="grid grid-cols-3 gap-3 bg-zinc-50/50 p-3 rounded-lg border border-zinc-200">
                         <div className="space-y-1">
-                          <Label htmlFor="editBasicSal" className="text-[11px] text-zinc-500">Basic (৳) *</Label>
+                          <Label htmlFor="editBasicSal" className="text-[11px] text-zinc-500">{t("employees.basic")}</Label>
                           <Input
                             id="editBasicSal"
                             type="number"
@@ -826,7 +828,7 @@ export default function AdminEmployeesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor="editAllowanceSal" className="text-[11px] text-zinc-500">Allowance (৳)</Label>
+                          <Label htmlFor="editAllowanceSal" className="text-[11px] text-zinc-500">{t("employees.allowance")}</Label>
                           <Input
                             id="editAllowanceSal"
                             type="number"
@@ -836,7 +838,7 @@ export default function AdminEmployeesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor="editDeductionSal" className="text-[11px] text-zinc-500">Deduction (৳)</Label>
+                          <Label htmlFor="editDeductionSal" className="text-[11px] text-zinc-500">{t("employees.deduction")}</Label>
                           <Input
                             id="editDeductionSal"
                             type="number"
@@ -848,7 +850,7 @@ export default function AdminEmployeesPage() {
                       </div>
                       {computedBaseSalary > 0 && (
                         <p className="text-xs font-bold text-zinc-700 text-right mt-1.5">
-                          Calculated Base Salary: <span className="text-emerald-700 font-extrabold">৳{computedBaseSalary.toLocaleString()}</span>
+                          {t("employees.calculated_base_salary")} <span className="text-emerald-700 font-extrabold">৳{computedBaseSalary.toLocaleString()}</span>
                         </p>
                       )}
                     </div>
@@ -856,8 +858,8 @@ export default function AdminEmployeesPage() {
                 )}
               </CardContent>
               <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
-                <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold">Save Changes</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>{t("employees.cancel")}</Button>
+                <Button type="submit" className="bg-primary text-primary-foreground font-bold">{t("employees.save_changes")}</Button>
               </div>
             </form>
           </Card>

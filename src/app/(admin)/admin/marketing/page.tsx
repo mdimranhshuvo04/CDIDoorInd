@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const marketingSettingsSchema = z.object({
   subscriptionConfig: z.object({
@@ -103,6 +104,7 @@ const marketingSettingsSchema = z.object({
 type MarketingSettingsFormValues = z.infer<typeof marketingSettingsSchema>;
 
 export default function MarketingSettingsPage() {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -234,17 +236,17 @@ export default function MarketingSettingsPage() {
             }
           } else {
             console.error('Settings validation failed:', result.error);
-            toast.error('Received invalid settings from server');
+            toast.error(t("marketing.invalid_settings") as string);
           }
         } else {
           if (!controller.signal.aborted) {
-            toast.error(`Failed to load settings: ${res.status} ${res.statusText}`);
+            toast.error(`${t("marketing.failed_load")}: ${res.status} ${res.statusText}`);
           }
         }
       } catch (error: any) {
         if (error.name === 'AbortError') return;
         if (!controller.signal.aborted) {
-          toast.error('Failed to load settings');
+          toast.error(t("marketing.failed_load") as string);
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -267,12 +269,12 @@ export default function MarketingSettingsPage() {
       });
 
       if (response.ok) {
-        toast.success('Marketing & Integration settings updated successfully');
+        toast.success(t("marketing.settings_updated") as string);
       } else {
-        toast.error('Failed to update settings');
+        toast.error(t("marketing.failed_update") as string);
       }
     } catch (error) {
-      toast.error('Error updating settings');
+      toast.error(t("marketing.error_updating") as string);
     } finally {
       setSubmitting(false);
     }
@@ -289,10 +291,10 @@ export default function MarketingSettingsPage() {
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
-        <h1 className="text-2xl font-bold tracking-tight">Marketing & Integration Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("marketing.title")}</h1>
         <Button type="submit" form="marketing-settings-form" disabled={submitting}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
+          {t("marketing.save_changes")}
         </Button>
       </div>
 
@@ -300,18 +302,18 @@ export default function MarketingSettingsPage() {
         <form id="marketing-settings-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <Tabs defaultValue="loyalty" className="w-full">
             <TabsList className="grid w-full grid-cols-4 lg:w-[480px]">
-              <TabsTrigger value="loyalty">Loyalty</TabsTrigger>
-              <TabsTrigger value="payment">Payment</TabsTrigger>
-              <TabsTrigger value="courier">Courier</TabsTrigger>
-              <TabsTrigger value="marketing">Meta</TabsTrigger>
+              <TabsTrigger value="loyalty">{t("marketing.tab_loyalty")}</TabsTrigger>
+              <TabsTrigger value="payment">{t("marketing.tab_payment")}</TabsTrigger>
+              <TabsTrigger value="courier">{t("marketing.tab_courier")}</TabsTrigger>
+              <TabsTrigger value="marketing">{t("marketing.tab_marketing")}</TabsTrigger>
             </TabsList>
 
             {/* 1. Loyalty Tab */}
             <TabsContent value="loyalty" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Loyalty & Rewards System</CardTitle>
-                  <CardDescription>Configure how customers activate their lifetime rewards and the percentage they earn.</CardDescription>
+                  <CardTitle>{t("marketing.loyalty_title")}</CardTitle>
+                  <CardDescription>{t("marketing.loyalty_desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -320,7 +322,7 @@ export default function MarketingSettingsPage() {
                       name="subscriptionConfig.activationThreshold"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Activation Threshold (TK)</FormLabel>
+                          <FormLabel>{t("marketing.activation_threshold")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -329,7 +331,7 @@ export default function MarketingSettingsPage() {
                               onChange={(e) => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
-                          <FormDescription>Minimum single order amount to activate lifetime rewards for a user.</FormDescription>
+                          <FormDescription>{t("marketing.activation_desc")}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -339,7 +341,7 @@ export default function MarketingSettingsPage() {
                       name="subscriptionConfig.rewardPercentage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Reward Percentage (%)</FormLabel>
+                          <FormLabel>{t("marketing.reward_percentage")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -348,7 +350,7 @@ export default function MarketingSettingsPage() {
                               onChange={(e) => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
-                          <FormDescription>Percentage of purchase total awarded as tokens to active users.</FormDescription>
+                          <FormDescription>{t("marketing.reward_desc")}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -356,12 +358,12 @@ export default function MarketingSettingsPage() {
                   </div>
 
                   <div className="rounded-lg border p-4 bg-primary/5">
-                    <h4 className="text-sm font-bold mb-2">How it works:</h4>
+                    <h4 className="text-sm font-bold mb-2">{t("marketing.how_it_works")}</h4>
                     <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-                      <li>All registered users are enrolled in the loyalty program automatically.</li>
-                      <li>Users become <strong>Active</strong> after a single purchase ≥ {form.watch('subscriptionConfig.activationThreshold')} TK.</li>
-                      <li>Active users earn <strong>{form.watch('subscriptionConfig.rewardPercentage')}%</strong> of every purchase as wallet tokens.</li>
-                      <li>Tokens can be used for discounts on any future purchase.</li>
+                      <li>{t("marketing.loyalty_rule_1")}</li>
+                      <li>{t("marketing.loyalty_rule_2")}<strong>{t("marketing.active")}</strong>{t("marketing.loyalty_rule_2_after")}{form.watch('subscriptionConfig.activationThreshold')}{t("marketing.tk")}</li>
+                      <li>{t("marketing.loyalty_rule_3")}<strong>{form.watch('subscriptionConfig.rewardPercentage')}</strong>{t("marketing.loyalty_rule_3_after")}</li>
+                      <li>{t("marketing.loyalty_rule_4")}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -373,9 +375,9 @@ export default function MarketingSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-primary" /> Payment Gateway (SSLCommerz)
+                    <CreditCard className="h-5 w-5 text-primary" /> {t("marketing.payment_sslcommerz_title")}
                   </CardTitle>
-                  <CardDescription>Configure SSLCommerz active payment gateway settings.</CardDescription>
+                  <CardDescription>{t("marketing.payment_sslcommerz_desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 py-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1 space-y-4">
@@ -384,16 +386,16 @@ export default function MarketingSettingsPage() {
                       name="paymentConfig.activeMethod"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold">Active Payment Method</FormLabel>
+                          <FormLabel className="font-bold">{t("marketing.active_payment_method")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl">
-                                <SelectValue placeholder="Select active method" />
+                                <SelectValue placeholder={t("marketing.select_active_method") as string} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="none">None (Cash on Delivery Only)</SelectItem>
-                              <SelectItem value="sslcommerz">SSLCommerz</SelectItem>
+                              <SelectItem value="none">{t("marketing.none_cod")}</SelectItem>
+                              <SelectItem value="sslcommerz">{t("marketing.sslcommerz")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -413,22 +415,22 @@ export default function MarketingSettingsPage() {
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
                           </FormControl>
-                          <FormLabel className="font-bold text-sm cursor-pointer">Enable Sandbox Mode</FormLabel>
+                          <FormLabel className="font-bold text-sm cursor-pointer">{t("marketing.enable_sandbox")}</FormLabel>
                         </FormItem>
                       )}
                     />
                   </div>
 
                   <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-2xl border">
-                    <div className="md:col-span-2 font-black text-xs uppercase opacity-50 mb-2">SSLCommerz Credentials</div>
+                    <div className="md:col-span-2 font-black text-xs uppercase opacity-50 mb-2">{t("marketing.sslcommerz_credentials")}</div>
                     <FormField
                       control={form.control}
                       name="paymentConfig.sslcommerz.storeId"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">Store ID</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.store_id")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Store ID" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input placeholder={t("marketing.store_id") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -439,9 +441,9 @@ export default function MarketingSettingsPage() {
                       name="paymentConfig.sslcommerz.storePassword"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">Store Password</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.store_password")}</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="Enter Password" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input type="text" placeholder={t("marketing.store_password") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -454,9 +456,9 @@ export default function MarketingSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-primary" /> Manual Payment (Mobile Banking)
+                    <CreditCard className="h-5 w-5 text-primary" /> {t("marketing.manual_payment_title")}
                   </CardTitle>
-                  <CardDescription>Configure manual mobile banking account details.</CardDescription>
+                  <CardDescription>{t("marketing.manual_payment_desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 py-4 md:p-6 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -489,7 +491,7 @@ export default function MarketingSettingsPage() {
                           name={`manualPaymentConfig.${method}.number`}
                           render={({ field }) => (
                             <FormItem className="space-y-2">
-                              <FormLabel className="text-[10px] uppercase opacity-60">Number</FormLabel>
+                              <FormLabel className="text-[10px] uppercase opacity-60">{t("marketing.number")}</FormLabel>
                               <FormControl>
                                 <Input placeholder="017XXXXXXXX" {...field} className="h-10 rounded-lg border px-3 text-sm" />
                               </FormControl>
@@ -507,8 +509,8 @@ export default function MarketingSettingsPage() {
                       <div className="flex items-center gap-2">
                         <Landmark className="h-5 w-5 text-primary" />
                         <div>
-                          <h4 className="font-bold text-sm text-foreground">Bank Transfer Details</h4>
-                          <p className="text-xs text-muted-foreground">Receive payments directly to your business bank account</p>
+                          <h4 className="font-bold text-sm text-foreground">{t("marketing.bank_transfer_details")}</h4>
+                          <p className="text-xs text-muted-foreground">{t("marketing.bank_transfer_desc")}</p>
                         </div>
                       </div>
                       <FormField
@@ -534,7 +536,7 @@ export default function MarketingSettingsPage() {
                       name="manualPaymentConfig.bank.bankName"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-semibold text-gray-700">Bank Name</FormLabel>
+                          <FormLabel className="text-xs font-semibold text-gray-700">{t("marketing.bank_name")}</FormLabel>
                           <FormControl>
                             <Input placeholder="e.g. Islami Bank Bangladesh PLC" {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
@@ -548,7 +550,7 @@ export default function MarketingSettingsPage() {
                       name="manualPaymentConfig.bank.accountNumber"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-semibold text-gray-700">Account Number</FormLabel>
+                          <FormLabel className="text-xs font-semibold text-gray-700">{t("marketing.account_number")}</FormLabel>
                           <FormControl>
                             <Input placeholder="e.g. 20501234567890123" {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
@@ -562,7 +564,7 @@ export default function MarketingSettingsPage() {
                       name="manualPaymentConfig.bank.routingNumber"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-semibold text-gray-700">Routing Number (Optional)</FormLabel>
+                          <FormLabel className="text-xs font-semibold text-gray-700">{t("marketing.routing_number")}</FormLabel>
                           <FormControl>
                             <Input placeholder="e.g. 125271429" {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
@@ -576,7 +578,7 @@ export default function MarketingSettingsPage() {
                       name="manualPaymentConfig.bank.branchName"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-semibold text-gray-700">Branch Name (Optional)</FormLabel>
+                          <FormLabel className="text-xs font-semibold text-gray-700">{t("marketing.branch_name")}</FormLabel>
                           <FormControl>
                             <Input placeholder="e.g. Motijheel Branch" {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
@@ -593,12 +595,12 @@ export default function MarketingSettingsPage() {
                       name="manualPaymentConfig.instructions"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-sm">Payment Instructions</FormLabel>
+                          <FormLabel className="font-bold text-sm">{t("marketing.payment_instructions")}</FormLabel>
                           <FormControl>
                             <textarea
                               {...field}
                               rows={4}
-                              placeholder="Describe here instructions on how to pay..."
+                              placeholder={t("marketing.describe_instructions") as string}
                               className="w-full rounded-lg border p-3 text-xs bg-transparent border-input"
                             />
                           </FormControl>
@@ -617,9 +619,9 @@ export default function MarketingSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5 text-primary" /> Courier & Shipping Rules
+                    <Truck className="h-5 w-5 text-primary" /> {t("marketing.courier_title")}
                   </CardTitle>
-                  <CardDescription>Configure courier logistics and delivery charge parameters.</CardDescription>
+                  <CardDescription>{t("marketing.courier_desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 py-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1 space-y-4">
@@ -628,18 +630,18 @@ export default function MarketingSettingsPage() {
                       name="courierConfig.activeProvider"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold">Active Provider</FormLabel>
+                          <FormLabel className="font-bold">{t("marketing.active_provider")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl">
-                                <SelectValue placeholder="Select provider" />
+                                <SelectValue placeholder={t("marketing.select_provider") as string} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="steadfast">Steadfast</SelectItem>
-                              <SelectItem value="pathao">Pathao</SelectItem>
-                              <SelectItem value="redx">RedX</SelectItem>
+                              <SelectItem value="none">{t("marketing.none")}</SelectItem>
+                              <SelectItem value="steadfast">{t("marketing.steadfast")}</SelectItem>
+                              <SelectItem value="pathao">{t("marketing.pathao")}</SelectItem>
+                              <SelectItem value="redx">{t("marketing.redx")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -651,7 +653,7 @@ export default function MarketingSettingsPage() {
                       name="deliveryChargeInsideDhaka"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold">Inside Dhaka (TK)</FormLabel>
+                          <FormLabel className="font-bold">{t("marketing.inside_dhaka")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -669,7 +671,7 @@ export default function MarketingSettingsPage() {
                       name="deliveryChargeOutsideDhaka"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold">Outside Dhaka (TK)</FormLabel>
+                          <FormLabel className="font-bold">{t("marketing.outside_dhaka")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -685,15 +687,15 @@ export default function MarketingSettingsPage() {
                   </div>
 
                   <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-2xl border">
-                    <div className="md:col-span-2 font-black text-xs uppercase opacity-50 mb-2">Provider Credentials</div>
+                    <div className="md:col-span-2 font-black text-xs uppercase opacity-50 mb-2">{t("marketing.provider_credentials")}</div>
                     <FormField
                       control={form.control}
                       name="courierConfig.steadfast.apiKey"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">Steadfast API Key</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.steadfast_api_key")}</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="Steadfast API Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input type="text" placeholder={t("marketing.steadfast_api_key") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -704,9 +706,9 @@ export default function MarketingSettingsPage() {
                       name="courierConfig.steadfast.secretKey"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">Steadfast Secret Key</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.steadfast_secret_key")}</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="Steadfast Secret Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input type="text" placeholder={t("marketing.steadfast_secret_key") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -717,9 +719,9 @@ export default function MarketingSettingsPage() {
                       name="courierConfig.pathao.storeId"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">Pathao Store ID</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.pathao_store_id")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Pathao Store ID" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input placeholder={t("marketing.pathao_store_id") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -730,9 +732,9 @@ export default function MarketingSettingsPage() {
                       name="courierConfig.redx.apiKey"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">RedX API Key</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.redx_api_key")}</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="RedX API Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input type="text" placeholder={t("marketing.redx_api_key") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -743,9 +745,9 @@ export default function MarketingSettingsPage() {
                       name="courierConfig.bdCourier.apiKey"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">BD Courier Fraud Check API Key</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.bd_courier_api_key")}</FormLabel>
                           <FormControl>
-                            <Input type="text" placeholder="BD Courier API Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                            <Input type="text" placeholder={t("marketing.bd_courier_api_key") as string} {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -761,9 +763,9 @@ export default function MarketingSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" /> Marketing & Meta Pixel
+                    <BarChart3 className="h-5 w-5 text-primary" /> {t("marketing.marketing_meta_title")}
                   </CardTitle>
-                  <CardDescription>Configure Meta Pixel and tracking integrations.</CardDescription>
+                  <CardDescription>{t("marketing.marketing_meta_desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 py-4 md:p-6 space-y-6">
                   <FormField
@@ -771,12 +773,12 @@ export default function MarketingSettingsPage() {
                     name="googleTagManagerId"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="font-bold text-xs">GTM ID (Tag Manager)</FormLabel>
+                        <FormLabel className="font-bold text-xs">{t("marketing.gtm_id")}</FormLabel>
                         <FormControl>
                           <Input placeholder="GTM-XXXXXXX" {...field} className="h-12 rounded-xl" />
                         </FormControl>
                         <FormDescription>
-                          Container ID for GA, Ads, and other tags.
+                          {t("marketing.gtm_desc")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -787,9 +789,9 @@ export default function MarketingSettingsPage() {
                     name="metaPixelId"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="font-bold text-xs">Meta Pixel ID</FormLabel>
+                        <FormLabel className="font-bold text-xs">{t("marketing.meta_pixel_id")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter Meta Pixel ID" {...field} className="h-12 rounded-xl" />
+                          <Input placeholder={t("marketing.meta_pixel_id") as string} {...field} className="h-12 rounded-xl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -800,9 +802,9 @@ export default function MarketingSettingsPage() {
                     name="facebookAccessToken"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="font-bold text-xs">Facebook Access Token</FormLabel>
+                        <FormLabel className="font-bold text-xs">{t("marketing.fb_access_token")}</FormLabel>
                         <FormControl>
-                          <Input type="text" placeholder="Enter Access Token" {...field} className="h-12 rounded-xl" />
+                          <Input type="text" placeholder={t("marketing.fb_access_token") as string} {...field} className="h-12 rounded-xl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -814,9 +816,9 @@ export default function MarketingSettingsPage() {
                       name="facebookDomainVerification"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">FB Domain Verification</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.fb_domain_verification")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter FB Domain Verification Key" {...field} className="h-12 rounded-xl" />
+                            <Input placeholder={t("marketing.fb_domain_verification") as string} {...field} className="h-12 rounded-xl" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -827,9 +829,9 @@ export default function MarketingSettingsPage() {
                       name="facebookTestEventCode"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="font-bold text-xs">FB Test Event Code</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("marketing.fb_test_event_code")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter FB Test Event Code" {...field} className="h-12 rounded-xl" />
+                            <Input placeholder={t("marketing.fb_test_event_code") as string} {...field} className="h-12 rounded-xl" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -838,16 +840,16 @@ export default function MarketingSettingsPage() {
                   </div>
 
                   <div className="border-t pt-6 mt-6">
-                    <h4 className="font-black text-xs uppercase opacity-50 mb-4">TikTok Pixel & Events API</h4>
+                    <h4 className="font-black text-xs uppercase opacity-50 mb-4">{t("marketing.tiktok_pixel_events_api")}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="tiktokPixelId"
                         render={({ field }) => (
                           <FormItem className="space-y-2">
-                            <FormLabel className="font-bold text-xs">TikTok Pixel ID</FormLabel>
+                            <FormLabel className="font-bold text-xs">{t("marketing.tiktok_pixel_id")}</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter TikTok Pixel ID" {...field} className="h-12 rounded-xl" />
+                              <Input placeholder={t("marketing.tiktok_pixel_id") as string} {...field} className="h-12 rounded-xl" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -858,9 +860,9 @@ export default function MarketingSettingsPage() {
                         name="tiktokAccessToken"
                         render={({ field }) => (
                           <FormItem className="space-y-2">
-                            <FormLabel className="font-bold text-xs">TikTok Access Token</FormLabel>
+                            <FormLabel className="font-bold text-xs">{t("marketing.tiktok_access_token")}</FormLabel>
                             <FormControl>
-                              <Input type="text" placeholder="Enter Access Token" {...field} className="h-12 rounded-xl" />
+                              <Input type="text" placeholder={t("marketing.tiktok_access_token") as string} {...field} className="h-12 rounded-xl" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

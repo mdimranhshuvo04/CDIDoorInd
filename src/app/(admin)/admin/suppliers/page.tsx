@@ -42,7 +42,10 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 function SuppliersContent() {
+  const { t } = useLanguage();
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -137,7 +140,7 @@ function SuppliersContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierName || !supplierPhone || !supplierAddress) {
-      toast.error('Please fill in Name, Phone, and Address.');
+      toast.error(t("suppliers.error_fill") as string);
       return;
     }
 
@@ -159,7 +162,7 @@ function SuppliersContent() {
 
       if (!res.ok) throw new Error('Failed to save supplier');
 
-      toast.success(editingSupplier ? 'Supplier updated successfully' : 'Supplier added successfully');
+      toast.success(editingSupplier ? (t("suppliers.supplier_updated") as string) : (t("suppliers.supplier_added") as string));
       setIsFormOpen(false);
       fetchSuppliers();
     } catch (error: any) {
@@ -169,13 +172,13 @@ function SuppliersContent() {
 
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
-      title: 'Delete Supplier?',
-      text: 'Are you sure you want to delete this supplier? This cannot be undone.',
+      title: t("suppliers.delete_title"),
+      text: t("suppliers.delete_text"),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete!'
+      confirmButtonText: t("suppliers.yes_delete"),
     });
 
     if (!result.isConfirmed) return;
@@ -187,7 +190,7 @@ function SuppliersContent() {
         throw new Error(err.message || 'Failed to delete');
       }
 
-      toast.success('Supplier deleted successfully');
+      toast.success(t("suppliers.supplier_deleted") as string);
       fetchSuppliers();
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete supplier');
@@ -227,7 +230,7 @@ function SuppliersContent() {
     e.preventDefault();
     const amountNum = parseFloat(payAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error('Please enter a valid amount.');
+      toast.error(t("suppliers.error_amount") as string);
       return;
     }
 
@@ -245,7 +248,7 @@ function SuppliersContent() {
 
       if (!res.ok) throw new Error('Failed to record payment');
 
-      toast.success('Payment recorded successfully');
+      toast.success(t("suppliers.payment_recorded") as string);
       setIsPaymentOpen(false);
       fetchSupplierDetails(selectedSupplier._id);
       fetchSuppliers();
@@ -271,20 +274,20 @@ function SuppliersContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Suppliers / Vendors</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">{t("suppliers.title")}</h1>
           <p className="text-muted-foreground text-xs md:text-sm hidden md:block">
-            Manage product suppliers and outstanding payable balances.
+            {t("suppliers.subtitle")}
           </p>
         </div>
         <Button onClick={openAddDialog} size="sm" className="h-9 md:h-10 px-3 md:px-4 shrink-0 font-bold">
-          <Plus className="mr-1.5 h-4 w-4" /> Add Supplier
+          <Plus className="mr-1.5 h-4 w-4" /> {t("suppliers.add_supplier")}
         </Button>
       </div>
 
       <div className="flex items-center gap-2 max-w-sm">
         <Search className="h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name, company or phone..."
+          placeholder={t("suppliers.search_placeholder") as string}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full"
@@ -298,11 +301,11 @@ function SuppliersContent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name / Company</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead className="text-right">Outstanding Payable</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("suppliers.name_company")}</TableHead>
+                  <TableHead>{t("suppliers.phone")}</TableHead>
+                  <TableHead>{t("suppliers.address")}</TableHead>
+                  <TableHead className="text-right">{t("suppliers.outstanding_payable")}</TableHead>
+                  <TableHead className="text-right">{t("suppliers.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -325,7 +328,7 @@ function SuppliersContent() {
                 ) : filteredSuppliers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                      No suppliers found.
+                      {t("suppliers.no_suppliers_found")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -378,7 +381,7 @@ function SuppliersContent() {
                 ))}
               </div>
             ) : filteredSuppliers.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground text-xs">No suppliers found.</div>
+              <div className="p-6 text-center text-muted-foreground text-xs">{t("suppliers.no_suppliers_found")}</div>
             ) : (
               paginatedSuppliers.map((supplier) => (
                 <div key={supplier._id} className="p-3 border rounded-lg bg-background shadow-sm space-y-2.5">
@@ -394,7 +397,7 @@ function SuppliersContent() {
                   <div className="space-y-1 text-xs">
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Phone className="h-3.5 w-3.5" />
-                      <span>{supplier.phone || 'N/A'}</span>
+                      <span>{supplier.phone || t("suppliers.na")}</span>
                       {supplier.phone && (
                         <div className="flex items-center gap-1">
                           <a 
@@ -402,7 +405,7 @@ function SuppliersContent() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-green-600 p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                            title="Chat on WhatsApp"
+                            title={t("suppliers.chat_whatsapp") as string}
                           >
                             <WhatsAppIcon className="h-3.5 w-3.5" />
                           </a>
@@ -411,13 +414,13 @@ function SuppliersContent() {
                             onClick={async () => {
                               try {
                                 await navigator.clipboard.writeText(supplier.phone);
-                                toast.success('Phone number copied!');
+                                toast.success(t("suppliers.phone_copied") as string);
                               } catch (err) {
                                 // Ignore or silently fail/handle rejection without unhandled promise
                               }
                             }}
                             className="text-muted-foreground p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
-                            title="Copy Phone"
+                            title={t("suppliers.copy_phone") as string}
                           >
                             <Copy className="h-3 w-3" />
                           </button>
@@ -426,19 +429,19 @@ function SuppliersContent() {
                     </div>
                     {supplier.address && (
                       <div className="text-muted-foreground truncate max-w-full">
-                        Address: {supplier.address}
+                        {t("suppliers.address")}: {supplier.address}
                       </div>
                     )}
                   </div>
                   <div className="flex items-center justify-end gap-2 pt-2 border-t">
                     <Button variant="outline" size="sm" className="h-8 text-sky-600" onClick={() => viewSupplierDetails(supplier)}>
-                      <Eye className="h-4 w-4 mr-1" /> View
+                      <Eye className="h-4 w-4 mr-1" /> {t("suppliers.view")}
                     </Button>
                     <Button variant="outline" size="sm" className="h-8 text-indigo-600" onClick={() => openEditDialog(supplier)}>
-                      <Edit className="h-4 w-4 mr-1" /> Edit
+                      <Edit className="h-4 w-4 mr-1" /> {t("suppliers.edit")}
                     </Button>
                     <Button variant="outline" size="sm" className="h-8 text-rose-600" onClick={() => handleDelete(supplier._id)}>
-                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                      <Trash2 className="h-4 w-4 mr-1" /> {t("suppliers.delete")}
                     </Button>
                   </div>
                 </div>
@@ -461,11 +464,11 @@ function SuppliersContent() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[480px] w-full">
           <DialogHeader>
-            <DialogTitle>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</DialogTitle>
+            <DialogTitle>{editingSupplier ? t("suppliers.edit_supplier") : t("suppliers.add_new_supplier")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Supplier Name *</Label>
+              <Label htmlFor="name">{t("suppliers.supplier_name")}</Label>
               <Input
                 id="name"
                 value={supplierName}
@@ -474,7 +477,7 @@ function SuppliersContent() {
               />
             </div>
             <div>
-              <Label htmlFor="company">Company Name</Label>
+              <Label htmlFor="company">{t("suppliers.company_name")}</Label>
               <Input
                 id="company"
                 value={supplierCompany}
@@ -482,7 +485,7 @@ function SuppliersContent() {
               />
             </div>
             <div>
-              <Label htmlFor="phone">Phone *</Label>
+              <Label htmlFor="phone">{t("suppliers.phone")} *</Label>
               <Input
                 id="phone"
                 value={supplierPhone}
@@ -491,7 +494,7 @@ function SuppliersContent() {
               />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("suppliers.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -500,7 +503,7 @@ function SuppliersContent() {
               />
             </div>
             <div>
-              <Label htmlFor="address">Address *</Label>
+              <Label htmlFor="address">{t("suppliers.address")} *</Label>
               <Input
                 id="address"
                 value={supplierAddress}
@@ -510,10 +513,10 @@ function SuppliersContent() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancel
+                {t("suppliers.cancel")}
               </Button>
               <Button type="submit">
-                {editingSupplier ? 'Save Changes' : 'Add Supplier'}
+                {editingSupplier ? t("suppliers.save_changes") : t("suppliers.add_supplier")}
               </Button>
             </DialogFooter>
           </form>
@@ -525,9 +528,9 @@ function SuppliersContent() {
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex justify-between items-center mr-6">
-              <span>Supplier Statement: {selectedSupplier?.name}</span>
+              <span>{t("suppliers.supplier_statement")}{selectedSupplier?.name}</span>
               <span className="text-sm font-semibold text-rose-600">
-                Outstanding: ৳{selectedSupplier?.currentBalance?.toLocaleString() || 0}
+                {t("suppliers.outstanding")}{selectedSupplier?.currentBalance?.toLocaleString() || 0}
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -538,19 +541,19 @@ function SuppliersContent() {
               <div className="grid grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-xs text-muted-foreground uppercase">Phone</CardTitle>
+                    <CardTitle className="text-xs text-muted-foreground uppercase">{t("suppliers.phone")}</CardTitle>
                   </CardHeader>
                   <CardContent className="py-1 font-semibold">{selectedSupplier.phone}</CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-xs text-muted-foreground uppercase">Company</CardTitle>
+                    <CardTitle className="text-xs text-muted-foreground uppercase">{t("suppliers.company_name")}</CardTitle>
                   </CardHeader>
-                  <CardContent className="py-1 font-semibold">{selectedSupplier.companyName || 'N/A'}</CardContent>
+                  <CardContent className="py-1 font-semibold">{selectedSupplier.companyName || t("suppliers.na")}</CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-xs text-muted-foreground uppercase">Address</CardTitle>
+                    <CardTitle className="text-xs text-muted-foreground uppercase">{t("suppliers.address")}</CardTitle>
                   </CardHeader>
                   <CardContent className="py-1 font-semibold truncate" title={selectedSupplier.address}>
                     {selectedSupplier.address}
@@ -561,32 +564,32 @@ function SuppliersContent() {
               {/* Action Buttons */}
               <div className="flex justify-end">
                 <Button onClick={openPaymentDialog}>
-                  <CreditCard className="mr-2 h-4 w-4" /> Record Payment
+                  <CreditCard className="mr-2 h-4 w-4" /> {t("suppliers.record_payment")}
                 </Button>
               </div>
 
               {detailsLoading ? (
-                <div className="text-center py-6 text-muted-foreground">Loading history...</div>
+                <div className="text-center py-6 text-muted-foreground">{t("suppliers.loading_history")}</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Purchase Bills */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Purchase Bills</h3>
+                    <h3 className="text-lg font-semibold mb-3">{t("suppliers.purchase_bills")}</h3>
                     <div className="border rounded-md max-h-[300px] overflow-y-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Bill No</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                            <TableHead className="text-right">Due</TableHead>
+                            <TableHead>{t("suppliers.bill_no")}</TableHead>
+                            <TableHead>{t("suppliers.date")}</TableHead>
+                            <TableHead className="text-right">{t("suppliers.total")}</TableHead>
+                            <TableHead className="text-right">{t("suppliers.due")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {supplierBills.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={4} className="text-center py-4 text-muted-foreground text-sm">
-                                No bills found.
+                                {t("suppliers.no_bills")}
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -608,21 +611,21 @@ function SuppliersContent() {
 
                   {/* Payments */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Payment History</h3>
+                    <h3 className="text-lg font-semibold mb-3">{t("suppliers.payment_history")}</h3>
                     <div className="border rounded-md max-h-[300px] overflow-y-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Description</TableHead>
+                            <TableHead>{t("suppliers.date")}</TableHead>
+                            <TableHead>{t("suppliers.amount")}</TableHead>
+                            <TableHead>{t("suppliers.description")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {supplierPayments.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={3} className="text-center py-4 text-muted-foreground text-sm">
-                                No payments recorded.
+                                {t("suppliers.no_payments")}
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -653,35 +656,35 @@ function SuppliersContent() {
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Record Payment to {selectedSupplier?.name}</DialogTitle>
+            <DialogTitle>{t("suppliers.record_payment_to")}{selectedSupplier?.name}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleRecordPayment} className="space-y-4">
             <div>
-              <Label htmlFor="payAmount">Amount (BDT) *</Label>
+              <Label htmlFor="payAmount">{t("suppliers.amount_bdt")}</Label>
               <Input
                 id="payAmount"
                 type="number"
                 value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value)}
-                placeholder="e.g. 5000"
+                placeholder={t("suppliers.amount_placeholder") as string}
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="payMethod">Payment Method *</Label>
+                <Label htmlFor="payMethod">{t("suppliers.payment_method")}</Label>
                 <select
                   id="payMethod"
                   value={payMethod}
                   onChange={(e: any) => setPayMethod(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="Cash">Cash</option>
-                  <option value="Bank">Bank</option>
+                  <option value="Cash">{t("suppliers.cash")}</option>
+                  <option value="Bank">{t("suppliers.bank")}</option>
                 </select>
               </div>
               <div>
-                <Label htmlFor="payDate">Payment Date</Label>
+                <Label htmlFor="payDate">{t("suppliers.payment_date")}</Label>
                 <Input
                   id="payDate"
                   type="date"
@@ -691,19 +694,19 @@ function SuppliersContent() {
               </div>
             </div>
             <div>
-              <Label htmlFor="payDescription">Notes / Description</Label>
+              <Label htmlFor="payDescription">{t("suppliers.notes_description")}</Label>
               <Input
                 id="payDescription"
                 value={payDescription}
                 onChange={(e) => setPayDescription(e.target.value)}
-                placeholder="e.g. Paid via Cash for monthly clearing"
+                placeholder={t("suppliers.notes_placeholder") as string}
               />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsPaymentOpen(false)}>
-                Cancel
+                {t("suppliers.cancel")}
               </Button>
-              <Button type="submit">Confirm Payment</Button>
+              <Button type="submit">{t("suppliers.confirm_payment")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

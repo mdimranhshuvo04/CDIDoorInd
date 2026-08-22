@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Plus } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Category {
   _id: string;
@@ -25,17 +26,15 @@ function CategoryItem({ category }: { category: Category }) {
       className="group block"
     >
       <div className="flex flex-col items-center gap-3 py-2 transition-all hover:-translate-y-1">
-        <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 overflow-hidden rounded-full bg-background border border-muted shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
+        <div className="relative h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 overflow-hidden rounded-full bg-background border border-muted shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
           {category.image ? (
-            <div className="relative h-full w-full">
-              <Image
-                src={category.image}
-                alt={category.name}
-                fill
-                sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
-                className="object-cover"
-              />
-            </div>
+            <Image
+              src={category.image}
+              alt={category.name}
+              fill
+              sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+              className="object-cover"
+            />
           ) : (
             <Plus className="h-6 w-6 text-muted-foreground" />
           )}
@@ -49,6 +48,7 @@ function CategoryItem({ category }: { category: Category }) {
 }
 
 export default function CategoryV1({ categories }: CategoryShowcaseProps) {
+  const { t } = useLanguage();
   // ── Mobile carousel state ──────────────────────────────────────────
   const [mobileIndex, setMobileIndex] = useState(0);
   const [mobileSnaps, setMobileSnaps] = useState<number[]>([]);
@@ -64,10 +64,11 @@ export default function CategoryV1({ categories }: CategoryShowcaseProps) {
 
   useEffect(() => {
     if (!mobileApi) return;
-    const timer = setTimeout(() => {
+    const init = () => {
       onMobileSelect();
       setMobileSnaps(mobileApi.scrollSnapList());
-    }, 0);
+    };
+    const timer = setTimeout(init, 0);
     mobileApi.on('select', onMobileSelect);
     mobileApi.on('reInit', onMobileSelect);
     return () => {
@@ -92,10 +93,11 @@ export default function CategoryV1({ categories }: CategoryShowcaseProps) {
 
   useEffect(() => {
     if (!desktopApi) return;
-    const timer = setTimeout(() => {
+    const init = () => {
       onDesktopSelect();
       setDesktopSnaps(desktopApi.scrollSnapList());
-    }, 0);
+    };
+    const timer = setTimeout(init, 0);
     desktopApi.on('select', onDesktopSelect);
     desktopApi.on('reInit', onDesktopSelect);
     return () => {
@@ -114,7 +116,7 @@ export default function CategoryV1({ categories }: CategoryShowcaseProps) {
       <div className="container px-4 mx-auto">
         <div className="flex flex-col items-center justify-center text-center space-y-2 mb-5 md:space-y-4 md:mb-10">
           <h2 className="text-2xl font-bold tracking-tighter md:text-4xl text-foreground">
-            Browse by Category
+            {t('store.categories.browse_by_category') || 'Browse by Category'}
           </h2>
         </div>
 

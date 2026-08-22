@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Heart, Search } from 'lucide-react';
+import { ShoppingCart, Heart, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addToCart, clearCart } from '@/store/slices/cartSlice';
@@ -21,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductCardProps {
   product: {
@@ -46,36 +47,22 @@ interface ProductCardProps {
 }
 
 export default function ProductCardV6({ product: initialProduct, isFlashSale, priority, layout }: ProductCardProps) {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { data: session, status } = useSession();
   const wishlist = useAppSelector((state) => state.wishlist.items);
   const isInWishlist = wishlist.includes(initialProduct._id);
 
-  const isWholesaler = (session?.user as any)?.role === 'wholesaler';
-
-  const resolveWholesale = (p: any) => {
-    if (!p) return null;
-    return {
-      ...p,
-      price: (isWholesaler && p.wholesalePrice) ? p.wholesalePrice : p.price,
-      salePrice: (isWholesaler && p.wholesaleSalePrice) ? p.wholesaleSalePrice : p.salePrice
-    };
-  };
-
-  const resolvedInitialProduct = resolveWholesale(initialProduct);
-  const firstVariant = resolvedInitialProduct.variants && resolvedInitialProduct.variants.length > 0
-    ? resolveWholesale(resolvedInitialProduct.variants[0])
-    : null;
-
+  const firstVariant = initialProduct.variants && initialProduct.variants.length > 0 ? initialProduct.variants[0] : null;
   const product = firstVariant ? {
-    ...resolvedInitialProduct,
+    ...initialProduct,
     price: firstVariant.price,
     salePrice: firstVariant.salePrice,
-    stock: firstVariant.stock ?? resolvedInitialProduct.stock,
-    sku: firstVariant.sku ?? resolvedInitialProduct.sku,
-    images: firstVariant.image ? [firstVariant.image, ...resolvedInitialProduct.images.filter((img: string) => img !== firstVariant.image)] : resolvedInitialProduct.images
-  } : resolvedInitialProduct;
+    stock: firstVariant.stock ?? initialProduct.stock,
+    sku: firstVariant.sku ?? initialProduct.sku,
+    images: firstVariant.image ? [firstVariant.image, ...initialProduct.images.filter((img: string) => img !== firstVariant.image)] : initialProduct.images
+  } : initialProduct;
 
   const hasVariants = product.variants && product.variants.length > 0;
 
@@ -193,17 +180,15 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
     <div className={`group relative flex flex-col font-jost animate-in fade-in duration-700 ${layout === 'v3' ? 'lg:rounded-sm lg:overflow-hidden lg:border lg:border-border/40 lg:pb-3 lg:bg-card' : ''}`}>
       {/* Image Container */}
       <div className={`relative aspect-square overflow-hidden bg-muted ${layout === 'v3' ? 'lg:rounded-t-sm' : 'rounded-none'}`}>
-        <Link href={`/product/${product.slug}`} className="block h-full w-full">
-          <div className="relative h-full w-full">
-            <Image
-              src={product.images?.[0] || '/placeholder.png'}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-110"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              priority={priority}
-            />
-          </div>
+        <Link href={`/product/${product.slug}`} className="relative block h-full w-full">
+          <Image
+            src={product.images?.[0] || '/placeholder.png'}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
+          />
         </Link>
 
         {/* Unified Ribbon Badge (Top Left) */}
@@ -215,59 +200,52 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
                   product.isTrending ? 'bg-rose-600 text-white animate-pulse' :
                     'bg-amber-400 text-neutral-950'
               }`}>
-              {isFlashSale ? 'Flash' :
-                discount > 0 ? `${discount}% OFF` :
-                  product.isNewArrival ? 'New' :
-                    product.isTrending ? 'Trending' :
-                      'Featured'}
+              {isFlashSale ? (t('store.product.flash') as string) :
+                discount > 0 ? `${discount}% ${t('store.product.off')}` :
+                  product.isNewArrival ? (t('store.product.new') as string) :
+                    product.isTrending ? (t('store.product.trending') as string) :
+                      (t('store.product.featured') as string)}
             </div>
           </div>
         )}
 
-        {/* Hover Actions - Centered icons without background/padding */}
-        <div className="absolute inset-0 hidden md:flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/10 backdrop-blur-[1px] pointer-events-none">
+        {/* Hover Actions - Centered circles */}
+        <div className="absolute inset-0 hidden md:flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/5 backdrop-blur-[2px]">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  className="text-white hover:text-primary transition-all hover:scale-110 active:scale-95 p-0 bg-transparent border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] pointer-events-auto"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickViewModal(true); }}
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-12 w-12 rounded-full bg-white text-black hover:bg-primary hover:text-white shadow-xl transition-all hover:scale-110"
+                  onClick={(e) => { e.preventDefault(); setShowQuickViewModal(true); }}
                   aria-label="Quick view product"
                 >
                   <Search className="h-5 w-5" />
-                </button>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Quick View</p>
+                <p>{t('store.product.quick_view')}</p>
               </TooltipContent>
             </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  className={`transition-all hover:scale-110 active:scale-95 p-0 bg-transparent border-none outline-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)] ${isInWishlist ? 'text-primary' : 'text-white hover:text-primary'} pointer-events-auto`}
-                  onClick={(e) => { e.stopPropagation(); handleWishlist(e); }}
-                  aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className={`h-12 w-12 rounded-full bg-white shadow-xl transition-all hover:scale-110 ${isInWishlist ? 'text-primary' : 'text-black hover:bg-primary hover:text-white'}`}
+                  onClick={handleWishlist}
+                  aria-label={isInWishlist ? (t('store.product.remove_wishlist') as string) : (t('store.product.add_wishlist') as string)}
                 >
                   <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
-                </button>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}</p>
+                <p>{isInWishlist ? t('store.product.remove_wishlist') : t('store.product.add_wishlist')}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-
-        {/* Floating Cart Button on Image (Bottom Right) */}
-        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-20">
-          <button
-            className="flex items-center justify-center w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-full bg-primary text-primary-foreground hover:scale-110 active:scale-95 transition-all shadow-lg"
-            onClick={(e) => { e.stopPropagation(); handleAddToCart(e); }}
-            aria-label="Add to cart"
-          >
-            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[3]" />
-          </button>
         </div>
       </div>
 
@@ -294,13 +272,21 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
         </div>
 
         {/* Action Buttons - Visible on hover for Desktop, Always for Mobile */}
-        <div className="flex gap-2 pt-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
+        <div className="flex flex-col sm:flex-row gap-2 pt-2 transition-all duration-300 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-1 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 transition-all active:scale-95 py-2`}
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> {t('store.product.add_cart') || 'Cart'}
+          </Button>
           <Button
             size="sm"
-            className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-sm sm:text-base h-11 sm:h-10 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2"
+            className={`flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2`}
             onClick={handleBuyNow}
           >
-            অর্ডার করুন
+            {t('store.product.buy_now') || 'Buy Now'}
           </Button>
         </div>
       </div>

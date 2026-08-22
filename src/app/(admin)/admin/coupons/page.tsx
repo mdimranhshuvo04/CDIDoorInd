@@ -36,12 +36,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { CouponForm } from '@/components/admin/CouponForm';
 import Swal from 'sweetalert2';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CouponsPage() {
+  const { t } = useLanguage();
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -109,21 +110,21 @@ export default function CouponsPage() {
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Coupons</h2>
-          <p className="text-muted-foreground">Manage discount codes and promotional offers.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("coupons.title")}</h2>
+          <p className="text-muted-foreground">{t("coupons.subtitle")}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger 
             render={
               <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" /> Add Coupon
+                <Plus className="mr-2 h-4 w-4" /> {t("coupons.add_coupon")}
               </Button>
             }
           />
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Create New Coupon</DialogTitle>
-              <DialogDescription>Fill in the details to create a new discount code.</DialogDescription>
+              <DialogTitle>{t("coupons.create_new")}</DialogTitle>
+              <DialogDescription>{t("coupons.create_desc")}</DialogDescription>
             </DialogHeader>
             <CouponForm onSuccess={() => {
               setIsAddDialogOpen(false);
@@ -137,7 +138,7 @@ export default function CouponsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by coupon code..."
+            placeholder={t("coupons.search_placeholder") as string}
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -149,13 +150,13 @@ export default function CouponsPage() {
         <Table className="block md:table">
           <TableHeader className="hidden md:table-header-group bg-muted/50">
             <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
-              <TableHead className="font-bold">Code</TableHead>
-              <TableHead className="font-bold">Discount</TableHead>
-              <TableHead className="font-bold">Min Purchase</TableHead>
-              <TableHead className="font-bold">Expiry</TableHead>
-              <TableHead className="font-bold">Usage</TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-right font-bold">Actions</TableHead>
+              <TableHead className="font-bold">{t("coupons.code")}</TableHead>
+              <TableHead className="font-bold">{t("coupons.discount")}</TableHead>
+              <TableHead className="font-bold">{t("coupons.min_purchase")}</TableHead>
+              <TableHead className="font-bold">{t("coupons.expiry")}</TableHead>
+              <TableHead className="font-bold">{t("coupons.usage")}</TableHead>
+              <TableHead className="font-bold">{t("coupons.status")}</TableHead>
+              <TableHead className="text-right font-bold">{t("coupons.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="block md:table-row-group space-y-3 md:space-y-0 p-3 md:p-0">
@@ -168,7 +169,7 @@ export default function CouponsPage() {
             ) : filteredCoupons.length === 0 ? (
               <TableRow className="block md:table-row border md:border-b border-slate-100 rounded-xl p-3 sm:p-4 md:p-0 bg-white md:bg-transparent shadow-sm md:shadow-none mb-3 md:mb-0">
                 <TableCell colSpan={7} className="block md:table-cell py-1.5 md:py-4 text-left h-24 text-center text-muted-foreground">
-                  No coupons found.
+                  {t("coupons.no_coupons")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -200,7 +201,7 @@ export default function CouponsPage() {
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left">
                     <Badge variant={coupon.isActive ? "default" : "secondary"}>
-                      {coupon.isActive ? 'Active' : 'Inactive'}
+                      {coupon.isActive ? t("coupons.active") : t("coupons.inactive")}
                     </Badge>
                   </TableCell>
                   <TableCell className="block md:table-cell py-1.5 md:py-4 text-left md:text-right">
@@ -235,8 +236,8 @@ export default function CouponsPage() {
       <Dialog open={!!editingCoupon} onOpenChange={() => setEditingCoupon(null)}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Coupon</DialogTitle>
-            <DialogDescription>Update the coupon details below.</DialogDescription>
+            <DialogTitle>{t("coupons.edit_coupon")}</DialogTitle>
+            <DialogDescription>{t("coupons.edit_desc")}</DialogDescription>
           </DialogHeader>
           {editingCoupon && (
             <CouponForm 

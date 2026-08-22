@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Loader2, 
   CheckCircle, 
@@ -27,17 +28,18 @@ import Link from 'next/link';
 import Swal from 'sweetalert2';
 
 export default function ReviewsModerationPage() {
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchReviews = async () => {
     try {
       const res = await fetch('/api/admin/reviews');
-      if (!res.ok) throw new Error('Failed to load reviews');
+      if (!res.ok) throw new Error(t("reviews.error_loading") as string);
       const data = await res.json();
       setReviews(data);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to load reviews');
+      toast.error(error.message || (t("reviews.error_loading") as string));
     } finally {
       setLoading(false);
     }
@@ -56,25 +58,25 @@ export default function ReviewsModerationPage() {
       });
 
       if (res.ok) {
-        toast.success(`Review ${status}`);
+        toast.success(t("reviews.status_updated") as string);
         fetchReviews();
       } else {
-        toast.error('Failed to update review status');
+        toast.error(t("reviews.error_updating") as string);
       }
     } catch (error) {
-      toast.error('Error updating review status');
+      toast.error(t("reviews.error_updating") as string);
     }
   };
 
   const deleteReview = async (id: string) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "This review will be permanently deleted!",
+      title: t("reviews.delete_title"),
+      text: t("reviews.delete_text"),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#00D1B2',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: t("reviews.yes_delete"),
       customClass: {
         popup: 'rounded-xl',
         confirmButton: 'rounded-lg px-4 py-2 font-bold',
@@ -89,22 +91,22 @@ export default function ReviewsModerationPage() {
         });
 
         if (res.ok) {
-          toast.success('Review deleted');
+          toast.success(t("reviews.review_deleted") as string);
           fetchReviews();
         } else {
-          toast.error('Failed to delete review');
+          toast.error(t("reviews.error_deleting") as string);
         }
       } catch (error) {
-        toast.error('Error deleting review');
+        toast.error(t("reviews.error_deleting") as string);
       }
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending': return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-none">Pending</Badge>;
-      case 'approved': return <Badge variant="secondary" className="bg-green-100 text-green-800 border-none">Approved</Badge>;
-      case 'rejected': return <Badge variant="destructive">Rejected</Badge>;
+      case 'pending': return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-none">{t("reviews.pending")}</Badge>;
+      case 'approved': return <Badge variant="secondary" className="bg-green-100 text-green-800 border-none">{t("reviews.approved")}</Badge>;
+      case 'rejected': return <Badge variant="destructive">{t("reviews.rejected")}</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
     }
   };
@@ -116,9 +118,9 @@ export default function ReviewsModerationPage() {
   return (
     <div className="flex flex-col gap-4 pt-6 pb-20">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Review Moderation</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("reviews.title")}</h1>
         <Badge variant="outline" className="px-3 py-1">
-          {reviews.filter(r => r.status === 'pending').length} Pending Reviews
+          {reviews.filter(r => r.status === 'pending').length} {t("reviews.pending_reviews")}
         </Badge>
       </div>
       
@@ -126,19 +128,19 @@ export default function ReviewsModerationPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-[200px]">Product</TableHead>
-              <TableHead className="w-[150px]">Customer</TableHead>
-              <TableHead className="w-[100px]">Rating</TableHead>
-              <TableHead>Comment</TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="text-right w-[150px]">Actions</TableHead>
+              <TableHead className="w-[200px]">{t("reviews.product")}</TableHead>
+              <TableHead className="w-[150px]">{t("reviews.customer")}</TableHead>
+              <TableHead className="w-[100px]">{t("reviews.rating")}</TableHead>
+              <TableHead>{t("reviews.comment")}</TableHead>
+              <TableHead className="w-[100px]">{t("reviews.status")}</TableHead>
+              <TableHead className="text-right w-[150px]">{t("reviews.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {reviews.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No reviews found for moderation.
+                  {t("reviews.no_reviews")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -153,7 +155,7 @@ export default function ReviewsModerationPage() {
                           target="_blank"
                           className="text-[10px] text-primary flex items-center gap-1 hover:underline"
                         >
-                          View Product <ExternalLink className="h-2 w-2" />
+                          {t("reviews.view_product")} <ExternalLink className="h-2 w-2" />
                         </Link>
                       )}
                     </div>
@@ -177,7 +179,7 @@ export default function ReviewsModerationPage() {
                     <span className="text-[10px] text-muted-foreground italic block mt-1">
                       {review.createdAt && !isNaN(new Date(review.createdAt).getTime()) 
                         ? format(new Date(review.createdAt), 'MMM dd, yyyy')
-                        : 'Date N/A'}
+                        : t("reviews.date_na")}
                     </span>
                   </TableCell>
                   <TableCell>{getStatusBadge(review.status)}</TableCell>
@@ -189,7 +191,7 @@ export default function ReviewsModerationPage() {
                           size="icon" 
                           className="text-green-600 hover:text-green-700 hover:bg-green-50" 
                           onClick={() => updateStatus(review._id, 'approved')}
-                          title="Approve"
+                          title={t("reviews.approve") as string}
                         >
                           <CheckCircle className="h-4 w-4" />
                         </Button>
@@ -200,7 +202,7 @@ export default function ReviewsModerationPage() {
                           size="icon" 
                           className="text-destructive hover:bg-destructive/10" 
                           onClick={() => updateStatus(review._id, 'rejected')}
-                          title="Reject"
+                          title={t("reviews.reject") as string}
                         >
                           <XCircle className="h-4 w-4" />
                         </Button>
@@ -210,7 +212,7 @@ export default function ReviewsModerationPage() {
                         size="icon" 
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/5" 
                         onClick={() => deleteReview(review._id)}
-                        title="Delete Forever"
+                        title={t("reviews.delete_forever") as string}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

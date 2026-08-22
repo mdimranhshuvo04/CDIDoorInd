@@ -52,6 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UserData {
   _id: string;
@@ -71,6 +72,7 @@ interface UserData {
 function UsersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(Math.max(1, parseInt(searchParams.get('page') || '1')));
 
   const [users, setUsers] = useState<UserData[]>([]);
@@ -273,8 +275,8 @@ function UsersContent() {
     <div className="flex flex-col gap-6 px-0 py-4 md:p-8 w-full max-w-full overflow-x-hidden animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900">Users Management</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm font-medium">Manage and view all registered customers and staff.</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900">{t("users.title")}</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm font-medium">{t("users.subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {(isSuperAdmin || (session?.user as any)?.role === 'admin') && (
@@ -283,11 +285,11 @@ function UsersContent() {
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-4 sm:px-6 h-10 sm:h-11 shadow-lg shadow-blue-200 border-none transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
             >
               <ShieldCheck className="mr-1.5 sm:mr-2 h-4 w-4" />
-              Assign Admin
+              {t("users.assign_admin")}
             </Button>
           )}
           <div className="bg-primary/10 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-primary/20">
-            <span className="text-primary font-bold text-xs sm:text-sm">{totalCount} Total Users</span>
+            <span className="text-primary font-bold text-xs sm:text-sm">{totalCount} {t("users.total_users")}</span>
           </div>
         </div>
       </div>
@@ -296,7 +298,7 @@ function UsersContent() {
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search name, email or phone..."
+          placeholder={t("users.search_placeholder") as string}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-9 h-10 sm:h-11 rounded-xl border bg-white focus-visible:ring-primary/20 shadow-sm text-sm"
@@ -308,13 +310,13 @@ function UsersContent() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-[80px]">Avatar</TableHead>
-              <TableHead className="font-bold">Name</TableHead>
-              <TableHead className="font-bold">Email</TableHead>
-              <TableHead className="font-bold">Orders</TableHead>
-              <TableHead className="font-bold">Role</TableHead>
-              <TableHead className="font-bold">Joined</TableHead>
-              <TableHead className="text-right font-bold">Actions</TableHead>
+              <TableHead className="w-[80px]">{t("users.avatar")}</TableHead>
+              <TableHead className="font-bold">{t("users.name")}</TableHead>
+              <TableHead className="font-bold">{t("users.email")}</TableHead>
+              <TableHead className="font-bold">{t("users.orders")}</TableHead>
+              <TableHead className="font-bold">{t("users.role")}</TableHead>
+              <TableHead className="font-bold">{t("users.joined")}</TableHead>
+              <TableHead className="text-right font-bold">{t("users.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -340,7 +342,7 @@ function UsersContent() {
             ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-48 text-center">
-                  <p className="text-muted-foreground">No users found.</p>
+                  <p className="text-muted-foreground">{t("users.no_users_found")}</p>
                 </TableCell>
               </TableRow>
             ) : (
@@ -374,7 +376,7 @@ function UsersContent() {
                   <TableCell className="text-slate-600">{user.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-bold text-slate-700">{user.totalOrders} Orders</span>
+                      <span className="font-bold text-slate-700">{user.totalOrders} {t("users.orders")}</span>
                       <span className="text-[10px] text-muted-foreground font-medium">৳{user.totalSpent.toLocaleString()}</span>
                     </div>
                   </TableCell>
@@ -406,23 +408,23 @@ function UsersContent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuGroup>
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">User Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">{t("users.user_actions")}</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => openUserDetails(user)} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" /> View Details
+                            <Eye className="mr-2 h-4 w-4" /> {t("bills.view_details")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
 
                         <DropdownMenuSeparator />
 
                         <DropdownMenuGroup>
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">{t("users.management")}</DropdownMenuLabel>
 
                           {user.role !== 'admin' && (
                             <DropdownMenuItem
                               onClick={() => handleUpdateRole(user._id, 'admin')}
                               className="cursor-pointer text-blue-600 font-bold"
                             >
-                              <ShieldCheck className="mr-2 h-4 w-4" /> Make Admin
+                              <ShieldCheck className="mr-2 h-4 w-4" /> {t("users.make_admin")}
                             </DropdownMenuItem>
                           )}
 
@@ -431,7 +433,7 @@ function UsersContent() {
                               onClick={() => handleUpdateRole(user._id, 'manager')}
                               className="cursor-pointer text-primary font-bold"
                             >
-                              <UserCog className="mr-2 h-4 w-4" /> Make Manager
+                              <UserCog className="mr-2 h-4 w-4" /> {t("users.make_manager")}
                             </DropdownMenuItem>
                           )}
 
@@ -440,19 +442,19 @@ function UsersContent() {
                               onClick={() => handleUpdateRole(user._id, 'user')}
                               className="cursor-pointer text-slate-600 font-bold"
                             >
-                              <UserCog className="mr-2 h-4 w-4" /> Make User
+                              <UserCog className="mr-2 h-4 w-4" /> {t("users.make_user")}
                             </DropdownMenuItem>
                           )}
 
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive cursor-pointer font-medium">
-                            <ShieldAlert className="mr-2 h-4 w-4" /> Suspend User
+                            <ShieldAlert className="mr-2 h-4 w-4" /> {t("users.suspend_user")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDeleteUser(user._id, user.name)}
                             className="text-destructive cursor-pointer font-bold bg-red-50 hover:bg-red-100 mt-1"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete User
+                            <Trash2 className="mr-2 h-4 w-4" /> {t("users.delete_user")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
@@ -487,7 +489,7 @@ function UsersContent() {
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-xs bg-white rounded-2xl border border-slate-100">
-            No users found.
+            {t("users.no_users_found")}
           </div>
         ) : (
           users.map((user) => (
@@ -540,23 +542,23 @@ function UsersContent() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuGroup>
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">User Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">{t("users.user_actions")}</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => openUserDetails(user)} className="cursor-pointer">
-                          <Eye className="mr-2 h-4 w-4" /> View Details
+                          <Eye className="mr-2 h-4 w-4" /> {t("bills.view_details")}
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
 
                       <DropdownMenuSeparator />
 
                       <DropdownMenuGroup>
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">{t("users.management")}</DropdownMenuLabel>
 
                         {user.role !== 'admin' && (
                           <DropdownMenuItem
                             onClick={() => handleUpdateRole(user._id, 'admin')}
                             className="cursor-pointer text-blue-600 font-bold"
                           >
-                            <ShieldCheck className="mr-2 h-4 w-4" /> Make Admin
+                            <ShieldCheck className="mr-2 h-4 w-4" /> {t("users.make_admin")}
                           </DropdownMenuItem>
                         )}
 
@@ -565,7 +567,7 @@ function UsersContent() {
                             onClick={() => handleUpdateRole(user._id, 'manager')}
                             className="cursor-pointer text-primary font-bold"
                           >
-                            <UserCog className="mr-2 h-4 w-4" /> Make Manager
+                            <UserCog className="mr-2 h-4 w-4" /> {t("users.make_manager")}
                           </DropdownMenuItem>
                         )}
 
@@ -574,19 +576,19 @@ function UsersContent() {
                             onClick={() => handleUpdateRole(user._id, 'user')}
                             className="cursor-pointer text-slate-600 font-bold"
                           >
-                            <UserCog className="mr-2 h-4 w-4" /> Make User
+                            <UserCog className="mr-2 h-4 w-4" /> {t("users.make_user")}
                           </DropdownMenuItem>
                         )}
 
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive cursor-pointer font-medium">
-                          <ShieldAlert className="mr-2 h-4 w-4" /> Suspend User
+                          <ShieldAlert className="mr-2 h-4 w-4" /> {t("users.suspend_user")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteUser(user._id, user.name)}
                           className="text-destructive cursor-pointer font-bold bg-red-50 hover:bg-red-100 mt-1"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete User
+                          <Trash2 className="mr-2 h-4 w-4" /> {t("users.delete_user")}
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
@@ -596,7 +598,7 @@ function UsersContent() {
 
               <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2 mt-2">
                 <div className="text-[10px] text-muted-foreground">
-                  <span>Joined: </span>
+                  <span>{t("users.joined")}: </span>
                   <span className="font-semibold text-slate-700">
                     {new Date(user.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
@@ -606,8 +608,8 @@ function UsersContent() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-slate-900 text-xs block">{user.totalOrders} Orders</span>
-                  <span className="text-[10px] text-muted-foreground block font-medium">৳{user.totalSpent.toLocaleString()} spent</span>
+                  <span className="font-bold text-slate-900 text-xs block">{user.totalOrders} {t("users.orders")}</span>
+                  <span className="text-[10px] text-muted-foreground block font-medium">৳{user.totalSpent.toLocaleString()} {t("users.spent")}</span>
                 </div>
               </div>
             </div>
@@ -634,7 +636,7 @@ function UsersContent() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-2">
-              User Profile
+              {t("users.user_profile")}
               <Badge className="bg-primary/10 text-primary border-none">{selectedUser?.role}</Badge>
             </DialogTitle>
           </DialogHeader>
@@ -661,7 +663,7 @@ function UsersContent() {
                   <p className="text-muted-foreground font-medium">{selectedUser.email}</p>
                   <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
                     <Badge className="bg-primary/10 text-primary border-none font-bold">{selectedUser.role}</Badge>
-                    <Badge variant="outline" className="font-bold">ID: {selectedUser._id.slice(-6).toUpperCase()}</Badge>
+                    <Badge variant="outline" className="font-bold">{t("users.id")}: {selectedUser._id.slice(-6).toUpperCase()}</Badge>
                   </div>
                 </div>
               </div>
@@ -669,14 +671,14 @@ function UsersContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Contact Section */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Contact Information</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">{t("users.contact_information")}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-4 p-4 rounded-2xl border bg-white hover:border-primary/30 transition-colors">
                       <div className="p-2.5 bg-blue-50 rounded-xl">
                         <Phone className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Phone Number</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t("users.phone_number")}</p>
                         <p className="text-sm font-bold text-slate-700">{selectedUser.phone || 'N/A'}</p>
                       </div>
                     </div>
@@ -686,11 +688,11 @@ function UsersContent() {
                         <MapPin className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Shipping Address</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t("users.shipping_address")}</p>
                         <p className="text-sm font-bold text-slate-700 leading-snug">
                           {selectedUser.addresses && selectedUser.addresses.length > 0
                             ? `${selectedUser.addresses[0].street || ''}, ${selectedUser.addresses[0].city || ''}, ${selectedUser.addresses[0].state || ''}`
-                            : 'No address saved yet'}
+                            : t("users.no_address_saved")}
                         </p>
                       </div>
                     </div>
@@ -699,31 +701,31 @@ function UsersContent() {
 
                 {/* Stats Section */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Order Statistics</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">{t("users.order_statistics")}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex flex-col items-center text-center">
                       <ShoppingBag className="h-6 w-6 text-orange-500 mb-2" />
                       <span className="text-2xl font-black text-orange-600">{selectedUser.totalOrders}</span>
-                      <span className="text-[10px] font-bold uppercase text-orange-400">Total Orders</span>
+                      <span className="text-[10px] font-bold uppercase text-orange-400">{t("users.total_orders")}</span>
                     </div>
                     <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex flex-col items-center text-center">
                       <CreditCard className="h-6 w-6 text-primary mb-2" />
                       <span className="text-xl font-black text-primary">৳{selectedUser.totalSpent.toLocaleString()}</span>
-                      <span className="text-[10px] font-bold uppercase text-primary/60">Total Spent</span>
+                      <span className="text-[10px] font-bold uppercase text-primary/60">{t("users.total_spent")}</span>
                     </div>
                   </div>
 
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-2">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-400">LAST VISIT</span>
+                      <span className="font-bold text-slate-400">{t("users.last_visit")}</span>
                       <span className="font-black text-slate-700">
-                        {selectedUser.lastActive ? new Date(selectedUser.lastActive).toLocaleDateString() : 'Never'}
+                        {selectedUser.lastActive ? new Date(selectedUser.lastActive).toLocaleDateString() : t("users.never")}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-400">LAST ORDER</span>
+                      <span className="font-bold text-slate-400">{t("users.last_order")}</span>
                       <span className="font-black text-slate-700">
-                        {selectedUser.lastOrderDate ? new Date(selectedUser.lastOrderDate).toLocaleDateString() : 'No orders'}
+                        {selectedUser.lastOrderDate ? new Date(selectedUser.lastOrderDate).toLocaleDateString() : t("users.no_orders")}
                       </span>
                     </div>
                   </div>
@@ -732,7 +734,7 @@ function UsersContent() {
 
               <div className="pt-2">
                 <Button className="w-full h-14 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 group">
-                  VIEW FULL ORDER HISTORY
+                  {t("users.view_full_order_history")}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
@@ -752,14 +754,14 @@ function UsersContent() {
               <div className="h-12 w-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm border border-white/30">
                 <ShieldCheck className="h-6 w-6 text-white" />
               </div>
-              <DialogTitle className="text-2xl font-black tracking-tight text-white">Assign Admin Access</DialogTitle>
-              <p className="text-blue-100 text-sm font-medium mt-1">Grant administrative privileges to a user by email.</p>
+              <DialogTitle className="text-2xl font-black tracking-tight text-white">{t("users.assign_admin_access")}</DialogTitle>
+              <p className="text-blue-100 text-sm font-medium mt-1">{t("users.grant_admin_privileges")}</p>
             </DialogHeader>
           </div>
 
           <form onSubmit={handleAssignAdmin} className="p-8 space-y-6 bg-white">
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">{t("users.email_address")}</label>
               <div className="relative group">
                 <input
                   type="email"
@@ -773,7 +775,7 @@ function UsersContent() {
               <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100 mt-2">
                 <div className="h-4 w-4 rounded-full bg-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-[10px] text-amber-700 font-bold leading-normal">
-                  NOTE: When this user logs in with Google using this email, they will automatically be granted Admin status.
+                  {t("users.admin_note")}
                 </p>
               </div>
             </div>
@@ -785,7 +787,7 @@ function UsersContent() {
                 onClick={() => setIsAssignAdminOpen(false)}
                 className="flex-1 h-14 rounded-2xl font-bold border-2 hover:bg-slate-50"
               >
-                CANCEL
+                {t("users.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -795,11 +797,11 @@ function UsersContent() {
                 {isAssigning ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    PROCESSING...
+                    {t("users.processing")}
                   </>
                 ) : (
                   <>
-                    CONFIRM ASSIGN
+                    {t("users.confirm_assign")}
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

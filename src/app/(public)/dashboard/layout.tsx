@@ -22,8 +22,10 @@ import { signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -89,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         pathname === '/dashboard' ? 'border-primary bg-muted/50' : 'border-transparent'
                       )}
                     >
-                      <Clock className="mr-3 h-4 w-4" /> My Attendance
+                      <Clock className="mr-3 h-4 w-4" /> {t('store.dashboard.my_attendance') || 'My Attendance'}
                     </Link>
                     <Link 
                       href="/dashboard/leaves" 
@@ -99,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         pathname === '/dashboard/leaves' ? 'border-primary bg-muted/50' : 'border-transparent'
                       )}
                     >
-                      <Calendar className="mr-3 h-4 w-4" /> Leave Requests
+                      <Calendar className="mr-3 h-4 w-4" /> {t('store.dashboard.leave_requests') || 'Leave Requests'}
                     </Link>
                     <Link 
                       href="/dashboard/payments" 
@@ -109,7 +111,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         pathname === '/dashboard/payments' ? 'border-primary bg-muted/50' : 'border-transparent'
                       )}
                     >
-                      <DollarSign className="mr-3 h-4 w-4" /> Salary History
+                      <DollarSign className="mr-3 h-4 w-4" /> {t('store.dashboard.salary_history') || 'Salary History'}
                     </Link>
                   </>
                 ) : (
@@ -122,7 +124,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         pathname === '/dashboard' ? 'border-primary bg-muted/50' : 'border-transparent'
                       )}
                     >
-                      <ShoppingBag className="mr-3 h-4 w-4" /> My Orders
+                      <ShoppingBag className="mr-3 h-4 w-4" /> {t('store.dashboard.my_orders') || 'My Orders'}
                     </Link>
                     <Link 
                       href="/dashboard/wishlist" 
@@ -132,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         pathname === '/dashboard/wishlist' ? 'border-primary bg-muted/50' : 'border-transparent'
                       )}
                     >
-                      <Heart className="mr-3 h-4 w-4" /> Wishlist
+                      <Heart className="mr-3 h-4 w-4" /> {t('store.dashboard.wishlist') || 'Wishlist'}
                     </Link>
                   </>
                 )}
@@ -144,7 +146,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     pathname === '/dashboard/profile' ? 'border-primary bg-muted/50' : 'border-transparent'
                   )}
                 >
-                  <UserIcon className="mr-3 h-4 w-4" /> Profile Info
+                  <UserIcon className="mr-3 h-4 w-4" /> {t('store.dashboard.profile_info') || 'Profile Info'}
                 </Link>
                 <Link 
                   href="/dashboard/settings" 
@@ -154,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     pathname === '/dashboard/settings' ? 'border-primary bg-muted/50' : 'border-transparent'
                   )}
                 >
-                  <Settings className="mr-3 h-4 w-4" /> Account Settings
+                  <Settings className="mr-3 h-4 w-4" /> {t('store.dashboard.account_settings') || 'Account Settings'}
                 </Link>
                 <Separator />
                 <Button 
@@ -162,7 +164,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     className="justify-start px-6 h-12 rounded-none border-l-4 border-transparent text-destructive hover:bg-destructive/10"
                     onClick={() => signOut({ callbackUrl: window.location.origin })}
                 >
-                  <LogOut className="mr-3 h-4 w-4" /> Sign Out
+                  <LogOut className="mr-3 h-4 w-4" /> {t('store.dashboard.sign_out') || 'Sign Out'}
                 </Button>
               </nav>
             </CardContent>

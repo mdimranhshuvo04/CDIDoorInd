@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function ShowroomTopbar() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const router = useRouter();
   const [showroomName, setShowroomName] = useState<string | null>(null);
@@ -89,7 +90,7 @@ export default function ShowroomTopbar() {
                 onClick={() => signOut({ callbackUrl: window.location.origin })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t("store.dashboard.log_out") || "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
